@@ -1,0 +1,8 @@
+---
+applyTo: '{{glob pattern, e.g. **/*.cs or **/Infrastructure/**}}'
+---
+
+{{Convention or rule — one per line, keep to 5-10 rules max}}
+- {{Rule 1}}
+- {{Rule 2}}
+- {{Rule 3}}

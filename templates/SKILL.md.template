@@ -1,0 +1,30 @@
+---
+name: {{name — lowercase with hyphens, max 64 chars, matches directory name}}
+description: {{what this skill does and when to use it — max 1024 chars}}
+argument-hint: {{guidance shown after /skill-name in chat}}
+user-invocable: {{true for slash command, false for agent-only}}
+disable-model-invocation: {{true to require manual invocation}}
+---
+
+# {{Name}} Skill
+
+{{One-line description of what this skill automates.}}
+
+## Workflow
+
+1. {{Step 1}}
+2. {{Step 2}}
+3. {{Step 3}}
+
+## Pre-requisites
+
+- {{What must exist before this skill can run}}
+
+## Output
+
+{{What this skill produces — files, updates, reports}}
+
+## Guidelines
+
+- {{Guideline 1}}
+- {{Guideline 2}}

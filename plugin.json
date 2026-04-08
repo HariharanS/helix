@@ -1,0 +1,17 @@
+{
+  "name": "helix",
+  "version": "0.1.0",
+  "description": "Multi-agent development system for driving features from intent to production across multiple repos",
+  "publisher": "helix",
+  "repository": "",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "AI",
+    "Chat"
+  ],
+  "enabledPlugins": [],
+  "extraKnownMarketplaces": []
+}

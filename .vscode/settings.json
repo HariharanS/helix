@@ -1,0 +1,14 @@
+{
+  "chat.agentFilesLocations": [
+    { "source": "agents" }
+  ],
+  "chat.skillsLocations": [
+    { "source": "skills" }
+  ],
+  "chat.promptFilesLocations": [
+    { "source": ".github/prompts" }
+  ],
+  "chat.hookFilesLocations": [
+    { "source": "hooks" }
+  ]
+}

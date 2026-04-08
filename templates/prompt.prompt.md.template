@@ -1,0 +1,11 @@
+---
+name: {{name}}
+description: {{what this prompt does}}
+agent: {{target agent name, or 'ask' for conversational, or 'agent' for agentic}}
+mode: ask
+tools: [{{tools if needed, e.g. 'read', 'search/codebase'}}]
+---
+
+{{Prompt instructions — what the agent should do when this prompt is invoked.}}
+
+${input:{{variable_name}}:{{placeholder text shown to user}}}

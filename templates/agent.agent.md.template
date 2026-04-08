@@ -1,0 +1,41 @@
+---
+name: {{name}}
+description: {{description — be specific, this drives automatic matching}}
+tools: [{{tools — e.g. 'read', 'edit', 'search/codebase', 'execute', 'agent'}}]
+agents: [{{agents — subagents this can invoke, or [] for none}}]
+user-invocable: {{true or false}}
+disable-model-invocation: {{false unless this should never be auto-invoked}}
+model: ['Claude Sonnet 4.5 (copilot)']
+argument-hint: {{guidance text shown in chat input}}
+handoffs: {{optional — remove if not needed}}
+  - label: {{button text}}
+    agent: {{target agent name}}
+    prompt: {{text sent to target}}
+    send: false
+---
+
+# {{Name}} Agent
+
+{{One-line role description.}}
+
+## Core Principles
+
+- {{Principle 1}}
+- {{Principle 2}}
+- {{Principle 3}}
+
+## Workflow
+
+1. {{Step 1}}
+2. {{Step 2}}
+3. {{Step 3}}
+
+## Output Format
+
+{{Define the expected output structure — use XML tags for agent-consumed output, markdown for human-consumed output.}}
+
+## Guidelines
+
+- {{Guideline 1}}
+- {{Guideline 2}}
+- {{Do NOT... constraint}}

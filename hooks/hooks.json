@@ -1,0 +1,60 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-start.js",
+        "windows": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-start.js",
+        "timeout": 10
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/pre-tool-use.js",
+        "windows": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/pre-tool-use.js",
+        "timeout": 10
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/post-tool-use.js",
+        "windows": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/post-tool-use.js",
+        "timeout": 10
+      }
+    ],
+    "SubagentStart": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/subagent-start.js",
+        "windows": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/subagent-start.js",
+        "timeout": 5
+      }
+    ],
+    "SubagentStop": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/subagent-stop.js",
+        "windows": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/subagent-stop.js",
+        "timeout": 10
+      }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/pre-compact.js",
+        "windows": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/pre-compact.js",
+        "timeout": 15
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/stop.js",
+        "windows": "node ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/stop.js",
+        "timeout": 15
+      }
+    ]
+  }
+}
