@@ -3,11 +3,24 @@
  * Helix SessionStart Hook
  *
  * Fires when a new session begins or resumes.
- * Loads memory index and active task board into context.
+ * Loads active workspace context, memory index, and task boards.
  */
 
 const fs = require('fs');
 const path = require('path');
+const yaml = require === undefined ? null : null; // yaml parsing done manually below
+
+function parseYaml(content) {
+  // Simple YAML value parser for key: value pairs
+  const result = {};
+  for (const line of content.split('\n')) {
+    const match = line.match(/^(\w+):\s*(.+)$/);
+    if (match) {
+      result[match[1]] = match[2].trim();
+    }
+  }
+  return result;
+}
 
 function main() {
   const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
@@ -15,35 +28,47 @@ function main() {
 
   const messages = [];
 
-  // Check for memory index
-  const memoryPaths = [
-    path.join(cwd, 'memory', 'index.md'),
-    path.join(cwd, '..', 'helix', 'memory', 'index.md'),
-  ];
+  // 1. Check active workspace
+  const activeWsPath = path.join(cwd, '.helix', 'active-workspace.yaml');
+  let activeWorkspace = null;
 
-  for (const memPath of memoryPaths) {
-    if (fs.existsSync(memPath)) {
-      const content = fs.readFileSync(memPath, 'utf8');
-      if (content.trim() && !content.includes('No episodes recorded')) {
-        messages.push(`[Helix Memory] Loaded memory index from ${memPath}`);
-      }
-      break;
+  if (fs.existsSync(activeWsPath)) {
+    const content = fs.readFileSync(activeWsPath, 'utf8');
+    const parsed = parseYaml(content);
+    if (parsed.active && parsed.active !== 'null') {
+      activeWorkspace = parsed.active;
+      messages.push(`[Helix] Active workspace: ${activeWorkspace}`);
+    } else {
+      messages.push('[Helix] No active workspace. Use workspace-sync to set one up.');
     }
   }
 
-  // Check for active task boards
-  const taskBoardPaths = [
-    path.join(cwd, 'task-boards'),
-    path.join(cwd, '..', 'helix', 'task-boards'),
-  ];
+  // 2. Check memory index
+  const memoryIndexPath = path.join(cwd, '.helix', 'memory', 'index.md');
+  if (fs.existsSync(memoryIndexPath)) {
+    const content = fs.readFileSync(memoryIndexPath, 'utf8');
+    if (content.trim() && !content.includes('No episodes recorded')) {
+      messages.push(`[Helix Memory] Loaded memory index.`);
+    }
+  }
 
-  for (const tbPath of taskBoardPaths) {
+  // 3. Check workspace task boards
+  if (activeWorkspace) {
+    const tbPath = path.join(cwd, 'workspaces', activeWorkspace, 'task-boards');
     if (fs.existsSync(tbPath)) {
       const files = fs.readdirSync(tbPath).filter(f => f.endsWith('.md'));
       if (files.length > 0) {
-        messages.push(`[Helix] Active task boards: ${files.join(', ')}`);
+        messages.push(`[Helix] Task boards: ${files.join(', ')}`);
       }
-      break;
+    }
+
+    // 4. Check workspace decisions
+    const decPath = path.join(cwd, 'workspaces', activeWorkspace, 'decisions');
+    if (fs.existsSync(decPath)) {
+      const files = fs.readdirSync(decPath).filter(f => f.endsWith('.md'));
+      if (files.length > 0) {
+        messages.push(`[Helix] Decisions logs: ${files.join(', ')}`);
+      }
     }
   }
 

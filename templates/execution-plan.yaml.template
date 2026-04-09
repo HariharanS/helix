@@ -1,0 +1,47 @@
+feature: feature-name
+status: ready-for-implementation
+source:
+  refined_intent: workspaces/{workspace-name}/refined-intent.md
+  prd: workspaces/{workspace-name}/prd.md
+  tech_design: workspaces/{workspace-name}/tech-design.md
+
+scheduler:
+  default_mode: ralph-loop
+  fleet_groups: []
+
+tasks:
+  - id: TASK-001
+    title: Short task title
+    repo: ../path-to-repo
+    goal: Outcome this task must produce
+    priority: P0
+    depends_on: []
+    can_run_in_parallel: false
+    design_refs:
+      - tech-design.md#Section
+    context_bundle: workspaces/{workspace-name}/context-bundle-TASK-001.md
+    ownership:
+      write_paths:
+        - src/**
+      read_paths:
+        - src/**
+        - tests/**
+      shared_contracts: []
+    expected_files:
+      - src/path/to/file
+      - tests/path/to/test
+    commands:
+      verify:
+        - npm test -- --runInBand path/to/test
+      focused_test:
+        - npm test -- path/to/test
+      full_suite:
+        - npm test
+    acceptance_criteria:
+      - Clear, testable acceptance criterion
+    done_when:
+      - Focused tests pass
+      - Expected files exist
+    blocker_if:
+      - Command cannot be verified
+      - Ownership overlaps unresolved task

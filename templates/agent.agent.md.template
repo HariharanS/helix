@@ -32,10 +32,11 @@ handoffs: {{optional — remove if not needed}}
 
 ## Output Format
 
-{{Define the expected output structure — use XML tags for agent-consumed output, markdown for human-consumed output.}}
+{{Define the expected output structure — prefer compact markdown or YAML. Use XML only when strict parsing is truly required.}}
 
 ## Guidelines
 
 - {{Guideline 1}}
 - {{Guideline 2}}
 - {{Do NOT... constraint}}
+- Keep instructions short, specific, and free of generic best-practice filler

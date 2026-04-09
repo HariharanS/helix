@@ -1,8 +1,8 @@
 ---
-applyTo: '{{glob pattern, e.g. **/*.cs or **/Infrastructure/**}}'
+applyTo: '{{narrow glob pattern, e.g. **/Infrastructure/**/*.cs or tests/**/*Tests.cs}}'
 ---
 
-{{Convention or rule — one per line, keep to 5-10 rules max}}
+{{Non-obvious repo-specific rules only. Keep to 5-8 bullets max.}}
 - {{Rule 1}}
 - {{Rule 2}}
 - {{Rule 3}}

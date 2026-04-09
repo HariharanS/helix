@@ -3,11 +3,16 @@
  * Helix SubagentStart Hook
  *
  * Fires when a subagent is spawned.
- * Injects relevant context: AGENTS.md summary, active task info.
+ * Injects relevant context: active workspace info, repo AGENTS.md summary.
  */
 
 const fs = require('fs');
 const path = require('path');
+
+function parseYamlValue(content, key) {
+  const match = content.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+  return match ? match[1].trim() : null;
+}
 
 function main() {
   const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
@@ -16,7 +21,24 @@ function main() {
 
   const contextParts = [];
 
-  // Inject repo AGENTS.md if working in a service repo
+  // 1. Inject active workspace context
+  const activeWsPath = path.join(cwd, '.helix', 'active-workspace.yaml');
+  if (fs.existsSync(activeWsPath)) {
+    const content = fs.readFileSync(activeWsPath, 'utf8');
+    const active = parseYamlValue(content, 'active');
+    if (active && active !== 'null') {
+      contextParts.push(`[Helix] Active workspace: ${active}`);
+
+      // Inject workspace.yaml summary if it exists
+      const wsYamlPath = path.join(cwd, 'workspaces', active, 'workspace.yaml');
+      if (fs.existsSync(wsYamlPath)) {
+        const wsContent = fs.readFileSync(wsYamlPath, 'utf8');
+        contextParts.push(`[Helix] Workspace config:\n${wsContent}`);
+      }
+    }
+  }
+
+  // 2. Inject repo AGENTS.md if working in a service repo
   const agentsMdPath = path.join(cwd, 'AGENTS.md');
   if (fs.existsSync(agentsMdPath)) {
     const content = fs.readFileSync(agentsMdPath, 'utf8');

@@ -6,6 +6,6 @@ mode: ask
 tools: [{{tools if needed, e.g. 'read', 'search/codebase'}}]
 ---
 
-{{Prompt instructions — what the agent should do when this prompt is invoked.}}
+{{Prompt instructions — what the agent should do when this prompt is invoked. Keep this tight, explicit, and free of generic filler.}}
 
 ${input:{{variable_name}}:{{placeholder text shown to user}}}

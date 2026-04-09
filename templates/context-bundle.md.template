@@ -1,0 +1,61 @@
+---
+task_id: TASK-XXX
+question: What decision or implementation this bundle supports
+primary_repo: ../path-to-repo
+confidence: high | medium | low
+last_verified: YYYY-MM-DD
+---
+
+## Domain
+- Glossary:
+  - BusinessTerm: Meaning in this codebase
+    Evidence: path/to/file#Symbol
+- Invariants:
+  - Rule: Business rule that must remain true
+    Type: fact | inference
+    Evidence: path/to/file#Symbol
+- State:
+  - Pending -> Completed on TriggerName
+    Type: fact | inference
+    Evidence: path/to/file#Symbol
+
+## Anchors
+- path: path/to/file
+  symbol: ClassName.MethodName
+  anchor_text: stable nearby line or signature
+  reason: Why this matters
+  stability: high | medium | low
+
+## Patterns
+- path: path/to/file#Symbol
+  summary: Relevant implementation or test pattern
+  snippet: Optional short snippet only if needed
+
+## Contracts
+- kind: HTTP | Event | Queue | DB | File
+  owner: repo-or-service
+  summary: What matters to this task
+  evidence: path/to/file#Symbol
+
+## Tests
+- pattern: path/to/test#TestName
+  reason: Behavior covered by this test
+- commands:
+  - verify: Fast verification command
+  - focused: Focused test command
+  - full: Full suite command
+
+## Infra
+- resource: ResourceName
+  type: Queue | DB | Lambda | Service
+  role: Why it matters
+  evidence: path/to/file#Symbol
+
+## Avoid
+- What not to do and why
+
+## Open Questions
+- What remains uncertain
+
+## Read Order
+- path/to/file#Symbol

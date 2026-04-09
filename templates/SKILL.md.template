@@ -28,3 +28,4 @@ disable-model-invocation: {{true to require manual invocation}}
 
 - {{Guideline 1}}
 - {{Guideline 2}}
+- Keep the skill operational and concise; move examples or deep detail to annex files if needed

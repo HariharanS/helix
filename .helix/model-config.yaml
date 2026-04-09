@@ -1,0 +1,25 @@
+# Helix Model Configuration
+# Default model assignments per tier. Each agent's frontmatter contains its model.
+# To override: edit the agent's .agent.md frontmatter `model` field.
+
+tiers:
+  reasoning: Claude Opus 4.5 (copilot)      # Creative, strategic, design
+  coding: GPT-5.2 Codex (copilot)           # Code generation, tests
+  analysis: Claude Sonnet 4 (copilot)        # Review, routing, decomposition
+  visual: Gemini 2.5 Pro (copilot)           # UI testing, visual understanding
+  fast: Claude Haiku 4.5 (copilot)           # Exploration, summaries, state mgmt
+
+assignments:
+  helix: analysis
+  scribe: fast
+  jam: reasoning
+  planner: reasoning
+  architect: reasoning
+  decomposer: analysis
+  explorer: fast
+  implementer: coding
+  tdd-red: coding
+  reviewer: analysis
+  distiller: fast
+  resume: fast
+  ui-tester: visual

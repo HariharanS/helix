@@ -15,26 +15,20 @@ function main() {
   const sessionId = input.sessionId || 'unknown';
   const timestamp = new Date().toISOString();
 
-  // Attempt to save a compaction marker to episodic memory
-  const memoryDirs = [
-    path.join(cwd, '.copilot', 'memory', 'episodes'),
-    path.join(cwd, 'memory', 'episodes'),
-  ];
+  // Save compaction marker to episodic memory
+  const episodesDir = path.join(cwd, '.helix', 'memory', 'episodes');
 
-  for (const dir of memoryDirs) {
-    if (fs.existsSync(dir)) {
-      const markerPath = path.join(dir, `.compaction-${sessionId}.tmp`);
-      try {
-        fs.writeFileSync(markerPath, JSON.stringify({
-          timestamp,
-          sessionId,
-          event: 'pre-compaction',
-          note: 'Context was compacted. Check session history for full details.',
-        }, null, 2));
-      } catch (e) {
-        // Non-critical — don't block on write failure
-      }
-      break;
+  if (fs.existsSync(episodesDir)) {
+    const markerPath = path.join(episodesDir, `.compaction-${sessionId}.tmp`);
+    try {
+      fs.writeFileSync(markerPath, JSON.stringify({
+        timestamp,
+        sessionId,
+        event: 'pre-compaction',
+        note: 'Context was compacted. Check session history for full details.',
+      }, null, 2));
+    } catch (e) {
+      // Non-critical — don't block on write failure
     }
   }
 

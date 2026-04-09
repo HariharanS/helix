@@ -1,0 +1,104 @@
+---
+name: maker
+description: Creates new agents, skills, prompts, or workspaces from templates and conventions
+argument-hint: "What to create (e.g. 'new skill for API scaffolding', 'new workspace for order-feature', 'new prompt for code review')"
+user-invocable: true
+disable-model-invocation: true
+---
+
+# Maker Skill
+
+Creates new Helix artifacts (agents, skills, prompts, workspaces) following established conventions.
+
+## What Maker Can Create
+
+### 1. Agent
+
+Creates a new `.github/agents/{name}.agent.md` with:
+
+```yaml
+---
+name: {name}
+description: {one-line description}
+tools: [{appropriate tools}]
+agents: [{agents it can spawn}]
+user-invocable: {true|false}
+disable-model-invocation: false
+model: ['{model from tier assignment}']
+argument-hint: {what input it expects}
+---
+```
+
+**Guidelines:**
+- Choose model tier based on task type (reasoning/coding/analysis/visual/fast)
+- Reference `.helix/model-config.yaml` for tier assignments
+- Agent must be tech-agnostic — no stack-specific references
+- Include "Read AGENTS.md and .instructions.md for conventions" directive
+- Keep agent instructions lean — avoid long narrative guidance and generic advice
+- Prefer markdown or YAML-shaped outputs over XML unless strict parsing is required
+- Update `.helix/model-config.yaml` assignments section
+
+### 2. Skill
+
+Creates a new `.github/skills/{name}/SKILL.md` with:
+
+```yaml
+---
+name: {name}
+description: {one-line description}
+argument-hint: {what input it expects}
+user-invocable: true
+disable-model-invocation: true
+---
+```
+
+**Guidelines:**
+- Skills should encode a repeatable workflow (not a one-off task)
+- Include clear phases with expected inputs and outputs
+- Include error handling guidance
+- If created from a skill-synth candidate, reference the pattern examples
+- Keep the skill short and operational — no filler or duplicated repo guidance
+
+### 3. Prompt
+
+Creates a new `.github/prompts/{name}.prompt.md` with:
+
+```yaml
+---
+name: {name}
+description: {one-line description}
+model: ['{model}']
+---
+```
+
+**Guidelines:**
+- Prompts are for structured output generation (PRDs, designs, reports)
+- Include a clear template in the body
+- Prompts are simpler than skills — no multi-phase workflow
+- Keep prompt bodies minimal and specific to the output you need
+
+### 4. Workspace
+
+Creates a new `workspaces/{name}/` directory with:
+
+```
+workspaces/{name}/
+├── workspace.yaml       # Repo list and config
+├── execution-plans/     # Machine-readable task contracts
+├── task-boards/         # Empty, ready for use
+└── decisions/           # Empty, ready for use
+```
+
+**Guidelines:**
+- Ask for the repo list (paths, URLs, roles)
+- Set status to "created" (workspace-sync will handle cloning)
+- Suggest running workspace-sync after creation
+
+## Workflow
+
+1. Ask what to create (or parse from argument)
+2. Determine the type (agent/skill/prompt/workspace)
+3. Gather required information (name, purpose, model tier, tools)
+4. Generate the artifact following the conventions above
+5. Present for human review
+6. Write the file after approval
