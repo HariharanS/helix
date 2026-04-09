@@ -5,7 +5,9 @@ Helix is a meta-repo that coordinates work across multiple service repos.
 
 ## Development Workflow
 
-- Follow the Helix phase workflow: JAM → PRD → TECH DESIGN → TASK BREAKDOWN → IMPLEMENTATION → REVIEW → DISTILL
+- Follow the Helix lifecycle: SETUP → JAM → PRD → TECH DESIGN → TASK BREAKDOWN → IMPLEMENTATION → REVIEW → DISTILL
+- Treat SETUP as mandatory: create or activate the workspace, sync repos, onboard or refresh repo context, then proceed
+- Treat IMPLEMENTATION as nested loops: task-level TDD (`RED → GREEN → REFACTOR → FULL SUITE`) inside scheduler loops (interactive handoff, Ralph loop, or fleet)
 - Use task boards (`workspaces/{name}/task-boards/`) to track progress
 - Use execution plans (`workspaces/{name}/execution-plans/`) for deterministic autonomous implementation
 - Use decisions logs (`workspaces/{name}/decisions/`) to record significant decisions

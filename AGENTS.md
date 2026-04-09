@@ -40,21 +40,108 @@ graph TD
     end
 
     Helix --> Jam & Planner & Architect & Decomposer
-    Helix --> Explorer & Implementer & Reviewer
+    Helix --> Explorer & TDDRed & Implementer & Reviewer
     Helix --> Scribe & Distiller & Resume & UITester
     Explorer --> SubExplorer[Sub-Explorer per repo]
+    TDDRed --> Implementer
     Implementer --> Explorer
+```
+
+## Lifecycle Overview
+
+Helix is not a single prompt that writes code. It is a staged delivery system with explicit loops inside each phase and a scheduler loop around implementation.
+
+```mermaid
+flowchart LR
+    Setup["SETUP<br/>workspace-sync + onboard"] --> Jam["JAM<br/>refine intent"]
+    Jam --> PRD["PRD<br/>plan requirements"]
+    PRD --> Design["TECH DESIGN<br/>lock contracts"]
+    Design --> Breakdown["TASK BREAKDOWN<br/>task board + execution plan"]
+    Breakdown --> Implementation["IMPLEMENTATION<br/>TDD + scheduler"]
+    Implementation --> Review["REVIEW<br/>multi-lens quality gate"]
+    Review --> Distill["DISTILL<br/>memory + learnings"]
+
+    Setup -. "sync repos / onboard / verify workspace" .-> Setup
+    Jam -. "clarify / inspect code / tighten scope" .-> Jam
+    PRD -. "gather evidence / resolve gaps / revise" .-> PRD
+    Design -. "inspect patterns / define contracts / revise" .-> Design
+    Breakdown -. "split tasks / add ownership + commands / check autonomy gates" .-> Breakdown
+
+    subgraph ExecutionLoops["Implementation Loops"]
+        direction TB
+        TDDRedLoop["RED"]
+        TDDGreenLoop["GREEN"]
+        TDDRefactorLoop["REFACTOR"]
+        TDDFullSuiteLoop["FULL SUITE"]
+        Ralph["Ralph loop<br/>pick next safe task"]
+        Fleet["Fleet loop<br/>parallel safe tasks"]
+
+        TDDRedLoop --> TDDGreenLoop --> TDDRefactorLoop --> TDDFullSuiteLoop
+        Ralph -. "schedule task" .-> TDDRedLoop
+        Fleet -. "schedule wave" .-> TDDRedLoop
+    end
+
+    Implementation -. "run task-level TDD" .-> ExecutionLoops
+    Review -. "fix blockers and re-review" .-> Implementation
+    Distill -. "update learnings / skill candidates" .-> Distill
 ```
 
 ## Workflow Phases
 
-1. **JAM** — Refine raw feature idea into clear intent with probing questions
-2. **PRD** — Deep plan producing a product requirements doc
-3. **TECH DESIGN** — Pseudo code, mermaid diagrams, interface contracts
-4. **TASK BREAKDOWN** — Small, independent tasks with `repo:` field and clear AC
-5. **IMPLEMENTATION** — TDD loop (interactive handoffs, Ralph loop, or autonomous fleet)
-6. **REVIEW** — Multi-lens code review (security, correctness, domain, style, tests)
-7. **DISTILL** — Extract learnings into memory
+0. **SETUP** — Create or activate a workspace, sync repos, and onboard each repo so Helix discovers conventions instead of guessing them
+1. **JAM** — Refine a raw feature idea into clear intent with probing questions and codebase context
+2. **PRD** — Produce a product requirements doc with concrete, testable acceptance criteria
+3. **TECH DESIGN** — Lock pseudo code, diagrams, contracts, boundaries, and rollout constraints
+4. **TASK BREAKDOWN** — Split the design into small repo-scoped tasks plus machine-readable execution contracts
+5. **IMPLEMENTATION** — Execute tasks through TDD, either interactively or via Ralph loop / fleet scheduling
+6. **REVIEW** — Run multi-lens quality gates across security, correctness, domain logic, style, and tests
+7. **DISTILL** — Extract episodic memory, reusable learnings, and candidate skills
+
+## Phase Loops
+
+| Phase | Primary loop | Exit artifact |
+|------|--------------|---------------|
+| **Setup** | attach or clone repos → onboard or refresh repo context → verify active workspace → repeat per repo | `workspace.yaml`, repo `AGENTS.md`, `.instructions.md`, active workspace pointer |
+| **JAM** | restate intent → ask one clarifying question → inspect code if needed → tighten scope → repeat until the feature is unambiguous | `refined-intent.md` |
+| **PRD** | gather domain evidence → draft requirements → surface gaps or conflicts → revise with user → repeat until requirements are testable | `prd.md` |
+| **Tech Design** | inspect existing patterns → define contracts and boundaries → review with user → revise until interfaces and ownership are locked | `tech-design.md` |
+| **Task Breakdown** | split work into repo-scoped tasks → add dependencies, commands, write ownership, and `done_when` → check autonomy gates → resize or repair → repeat until the plan is runnable | task board + execution plan |
+| **Implementation** | run task-level TDD loop, then scheduler loop to pick the next task or fleet wave | commits in service repos + task state updates |
+| **Review** | run review lenses independently → report blockers → fix or escalate → re-review until pass or stop | review verdict |
+| **Distill** | summarize what happened → capture reusable learnings → nominate candidate skills → update memory index | episodic memory + learnings |
+
+## Core Execution Loops
+
+### Task-Level TDD Loop
+
+`RED → GREEN → REFACTOR → FULL SUITE`
+
+- **RED** — write failing tests from acceptance criteria
+- **GREEN** — write the minimum implementation to pass
+- **REFACTOR** — improve only within task scope while staying green
+- **FULL SUITE** — run repo-level verification before marking the task done
+
+### Ralph Loop
+
+`pick highest-priority unblocked task → execute → record result → recompute next task → repeat`
+
+- Default autonomous mode
+- Uses execution plan ownership, commands, and `done_when` as the control contract
+- Stops on blockers and escalates instead of guessing or rolling back
+
+### Fleet Loop
+
+`select disjoint tasks → spawn parallel implementers → collect results → update state → schedule next wave`
+
+- Used only when write ownership is disjoint and shared contracts are already locked
+- Parallelism is a scheduling decision, not a shortcut around design or task safety
+
+### Review Loop
+
+`security → correctness → domain logic → coding style → test coverage`
+
+- Each lens runs independently
+- Blocking findings send work back to implementation before merge or PR creation
 
 ## Execution Modes
 
@@ -83,7 +170,7 @@ graph TD
 | resume | Haiku (fast) | Status briefing for session recovery | Yes |
 | ui-tester | Gemini (visual) | Playwright browser tests | Yes |
 
-## Skills (8 skills)
+## Skills (7 skills)
 
 | Skill | Purpose |
 |-------|---------|

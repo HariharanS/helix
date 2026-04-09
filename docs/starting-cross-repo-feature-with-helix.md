@@ -1,5 +1,7 @@
 # Starting A Cross-Repo Feature With Helix
 
+See also: [Helix Platform Roadmap](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\docs\helix-platform-roadmap.md)
+
 This guide is for the case where:
 
 - you have multiple existing repos
@@ -15,7 +17,25 @@ Helix is a meta-repo. It does not own the product code.
 
 - Workspace artifacts live in Helix
 - Code changes live in the individual service repos
-- Helix coordinates the phases: JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
+- Helix coordinates a staged lifecycle: SETUP -> JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
+- The important part is not just the phases but the loops inside them: clarify until intent is unambiguous, design until contracts are locked, decompose until the execution plan is runnable, then execute through TDD plus Ralph loop or fleet scheduling
+
+## Lifecycle At A Glance
+
+For a first cross-repo feature, think about Helix like this:
+
+```text
+SETUP -> JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
+```
+
+The main loops inside that lifecycle are:
+
+- **Setup loop** — sync repos -> onboard or refresh repo context -> verify active workspace
+- **JAM loop** — restate intent -> ask one clarifying question -> tighten scope -> repeat
+- **Design loop** — inspect patterns -> define contracts and boundaries -> review -> revise
+- **Task loop** — split tasks -> add commands and ownership -> check autonomy gates -> resize or repair
+- **Implementation loops** — task-level TDD (`RED -> GREEN -> REFACTOR -> FULL SUITE`) inside Ralph loop or fleet scheduling
+- **Review loop** — run security, correctness, domain, style, and test lenses independently
 
 ## Recommended Starting Mode
 
@@ -33,7 +53,7 @@ Move to Ralph loop or fleet only after:
 - the contract between repos is locked
 - the execution plan has repo-scoped tasks with verified commands and ownership
 
-## Phase 0: Create A Workspace First
+## Phase 0: SETUP — Create And Sync The Workspace
 
 Before you ask Helix to plan or code, create a workspace for the feature.
 
@@ -71,7 +91,7 @@ Then use the `workspace-sync` skill to:
 
 There is also a helper script at [setup-workspace.sh](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\scripts\setup-workspace.sh), but it is a Bash script, so the skill is the better default entry point.
 
-## Phase 1: Onboard Every Repo
+### Setup Loop: Onboard Every Repo
 
 Because these repos have not used AI before, onboarding is the first real step.
 
@@ -96,7 +116,14 @@ For your setup, onboarding should specifically capture:
 
 Do not skip this. If onboarding is weak, the later TDD and implementation phases will be noisy and error-prone.
 
-## Phase 2: Jam The Feature Before Planning
+The SETUP phase is complete only when:
+
+- the workspace exists
+- the active workspace pointer is correct
+- each repo is attached or cloned
+- each repo has usable AI context from onboarding
+
+## Phase 1: JAM — Refine The Feature Before Planning
 
 Start with JAM if the feature is still partly vague.
 
@@ -123,7 +150,14 @@ The JAM phase should clarify:
 
 Output goes to `workspaces/{name}/refined-intent.md`.
 
-## Phase 3: Produce The PRD
+This phase is a loop, not a single prompt:
+
+- restate the feature
+- ask one clarifying question at a time
+- inspect the codebase if needed
+- narrow scope until the feature is specific enough to plan cleanly
+
+## Phase 2: PRD — Produce The Requirements
 
 Once the feature intent is clear, ask Helix to move to PRD.
 
@@ -143,7 +177,14 @@ For a cross-repo feature, the PRD should also name:
 
 Output goes to `workspaces/{name}/prd.md`.
 
-## Phase 4: Lock The Technical Design
+The PRD loop is:
+
+- gather domain evidence
+- draft requirements
+- surface gaps or conflicts
+- revise until the requirements are concrete and testable
+
+## Phase 3: TECH DESIGN — Lock The Contracts
 
 This is the most important phase for cross-repo delivery.
 
@@ -163,7 +204,14 @@ Use the design to decide the test layers:
 
 Output goes to `workspaces/{name}/tech-design.md`.
 
-## Phase 5: Break The Feature Into Repo-Scoped Tasks
+The design loop is:
+
+- inspect existing patterns
+- define contracts and repo boundaries
+- review with the user
+- revise until ownership and interfaces are locked
+
+## Phase 4: TASK BREAKDOWN — Build The Execution Plan
 
 Helix expects cross-repo work to be split into **one repo per task**.
 
@@ -194,7 +242,15 @@ The execution plan is what makes implementation safe. Every task should include:
 
 If any of those are missing, keep the task in interactive mode and do not send it to autonomous execution.
 
-## Phase 6: Implement With TDD
+This phase is complete only when the execution plan is runnable:
+
+- each task is repo-scoped
+- each task has clear acceptance criteria
+- commands are verified
+- write ownership is explicit
+- tasks are marked correctly for interactive, Ralph loop, or fleet execution
+
+## Phase 5: IMPLEMENTATION — Run TDD Plus Scheduler Loops
 
 For each task, Helix should use the TDD cycle.
 
@@ -208,6 +264,18 @@ The default shape is:
 6. rerun the focused tests until green
 7. refactor only within the task's scope
 8. run the full suite for that repo
+
+Helix implementation also has an outer scheduler loop:
+
+- **Ralph loop** — pick the highest-priority unblocked task, execute it, record the result, then recompute the next task
+- **Fleet loop** — select tasks with disjoint write ownership, run them in parallel, collect results, then schedule the next wave
+
+The implementation phase is done per task only when:
+
+- focused tests pass
+- the repo-level suite has been run
+- `done_when` is satisfied
+- blockers are reported instead of guessed around
 
 ### How To Apply TDD In Your Setup
 
@@ -231,21 +299,50 @@ Use the test layers deliberately.
 - Use them to prove the main user journey and key visible edge states
 - Keep them narrow; do not force Playwright to cover every business rule already proven below the UI
 
+## Phase 6: REVIEW — Apply The Quality Gate
+
+Before you treat the feature as ready, run Helix review as a separate phase.
+
+The review loop is:
+
+- security
+- correctness
+- domain logic
+- coding style
+- test coverage
+
+If review finds blocking issues, route the work back to implementation and re-run review after the fixes.
+
+## Phase 7: DISTILL — Capture Learnings
+
+After review, distill the session into memory.
+
+The distill loop is:
+
+- summarize what happened
+- capture key decisions and blockers
+- extract reusable learnings
+- identify candidate skills
+- update the memory index
+
 ## A Good Order For Your First Cross-Repo Implementation
 
 Use this sequence:
 
-1. onboard all repos
-2. JAM the feature
-3. create the PRD
-4. produce the tech design
-5. decompose into repo-scoped tasks
-6. implement contract tasks first
-7. implement repo-local domain tasks with unit-test-first TDD
-8. add or update sandbox integration tests around repo boundaries
-9. add or update Playwright coverage for the user journey
-10. run review
-11. distill learnings into memory
+1. create or activate the workspace
+2. sync the repos into the workspace
+3. onboard all repos
+4. confirm the SETUP phase is actually complete
+5. JAM the feature
+6. create the PRD
+7. produce the tech design
+8. decompose into repo-scoped tasks
+9. implement contract tasks first
+10. implement repo-local domain tasks with unit-test-first TDD
+11. add or update sandbox integration tests around repo boundaries
+12. add or update Playwright coverage for the user journey
+13. run review
+14. distill learnings into memory
 
 That order reduces churn because UI and downstream consumers are not guessing against a moving contract.
 
@@ -340,7 +437,7 @@ Use **fleet** only when:
 
 For your first feature, the normal pattern should be:
 
-- interactive through design and decomposition
+- interactive through SETUP, JAM, design, and decomposition
 - possibly Ralph for implementation later
 - fleet only after you trust the task quality
 
@@ -370,15 +467,14 @@ For a well-run Helix feature, you should end with:
 
 If you are starting from zero, the practical sequence is:
 
-1. create a Helix workspace
-2. onboard every repo
-3. JAM the feature
-4. create the PRD
-5. create the tech design
-6. decompose into one-repo-per-task execution contracts
-7. implement each task with TDD
-8. verify repo boundaries with sandbox integration tests
-9. verify the user flow with Playwright
-10. review and distill
+1. complete SETUP: create a Helix workspace, sync repos, and onboard every repo
+2. JAM the feature
+3. create the PRD
+4. create the tech design
+5. decompose into one-repo-per-task execution contracts
+6. implement each task with TDD
+7. verify repo boundaries with sandbox integration tests
+8. verify the user flow with Playwright
+9. review and distill
 
 That is the cleanest way to introduce Helix into an existing multi-repo system without losing control of quality or scope.
