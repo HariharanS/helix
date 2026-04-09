@@ -51,39 +51,26 @@ graph TD
 
 Helix is not a single prompt that writes code. It is a staged delivery system with explicit loops inside each phase and a scheduler loop around implementation.
 
-```mermaid
-flowchart LR
-    Setup["SETUP<br/>workspace-sync + onboard"] --> Jam["JAM<br/>refine intent"]
-    Jam --> PRD["PRD<br/>plan requirements"]
-    PRD --> Design["TECH DESIGN<br/>lock contracts"]
-    Design --> Breakdown["TASK BREAKDOWN<br/>task board + execution plan"]
-    Breakdown --> Implementation["IMPLEMENTATION<br/>TDD + scheduler"]
-    Implementation --> Review["REVIEW<br/>multi-lens quality gate"]
-    Review --> Distill["DISTILL<br/>memory + learnings"]
+```text
+SETUP            ALIGN           SPECIFY         DESIGN            BREAK DOWN          EXECUTE               REVIEW            LEARN
+┌─────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────────┐  ┌───────────────┐  ┌─────────────────┐  ┌──────────────┐  ┌───────────┐
+│ Workspace   │  │ JAM        │  │ PRD        │  │ Tech Design  │  │ Tasks +       │  │ TDD + Scheduler │  │ Multi-lens   │  │ Distill   │
+│ Sync        │→ │ Refine     │→ │ Plan       │→ │              │→ │ Exec Plan     │→ │ Ralph / Fleet   │→ │ QA Gate      │→ │ Memory    │
+│ + Onboard   │  │ Intent     │  │            │  │              │  │               │  │                 │  │              │  │           │
+└─────────────┘  └────────────┘  └────────────┘  └──────────────┘  └───────────────┘  └─────────────────┘  └──────────────┘  └───────────┘
 
-    Setup -. "sync repos / onboard / verify workspace" .-> Setup
-    Jam -. "clarify / inspect code / tighten scope" .-> Jam
-    PRD -. "gather evidence / resolve gaps / revise" .-> PRD
-    Design -. "inspect patterns / define contracts / revise" .-> Design
-    Breakdown -. "split tasks / add ownership + commands / check autonomy gates" .-> Breakdown
+Phase loops:
+  SETUP         ↺ sync / onboard / verify workspace
+  JAM           ↺ clarify / inspect code / tighten scope
+  PRD           ↺ gather evidence / resolve gaps / revise
+  TECH DESIGN   ↺ inspect patterns / lock contracts / revise
+  BREAK DOWN    ↺ split tasks / add ownership + commands / check autonomy gates
 
-    subgraph ExecutionLoops["Implementation Loops"]
-        direction TB
-        TDDRedLoop["RED"]
-        TDDGreenLoop["GREEN"]
-        TDDRefactorLoop["REFACTOR"]
-        TDDFullSuiteLoop["FULL SUITE"]
-        Ralph["Ralph loop<br/>pick next safe task"]
-        Fleet["Fleet loop<br/>parallel safe tasks"]
-
-        TDDRedLoop --> TDDGreenLoop --> TDDRefactorLoop --> TDDFullSuiteLoop
-        Ralph -. "schedule task" .-> TDDRedLoop
-        Fleet -. "schedule wave" .-> TDDRedLoop
-    end
-
-    Implementation -. "run task-level TDD" .-> ExecutionLoops
-    Review -. "fix blockers and re-review" .-> Implementation
-    Distill -. "update learnings / skill candidates" .-> Distill
+Implementation loops:
+  Task-level TDD  RED -> GREEN -> REFACTOR -> FULL SUITE
+  Ralph loop      pick next safe task -> execute -> record result -> repeat
+  Fleet loop      select disjoint tasks -> run parallel wave -> collect results -> schedule next wave
+  Review loop     security -> correctness -> domain logic -> coding style -> test coverage -> fix blockers -> re-review
 ```
 
 ## Workflow Phases
