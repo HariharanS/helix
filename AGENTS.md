@@ -52,6 +52,8 @@ Do **not** read the entire repo by default.
   - [`./templates/AGENTS.md`](./templates/AGENTS.md)
 - Understand the system as a human:
   - [`README.md`](./README.md)
+  - [`./docs/helix-process.md`](./docs/helix-process.md)
+  - [`./docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
   - [`./docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
 
 ## Retrieval Discipline

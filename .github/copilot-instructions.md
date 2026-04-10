@@ -1,26 +1,19 @@
 # Helix — Global Conventions
 
 This workspace uses the Helix multi-agent development system.
-Helix is a meta-repo that coordinates work across multiple service repos.
+Use [`docs/helix-process.md`](../docs/helix-process.md) as the canonical lifecycle definition and [`docs/helix-core-meta-repo-model.md`](../docs/helix-core-meta-repo-model.md) as the canonical packaging model.
 
-## Development Workflow
+## Execution Rules
 
-- Follow the Helix lifecycle: SETUP → JAM → PRD → TECH DESIGN → TASK BREAKDOWN → IMPLEMENTATION → REVIEW → DISTILL
-- Treat SETUP as mandatory: create or activate the workspace, sync repos, onboard or refresh repo context, then proceed
-- Treat IMPLEMENTATION as nested loops: task-level TDD (`RED → GREEN → REFACTOR → FULL SUITE`) inside scheduler loops (interactive handoff, Ralph loop, or fleet)
-- When available in GitHub Copilot CLI experimental mode, typically with a Claude-family orchestrator and GPT-5.4 access, use Rubber Duck sparingly for a second opinion at high-return checkpoints: after plan/PRD, after design, after task breakdown, after complex implementation, after writing tests, or when stuck
-- Treat Rubber Duck as advisory only: incorporate concrete issues, record material decisions, and continue normally when the feature is unavailable
-- Use task boards (`workspaces/{name}/task-boards/`) to track progress
+- Treat `SETUP` as mandatory before feature work: activate the workspace, attach needed repos, and refresh readiness
+- Use workspace artifacts as the source of truth for feature delivery
+- Keep code changes in product repos, not in Helix
+- Use task boards (`workspaces/{name}/task-boards/`) for human status
 - Use execution plans (`workspaces/{name}/execution-plans/`) for deterministic autonomous implementation
-- Use decisions logs (`workspaces/{name}/decisions/`) to record significant decisions
-- Use memory system (`.helix/memory/`) for learnings across sessions
-- Check `.helix/active-workspace.yaml` for the current workspace context
-
-## Workspace Model
-
-- Each workspace (`workspaces/{name}/workspace.yaml`) defines repos for a feature or project
-- Artifacts (PRD, tech design, execution plans, task boards, decisions) live in the workspace directory
-- Code changes are committed to individual repos, not to Helix
+- Use decisions logs (`workspaces/{name}/decisions/`) for significant decisions
+- Use memory in `.helix/memory/` for distilled learnings, not raw transcripts
+- Check `.helix/active-workspace.yaml` for current workspace context
+- When available in GitHub Copilot CLI experimental mode, use Rubber Duck sparingly at high-return checkpoints and treat it as advisory only
 
 ## Code Principles
 

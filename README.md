@@ -1,8 +1,8 @@
 # Helix
 
-Helix is a meta-repo for orchestrating AI-driven development across multiple service repos.
+Helix is a workspace-first orchestration system for AI-driven development across multiple repos.
 
-It owns workspace artifacts, agent definitions, memory, prompts, templates, and orchestration guidance. It does **not** own the product code for the services it coordinates.
+This repo currently contains the reusable Helix assets and the working design for how Helix should install into a meta repo. Product code still lives outside Helix.
 
 ## What Helix Is For
 
@@ -68,27 +68,13 @@ graph TD
 
 ## Lifecycle
 
+Helix runs a staged delivery flow:
+
 ```text
-SETUP            ALIGN           SPECIFY         DESIGN            BREAK DOWN          EXECUTE               REVIEW            LEARN
-┌─────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────────┐  ┌───────────────┐  ┌─────────────────┐  ┌──────────────┐  ┌───────────┐
-│ Workspace   │  │ JAM        │  │ PRD        │  │ Tech Design  │  │ Tasks +       │  │ TDD + Scheduler │  │ Multi-lens   │  │ Distill   │
-│ Sync        │→ │ Refine     │→ │ Plan       │→ │              │→ │ Exec Plan     │→ │ Ralph / Fleet   │→ │ QA Gate      │→ │ Memory    │
-│ + Onboard   │  │ Intent     │  │            │  │              │  │               │  │                 │  │              │  │           │
-└─────────────┘  └────────────┘  └────────────┘  └──────────────┘  └───────────────┘  └─────────────────┘  └──────────────┘  └───────────┘
+SETUP -> JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
 ```
 
-Key loops:
-
-- `SETUP` loop: sync repos, onboard or refresh context, verify active workspace
-- `JAM` loop: clarify intent, inspect code when needed, tighten scope
-- `PRD` loop: gather evidence, draft requirements, resolve gaps
-- `TECH DESIGN` loop: inspect patterns, lock contracts, revise design
-- `TASK BREAKDOWN` loop: split tasks, add ownership and commands, check autonomy safety
-- `IMPLEMENTATION` loops:
-  - `RED -> GREEN -> REFACTOR -> FULL SUITE`
-  - Ralph loop: pick next safe task, execute, record result, repeat
-  - Fleet loop: select disjoint tasks, run parallel wave, collect results, repeat
-- `REVIEW` loop: security, correctness, domain logic, coding style, test coverage
+The full lifecycle, loops, and artifact rules are defined in [`docs/helix-process.md`](./docs/helix-process.md).
 
 ## Execution Modes
 
@@ -158,9 +144,21 @@ Principles:
 - Context bundles are task-scoped evidence, not general documentation
 - If an artifact grows too large, prefer an `index.md` plus annexes or subdocuments over a single blob
 
+## Target Deployment Model
+
+Helix is moving toward:
+
+- `helix-core` as the reusable source of truth
+- a meta repo as the installed coordination instance
+- attached product repos selected through `repos.yml`
+
+The target packaging and installation model is defined in [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md).
+
 ## Where To Start
 
 - New to Helix: [`docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
+- Canonical lifecycle and loops: [`docs/helix-process.md`](./docs/helix-process.md)
+- Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)
 - Agent navigation and source-of-truth rules: [`AGENTS.md`](./AGENTS.md)
 
