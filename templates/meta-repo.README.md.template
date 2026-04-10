@@ -1,0 +1,37 @@
+# {{META_REPO_NAME}}
+
+<!-- HELIX:BEGIN overview -->
+This is a Helix coordination meta repo.
+
+It owns:
+
+- repo registry in `repos.yml`
+- workspace or feature-space artifacts in `workspaces/`
+- Helix runtime state in `.helix/`
+- Copilot runtime-facing files in `.github/`
+
+It does not own product code. Product repos are attached from the registry only when a workspace needs them.
+
+## Start Here
+
+1. Update `repos.yml` with the repos Helix can use
+2. Create or edit `workspaces/<workspace-id>/workspace.yml`
+3. Run `./scripts/setup-workspace.ps1 -Workspace <workspace-id>`
+4. Start Helix from the active meta repo workspace
+
+## Helix Docs
+
+- `docs/helix-process.md` — canonical lifecycle and loops
+- `docs/helix-instance-schemas.md` — manifest shapes and validation rules
+
+## Key Paths
+
+- `.github/` — agents, prompts, skills, and Copilot instructions
+- `.helix/` — install state, active workspace pointer, repo-state, generated state
+- `workspaces/` — feature-space artifacts
+- `repos.yml` — repo registry
+<!-- HELIX:END overview -->
+
+## Local Notes
+
+Add team- or project-specific notes here. Helix sync preserves content outside managed sections.

@@ -12,7 +12,7 @@ Use [`docs/helix-process.md`](../docs/helix-process.md) as the canonical lifecyc
 - Use execution plans (`workspaces/{name}/execution-plans/`) for deterministic autonomous implementation
 - Use decisions logs (`workspaces/{name}/decisions/`) for significant decisions
 - Use memory in `.helix/memory/` for distilled learnings, not raw transcripts
-- Check `.helix/active-workspace.yaml` for current workspace context
+- Check `.helix/active-workspace.yml` for current workspace context
 - When available in GitHub Copilot CLI experimental mode, use Rubber Duck sparingly at high-return checkpoints and treat it as advisory only
 
 ## Code Principles

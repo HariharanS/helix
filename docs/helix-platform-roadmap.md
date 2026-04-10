@@ -301,7 +301,7 @@ These are useful, but should not come before the core runtime is stable:
 
 - create a TypeScript runtime package for state and orchestration primitives
 - define schemas for workspace, task contract, run trace, episode, and learning
-- replace `scripts/setup-workspace.sh` with a cross-platform implementation
+- replace the remaining legacy `scripts/setup-workspace.sh` helper with the typed runtime path built on the newer PowerShell installer/setup flow
 - add `helix status` and `helix doctor`
 - add JSONL event logging for all hooks and agent runs
 - enforce write-path and blocked-command policy in runtime code

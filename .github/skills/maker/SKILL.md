@@ -83,15 +83,16 @@ Creates a new `workspaces/{name}/` directory with:
 
 ```
 workspaces/{name}/
-├── workspace.yaml       # Repo list and config
+├── workspace.yml        # Participating repos and artifact entry paths
 ├── execution-plans/     # Machine-readable task contracts
 ├── task-boards/         # Empty, ready for use
 └── decisions/           # Empty, ready for use
 ```
 
 **Guidelines:**
-- Ask for the repo list (paths, URLs, roles)
-- Set status to "created" (workspace-sync will handle cloning)
+- Ask for participating repo ids and workspace-specific roles
+- Do not duplicate repo registry details from `repos.yml`
+- Set status to "draft" or "active" as appropriate
 - Suggest running workspace-sync after creation
 
 ## Workflow

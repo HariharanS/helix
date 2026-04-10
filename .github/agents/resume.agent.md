@@ -23,7 +23,7 @@ You help the user get back into context after a break. You read all available st
 
 ## Workflow
 
-1. Read `.helix/active-workspace.yaml` for the active workspace
+1. Read `.helix/active-workspace.yml` for the active workspace
 2. Find the task board: `workspaces/{workspace}/task-boards/{feature}.md`
 3. Read the decisions log: `workspaces/{workspace}/decisions/{feature}.md`
 4. Read the latest episodic memory: `.helix/memory/episodes/`

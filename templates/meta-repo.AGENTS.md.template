@@ -1,0 +1,42 @@
+# Meta Repo AGENTS Guide
+
+<!-- HELIX:BEGIN guide -->
+Use this file to discover where relevant context lives in the installed Helix meta repo.
+
+## Read Order
+
+1. Read this file for repo-level source-of-truth rules
+2. Read the nearest relevant subfolder `AGENTS.md`
+3. Read only the targeted manifest, artifact, or prompt file
+4. Prefer `index.md` plus targeted subdocuments over annexes or giant blobs
+
+## Core Invariants
+
+- `repos.yml` is the registry of known repos, not runtime state
+- `.helix/repo-state/` contains generated readiness and scan results
+- `workspaces/<id>/workspace.yml` declares participating repos for a feature-space
+- workspace artifacts live under `workspaces/<id>/`
+- product code changes happen in attached repos, not in this meta repo
+
+## Directory Map
+
+| Path | Purpose | Start With |
+|------|---------|------------|
+| `.github/AGENTS.md` | Agent runtime surface | change agent behavior here |
+| `.helix/AGENTS.md` | Runtime state and memory | active workspace, install state, repo-state |
+| `workspaces/AGENTS.md` | Workspace artifact model | feature-space artifacts |
+| `docs/AGENTS.md` | Human-facing docs | lifecycle and manifest docs |
+| `templates/AGENTS.md` | Artifact and manifest templates | generated shapes |
+| `scripts/AGENTS.md` | Installer, setup, and doctor scripts | operational tooling |
+
+## Retrieval Rules
+
+- Prefer workspace artifacts over explanatory docs when implementing
+- Prefer `.helix/repo-state/<repo-id>.yml` over guessing repo readiness
+- Prefer the workspace’s selected repos over broad registry scans
+- Keep root `AGENTS.md` navigation-first
+<!-- HELIX:END guide -->
+
+## Local Overrides
+
+Add org- or project-specific retrieval rules here. Helix sync preserves content outside managed sections.

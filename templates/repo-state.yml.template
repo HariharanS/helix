@@ -1,0 +1,21 @@
+schema_version: 1
+repo_id: example-repo
+local_path: ../example-repo
+last_scanned_at: 2026-04-10T09:15:00Z
+present: false
+
+git:
+  branch: null
+  dirty: false
+  remote: null
+
+readiness:
+  state: missing
+  reason: Repo has not been attached yet
+  recommended_next_step: attach
+  signals:
+    root_agents: false
+    nested_agents: false
+    instructions: false
+    repo_skills: false
+    tests_present: false

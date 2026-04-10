@@ -1,5 +1,6 @@
 #!/bin/bash
-# Helix Workspace Setup Script
+# Helix Workspace Setup Script (Legacy)
+# Legacy helper for the pre-split combined layout.
 # Reads workspace.yaml, clones/pulls repos, generates .code-workspace file
 #
 # Usage: ./setup-workspace.sh <workspace-name>
@@ -30,6 +31,7 @@ fi
 
 echo "Setting up workspace: $WORKSPACE_NAME"
 echo "Helix root: $HELIX_ROOT"
+echo "Warning: setup-workspace.sh targets the legacy combined-layout workspace.yaml model. Prefer scripts/setup-workspace.ps1 for the meta-repo model."
 
 # Parse repos from workspace.yaml (simple line-by-line parsing)
 REPO_PATH=""

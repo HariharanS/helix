@@ -126,7 +126,7 @@ Workspace-scoped artifacts are the source of truth for feature delivery:
 
 ```text
 workspaces/{name}/
-├── workspace.yaml
+├── workspace.yml
 ├── refined-intent.md
 ├── prd.md or prd/
 ├── tech-design.md or tech-design/
@@ -154,6 +154,13 @@ Helix is moving toward:
 
 The target packaging and installation model is defined in [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md).
 The target meta-repo manifest shapes are defined in [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md).
+
+Current runtime tooling in this repo:
+
+- `scripts/install-helix.ps1` — install or sync managed Helix files into a meta repo
+- `scripts/setup-workspace.ps1` — attach selected repos and activate a workspace
+- `scripts/doctor.ps1` — validate manifests and refresh repo-state
+- `scripts/sync-helix.ps1` — re-sync an installed meta repo from its recorded Helix core source
 
 ## Where To Start
 

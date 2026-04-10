@@ -22,15 +22,19 @@ function main() {
   const contextParts = [];
 
   // 1. Inject active workspace context
-  const activeWsPath = path.join(cwd, '.helix', 'active-workspace.yaml');
+  const activeWsPath = fs.existsSync(path.join(cwd, '.helix', 'active-workspace.yml'))
+    ? path.join(cwd, '.helix', 'active-workspace.yml')
+    : path.join(cwd, '.helix', 'active-workspace.yaml');
   if (fs.existsSync(activeWsPath)) {
     const content = fs.readFileSync(activeWsPath, 'utf8');
     const active = parseYamlValue(content, 'active');
     if (active && active !== 'null') {
       contextParts.push(`[Helix] Active workspace: ${active}`);
 
-      // Inject workspace.yaml summary if it exists
-      const wsYamlPath = path.join(cwd, 'workspaces', active, 'workspace.yaml');
+      // Inject workspace manifest summary if it exists
+      const wsYamlPath = fs.existsSync(path.join(cwd, 'workspaces', active, 'workspace.yml'))
+        ? path.join(cwd, 'workspaces', active, 'workspace.yml')
+        : path.join(cwd, 'workspaces', active, 'workspace.yaml');
       if (fs.existsSync(wsYamlPath)) {
         const wsContent = fs.readFileSync(wsYamlPath, 'utf8');
         contextParts.push(`[Helix] Workspace config:\n${wsContent}`);

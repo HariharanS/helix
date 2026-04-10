@@ -72,47 +72,74 @@ Treat Rubber Duck as advisory only. If it changes the shape of the work, move ba
 
 Before you ask Helix to plan or code, create a workspace for the feature.
 
-Note: this guide still shows the legacy combined-repo `workspace.yaml` example. The target meta-repo model standardizes on `workspace.yml`; see [`helix-instance-schemas.md`](./helix-instance-schemas.md).
+The target meta-repo model uses:
 
-Example file: `helix/workspaces/order-history/workspace.yaml`
+- `repos.yml` for the full repo registry
+- `workspaces/{name}/workspace.yml` for the subset of repos this feature-space needs
+- `.helix/repo-state/*.yml` for generated readiness status
+
+Example registry file: `repos.yml`
 
 ```yaml
-name: order-history
-description: Order history feature spanning api, web, and downstream adapter repos
-status: created
-created: 2026-04-09
+schema_version: 1
 repos:
-  - path: ../orders-api
-    url: https://github.com/your-org/orders-api
-    branch: main
-    role: primary
-    onboarded: false
-  - path: ../orders-web
-    url: https://github.com/your-org/orders-web
-    branch: main
-    role: primary
-    onboarded: false
-  - path: ../customer-profile-adapter
-    url: https://github.com/your-org/customer-profile-adapter
-    branch: main
-    role: dependency
-    onboarded: false
+  - id: orders-api
+    remote: https://github.com/your-org/orders-api
+    local_path: ../orders-api
+    default_branch: main
+  - id: orders-web
+    remote: https://github.com/your-org/orders-web
+    local_path: ../orders-web
+    default_branch: main
+  - id: customer-profile-adapter
+    remote: https://github.com/your-org/customer-profile-adapter
+    local_path: ../customer-profile-adapter
+    default_branch: main
 ```
 
-Then use the `workspace-sync` skill to:
+Example workspace file: `workspaces/order-history/workspace.yml`
 
-- clone or attach the repos
+```yaml
+schema_version: 1
+id: order-history
+description: Order history feature spanning api, web, and downstream adapter repos
+status: active
+mode: interactive
+repos:
+  - repo_id: orders-api
+    role: primary
+    branch: main
+  - repo_id: orders-web
+    role: primary
+    branch: main
+  - repo_id: customer-profile-adapter
+    role: dependency
+    branch: main
+
+artifacts:
+  refined_intent: refined-intent.md
+  prd: prd/index.md
+  tech_design: tech-design/index.md
+  task_board_dir: task-boards/
+  execution_plan_dir: execution-plans/
+  decisions_dir: decisions/
+```
+
+Then use the `workspace-sync` skill or [`setup-workspace.ps1`](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\scripts\setup-workspace.ps1) to:
+
+- clone or attach only the selected repos
+- generate or refresh `.helix/repo-state/*.yml`
 - generate the workspace file
 - update additional directories
-- set `.helix/active-workspace.yaml`
+- set `.helix/active-workspace.yml`
 
-There is also a helper script at [setup-workspace.sh](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\scripts\setup-workspace.sh), but it is a Bash script, so the skill is the better default entry point.
+Use the legacy Bash helper only for the old combined layout. The PowerShell script is the target entry point for the meta-repo model.
 
 ### Setup Loop: Onboard Every Repo
 
-Because these repos have not used AI before, onboarding is the first real step.
+Because some repos may not be Helix-ready yet, onboarding is the first real step for only the repos that need it.
 
-Use the `onboard` skill on each repo in the workspace.
+Use `.helix/repo-state/{repo-id}.yml` to decide which repos need onboarding. Run the `onboard` skill only for repos marked `needs-onboarding` or `partial`.
 
 The goal is to generate repo-specific context from the actual codebase:
 

@@ -44,10 +44,10 @@ Do **not** read the entire repo by default.
   - [`./.github/copilot-instructions.md`](./.github/copilot-instructions.md)
 - Inspect the active workspace:
   - [`./.helix/AGENTS.md`](./.helix/AGENTS.md)
-  - [`./.helix/active-workspace.yaml`](./.helix/active-workspace.yaml)
+  - [`./.helix/active-workspace.yml`](./.helix/active-workspace.yml)
 - Work on feature artifacts:
   - [`./workspaces/AGENTS.md`](./workspaces/AGENTS.md)
-  - `workspaces/{name}/workspace.yaml`
+  - `workspaces/{name}/workspace.yml`
 - Adjust generated artifact shapes:
   - [`./templates/AGENTS.md`](./templates/AGENTS.md)
 - Understand the system as a human:

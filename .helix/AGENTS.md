@@ -4,7 +4,9 @@ This directory holds Helix runtime state and memory-like artifacts.
 
 ## What Lives Here
 
-- `active-workspace.yaml` — current workspace pointer
+- `active-workspace.yml` — current workspace pointer
+- `install-state.yml` — what Helix installed into the meta repo, if this repo is acting as an installed instance
+- `repo-state/` — generated readiness and scan results per repo
 - `model-config.yaml` — model-to-role assignments
 - `memory/index.md` — entry point to durable learnings
 - `memory/episodes/` — episodic session summaries
@@ -12,14 +14,17 @@ This directory holds Helix runtime state and memory-like artifacts.
 
 ## Read Order
 
-1. Read [`active-workspace.yaml`](./active-workspace.yaml) when you need current workspace context
-2. Read [`model-config.yaml`](./model-config.yaml) when you need role/model assignment context
-3. Start memory access at [`memory/index.md`](./memory/index.md)
-4. Open specific episode or learning files only if the index points you there
+1. Read [`active-workspace.yml`](./active-workspace.yml) when you need current workspace context
+2. Read [`install-state.yml`](./install-state.yml) when it exists and you need install and managed-file context
+3. Read `repo-state/<repo-id>.yml` when you need readiness or onboarding status for a repo
+4. Read [`model-config.yaml`](./model-config.yaml) when you need role/model assignment context
+5. Start memory access at [`memory/index.md`](./memory/index.md)
+6. Open specific episode or learning files only if the index points you there
 
 ## Retrieval Rules
 
 - Treat memory as distilled guidance, not a raw transcript archive
+- Treat `repo-state/` as generated runtime state, not operator-authored config
 - Prefer existing learning files over scanning all episodes
 - Update or reuse existing learning topics instead of duplicating them
 - If you need current feature state, workspace artifacts are usually a better source than memory

@@ -27,8 +27,8 @@ You are **read-only** — never modify any files.
 
 ## Workspace-Aware Workflow
 
-1. Read `.helix/active-workspace.yaml` for the active workspace name
-2. Read `workspaces/{workspace-name}/workspace.yaml` for the repo list
+1. Read `.helix/active-workspace.yml` for the active workspace name
+2. Read `workspaces/{workspace-name}/workspace.yml` for the selected repo list
 3. Clarify the question you are answering:
    - What decision will the downstream agent make from this bundle?
    - Which repo owns the change?

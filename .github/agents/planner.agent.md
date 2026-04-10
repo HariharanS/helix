@@ -28,7 +28,7 @@ You produce detailed Product Requirements Documents from refined intents.
 ## Workflow
 
 1. Read the refined intent document from the workspace
-2. Spawn @explorer subagent(s) to gather domain context from affected repos listed in workspace.yaml — explorer writes context bundles to disk for reference
+2. Spawn @explorer subagent(s) to gather domain context from affected repos listed in `workspace.yml` — explorer writes context bundles to disk for reference
 3. Identify functional and non-functional requirements
 4. Ask the user clarifying questions if gaps exist (one at a time)
 5. Draft the PRD

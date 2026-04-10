@@ -36,7 +36,7 @@ SETUP -> JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW
 
 - read repo registry
 - attach or clone only the repos needed now
-- inspect repo readiness
+- inspect repo readiness and update `.helix/repo-state/`
 - onboard only repos that are not Helix-ready
 - confirm active workspace
 
@@ -113,7 +113,7 @@ A workspace or feature-space should declare the subset of repos it actually need
 
 - `repos.yml` is the registry of repos Helix knows how to use
 - workspace manifest selects the repos participating in a feature
-- repo readiness state is generated separately from the registry
+- repo readiness state is generated separately under `.helix/repo-state/`
 
 That separation keeps setup deterministic:
 

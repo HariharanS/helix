@@ -212,6 +212,6 @@ The target shapes for `repos.yml`, `workspace.yml`, and `.helix/install-state.ym
 
 The next implementation pass should focus on:
 
-1. installer and sync behavior for managed files
-2. `.helix/repo-state/<repo-id>.yml` shape
-3. workspace setup and doctor commands against the new manifests
+1. smoke-testing install and setup against a real meta repo plus attached product repos
+2. adding `init`, `status`, and `upgrade` commands on top of the current installer, setup, sync, and doctor scripts
+3. fully retiring or migrating the remaining legacy combined-layout examples and helpers

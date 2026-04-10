@@ -29,7 +29,9 @@ function main() {
   const messages = [];
 
   // 1. Check active workspace
-  const activeWsPath = path.join(cwd, '.helix', 'active-workspace.yaml');
+  const activeWsPath = fs.existsSync(path.join(cwd, '.helix', 'active-workspace.yml'))
+    ? path.join(cwd, '.helix', 'active-workspace.yml')
+    : path.join(cwd, '.helix', 'active-workspace.yaml');
   let activeWorkspace = null;
 
   if (fs.existsSync(activeWsPath)) {

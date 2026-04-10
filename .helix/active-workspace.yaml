@@ -1,4 +1,0 @@
-# Active Workspace Pointer
-# Set by: "activate {workspace-name}" command
-# Read by: helix orchestrator at session start
-active: null

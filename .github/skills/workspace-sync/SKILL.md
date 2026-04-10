@@ -1,58 +1,74 @@
 ---
 name: workspace-sync
-description: Clones workspace repos, runs onboard on each, generates VS Code .code-workspace file, and updates .claude/settings.json
-argument-hint: "Workspace name (e.g. 'order-feature') or path to workspace.yaml"
+description: Attaches the repos selected by a workspace, refreshes repo-state, generates the VS Code .code-workspace file, and activates the workspace
+argument-hint: "Workspace name (e.g. 'order-feature') or path to workspace.yml"
 user-invocable: true
 disable-model-invocation: true
 ---
 
 # Workspace Sync Skill
 
-Sets up a workspace by cloning repos, onboarding them, and generating IDE configuration.
+Sets up a workspace by reading the repo registry plus one workspace manifest, attaching only the repos that feature-space needs, refreshing repo-state, and generating IDE configuration.
 
 ## Workflow
 
-### 1. Read Workspace Definition
+### 1. Read The Registry And Workspace
 
 ```
-workspaces/{name}/workspace.yaml
+repos.yml
+workspaces/{name}/workspace.yml
 ```
 
-Expected format:
+Registry example:
 ```yaml
-name: order-feature
-description: Order history feature spanning service-a and service-b
-status: created
-created: 2026-04-09
 repos:
-  - path: ../service-a
-    url: https://dev.azure.com/org/project/_git/service-a
-    branch: main
+  - id: service-a
+    remote: https://github.com/your-org/service-a
+    local_path: ../service-a
+    default_branch: main
+  - id: service-b
+    remote: https://github.com/your-org/service-b
+    local_path: ../service-b
+    default_branch: main
+```
+
+Workspace example:
+```yaml
+id: order-history
+description: Order history feature spanning service-a and service-b
+status: active
+repos:
+  - repo_id: service-a
     role: primary
-    onboarded: true
-  - path: ../service-b
-    url: https://dev.azure.com/org/project/_git/service-b
-    branch: main
+  - repo_id: service-b
     role: dependency
-    onboarded: false
 ```
 
 ### 2. For Each Repo
 
 ```
-a. Path exists?
+a. Look up repo_id in repos.yml
+
+b. Path exists?
    YES → git fetch + git status (report if behind remote)
    NO  → Clone the repo:
          - Azure DevOps URLs → az repos clone
          - GitHub URLs → gh repo clone
          - Other → git clone
 
-b. onboarded: false?
-   YES → Run onboard skill against that repo
-         → Set onboarded: true in workspace.yaml
+c. Refresh `.helix/repo-state/{repo-id}.yml`
+   - capture presence
+   - capture git branch / remote / dirty status when available
+   - capture readiness signals:
+     - root `AGENTS.md`
+     - nested `AGENTS.md`
+     - `.github/instructions/`
+     - `.github/skills/`
+     - tests present
 
-c. onboarded: true AND --refresh flag?
-   YES → Run onboard --refresh against that repo
+d. If repo-state says `needs-onboarding` or `partial`
+   YES → Run onboard skill against that repo
+         → Re-scan and update repo-state
 ```
 
 ### 3. Generate VS Code Workspace File
@@ -62,15 +78,19 @@ Create `workspaces/{name}/{name}.code-workspace`:
 ```json
 {
   "folders": [
-    { "name": "helix", "path": "../.." },
+    { "name": "meta-repo", "path": "../.." },
     { "name": "service-a", "path": "../../../service-a" },
     { "name": "service-b", "path": "../../../service-b" }
   ],
-  "settings": {}
+  "settings": {
+    "chat.agentFilesLocations": [{ "source": ".github/agents" }],
+    "chat.skillsLocations": [{ "source": ".github/skills" }],
+    "chat.hookFilesLocations": [{ "source": "hooks" }]
+  }
 }
 ```
 
-### 4. Update .claude/settings.json
+### 4. Update .claude/settings.local.json
 
 Add repo paths to `additionalDirectories` for Copilot CLI access:
 
@@ -87,7 +107,7 @@ Add repo paths to `additionalDirectories` for Copilot CLI access:
 
 ### 5. Set Active Workspace
 
-Update `.helix/active-workspace.yaml`:
+Update `.helix/active-workspace.yml`:
 ```yaml
 active: order-feature
 ```
@@ -97,23 +117,25 @@ active: order-feature
 ```markdown
 # Workspace Sync: {name}
 
-| Repo | Path | Exists | Onboarded | Branch | Status |
-|------|------|--------|-----------|--------|--------|
-| service-a | ../service-a | yes | yes | main | up to date |
-| service-b | ../service-b | cloned | yes (new) | main | fresh clone |
+| Repo | Path | Present | Readiness | Branch | Next Step |
+|------|------|---------|-----------|--------|-----------|
+| service-a | ../service-a | yes | ready | main | none |
+| service-b | ../service-b | cloned | partial | main | onboard |
 
-Generated: {name}.code-workspace
-Updated: .claude/settings.json, .helix/active-workspace.yaml
+Generated: {name}.code-workspace, .helix/repo-state/*.yml
+Updated: .claude/settings.local.json, .helix/active-workspace.yml
 ```
 
 ## Error Handling
 
 - Clone fails → report error, continue with other repos
-- Onboard fails → report error, set onboarded: false, continue
+- Onboard fails → report error, leave repo-state at `partial` or `needs-onboarding`, continue
 - Repo behind remote → warn but don't auto-pull (developer decision)
+- Workspace repo_id missing from repos.yml → stop and ask for registry repair
 
 ## Prerequisites
 
 - `az` CLI authenticated (for Azure DevOps repos)
 - `gh` CLI authenticated (for GitHub repos)
 - `git` available
+- Prefer [`scripts/setup-workspace.ps1`](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\scripts\setup-workspace.ps1) for the target meta-repo model; the old Bash helper is legacy

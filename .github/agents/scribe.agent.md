@@ -65,7 +65,7 @@ When appending:
 
 ## Workspace State
 
-Update `workspace.yaml` status field when workspace lifecycle changes (e.g., active, paused, completed).
+Update `workspace.yml` status field when workspace lifecycle changes (e.g., active, paused, completed).
 
 ## Guidelines
 
