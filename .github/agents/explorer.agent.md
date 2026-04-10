@@ -114,7 +114,7 @@ last_verified: YYYY-MM-DD
 
 ## Infra
 - resource: ResourceName
-  type: Queue | DB | Lambda | Service | Topic
+  type: Queue | DB | Function | Service | Topic | Job
   role: why it matters
   evidence: path/to/file#Symbol
 

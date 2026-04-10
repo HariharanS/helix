@@ -21,3 +21,4 @@ This directory contains templates for generated Helix artifacts.
 - Bias toward progressive disclosure: summary or index first, detail second
 - Prefer explicit fields over prose where downstream automation depends on them
 - Do not bake feature-specific content into generic templates
+- Do not keep stale stack-specific samples in canonical template paths; either refresh them in an isolated example area or delete them
