@@ -1,0 +1,36 @@
+# Helix workspace / feature-space manifest
+schema_version: 1
+
+id: example-feature
+display_name: Example Feature
+description: Short description of the feature-space
+status: draft
+mode: interactive
+objective: One-sentence desired outcome
+created_at: 2026-04-10
+
+phase:
+  current: setup
+  last_completed: null
+
+repos:
+  - repo_id: service-a
+    role: primary
+    branch: main
+    focus_areas:
+      - src
+      - tests
+
+  - repo_id: web-app
+    role: supporting
+    branch: main
+    focus_areas:
+      - src/features
+
+artifacts:
+  refined_intent: refined-intent.md
+  prd: prd/index.md
+  tech_design: tech-design/index.md
+  task_board_dir: task-boards/
+  execution_plan_dir: execution-plans/
+  decisions_dir: decisions/

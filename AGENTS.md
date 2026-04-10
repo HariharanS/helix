@@ -54,6 +54,7 @@ Do **not** read the entire repo by default.
   - [`README.md`](./README.md)
   - [`./docs/helix-process.md`](./docs/helix-process.md)
   - [`./docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
+  - [`./docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md)
   - [`./docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
 
 ## Retrieval Discipline

@@ -12,8 +12,9 @@ This directory contains human-facing documentation.
 
 1. Read [`../README.md`](../README.md) for the high-level product story
 2. Read [`helix-process.md`](./helix-process.md) for the canonical lifecycle
-3. Read only the specific guide relevant to the task
-4. Do not use `docs/` as the default source for implementation details when a workspace artifact, execution plan, or context bundle exists
+3. Read [`helix-instance-schemas.md`](./helix-instance-schemas.md) when working on meta-repo manifests or installer behavior
+4. Read only the specific guide relevant to the task
+5. Do not use `docs/` as the default source for implementation details when a workspace artifact, execution plan, or context bundle exists
 
 ## Writing Rules
 

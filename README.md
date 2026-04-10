@@ -153,12 +153,14 @@ Helix is moving toward:
 - attached product repos selected through `repos.yml`
 
 The target packaging and installation model is defined in [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md).
+The target meta-repo manifest shapes are defined in [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md).
 
 ## Where To Start
 
 - New to Helix: [`docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
 - Canonical lifecycle and loops: [`docs/helix-process.md`](./docs/helix-process.md)
 - Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
+- Meta-repo manifest schemas: [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md)
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)
 - Agent navigation and source-of-truth rules: [`AGENTS.md`](./AGENTS.md)
 

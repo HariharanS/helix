@@ -6,7 +6,7 @@ This directory is the canonical home for workspace-scoped feature artifacts.
 
 ```text
 workspaces/{name}/
-├── workspace.yaml
+├── workspace.yml
 ├── refined-intent.md
 ├── prd.md or prd/
 ├── tech-design.md or tech-design/
@@ -16,9 +16,11 @@ workspaces/{name}/
 └── context-bundle-*.md
 ```
 
+Current target-state naming uses `workspace.yml`. Older combined-repo examples may still refer to legacy `workspace.yaml`.
+
 ## Source Of Truth Rules
 
-- `workspace.yaml` is the entry point for repos, roles, and onboarding state
+- `workspace.yml` is the entry point for participating repos, workspace status, and artifact entry paths
 - `execution-plans/` is the machine-readable source of truth for autonomous implementation
 - `task-boards/` is the human-readable status layer
 - `decisions/` records why important choices were made
@@ -28,7 +30,7 @@ Top-level `helix/decisions/` and `helix/task-boards/` are legacy placeholders, n
 
 ## Retrieval Order
 
-1. Read `workspace.yaml`
+1. Read `workspace.yml`
 2. Read only the artifact for the phase you are in
 3. If a phase artifact is packaged as a folder, start with `index.md`
 4. Read annexes or subdocuments only when the index points you there or the main document is insufficient

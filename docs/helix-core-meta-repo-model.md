@@ -204,11 +204,14 @@ No built-in agent prefix migration is required for this step.
 
 Keep existing filenames and agent names for now. Differentiate managed Helix assets through installation structure and install-state tracking first. Revisit naming only after the installer model is stable.
 
+## Current Schema Baseline
+
+The target shapes for `repos.yml`, `workspace.yml`, and `.helix/install-state.yml` are defined in [`helix-instance-schemas.md`](./helix-instance-schemas.md).
+
 ## Immediate Next Step
 
-The next implementation pass should define:
+The next implementation pass should focus on:
 
-1. `repos.yml` schema
-2. `workspace.yml` schema
-3. `.helix/install-state.yml` shape
-4. installer and sync behavior for managed files
+1. installer and sync behavior for managed files
+2. `.helix/repo-state/<repo-id>.yml` shape
+3. workspace setup and doctor commands against the new manifests

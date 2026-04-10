@@ -72,6 +72,8 @@ Treat Rubber Duck as advisory only. If it changes the shape of the work, move ba
 
 Before you ask Helix to plan or code, create a workspace for the feature.
 
+Note: this guide still shows the legacy combined-repo `workspace.yaml` example. The target meta-repo model standardizes on `workspace.yml`; see [`helix-instance-schemas.md`](./helix-instance-schemas.md).
+
 Example file: `helix/workspaces/order-history/workspace.yaml`
 
 ```yaml

@@ -6,6 +6,7 @@ This directory contains templates for generated Helix artifacts.
 
 - Artifact templates such as execution plans and context bundles
 - Package-first artifact templates such as PRD and tech-design entry docs
+- Meta-repo manifest templates such as `repos.yml`, `workspace.yml`, and `install-state.yml`
 - Template examples
 - Instruction and skill templates
 
