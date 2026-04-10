@@ -31,9 +31,10 @@ Helix is a meta-repo that coordinates work across multiple service repos.
 
 ## Agent Context
 
-- Read AGENTS.md at repo root for service overview and conventions
+- Read root `AGENTS.md` for the repo map, then prefer the nearest relevant `AGENTS.md` in the subtree you are touching
 - Read .instructions.md files (in `.github/instructions/`) for repo-specific conventions
 - Prefer task-specific context bundles over broad repo summaries when implementing a task
+- Prefer index or summary documents over annexes or large blob files when both exist
 - Treat domain claims as evidence-backed only when supported by code, tests, config, or approved design docs
 - Each repo's conventions are discovered by the onboard skill — not hardcoded
 - Never assume a tech stack — always read repo conventions first

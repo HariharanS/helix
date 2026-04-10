@@ -44,7 +44,7 @@ On every session start:
 1. Read `.helix/active-workspace.yaml` to determine the active workspace
 2. If no workspace is active, ask the user to activate one or create a new one
 3. Read the workspace's `workspace.yaml` for the repo list and current state
-4. Read `AGENTS.md` and `.instructions.md` in each repo for conventions — never assume a tech stack
+4. Read the root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files in each repo for conventions — never assume a tech stack
 
 ## Optional Cross-Family Second Opinion (Copilot CLI)
 

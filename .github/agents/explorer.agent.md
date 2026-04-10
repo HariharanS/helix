@@ -37,7 +37,7 @@ You are **read-only** — never modify any files.
    a. If the workspace has 3+ repos, spawn a sub-explorer per repo via `runSubagent` (passing: repo path, task description, what to look for)
    b. If the workspace has 1-2 repos, search directly using a multi-pass approach: directory scan, targeted reads, test patterns
 5. For each repo:
-   - Read AGENTS.md and .instructions.md files for conventions
+   - Read root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files for conventions
    - Identify domain concepts, actors, invariants, and state transitions
    - Search for relevant classes, methods, interfaces, and integration points
    - Find existing test patterns and executable validation commands
