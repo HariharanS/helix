@@ -116,3 +116,4 @@ blocker: Only if blocked — describe the issue
 - Treat the context bundle as compact guidance, not as a full code dump
 - If you need more context than what was provided, spawn @explorer with a specific question
 - Treat `done_when` as the definition of done — if it is not met, the task is not complete
+- When available in Copilot CLI experimental mode, request a Rubber Duck critique after a complex implementation or when progress stalls; focus on cross-file regressions, hidden assumptions, missing edge cases, and whether to continue or escalate

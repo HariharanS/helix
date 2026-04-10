@@ -141,3 +141,4 @@ sequenceDiagram
 - Read AGENTS.md and .instructions.md in each repo for conventions — match existing storage patterns, IaC patterns, handler patterns, and project structure
 - Keep pseudo code minimal and only detailed enough to lock logic or edge cases
 - Move long evidence or inventories to annex files instead of inflating the main design
+- When available in Copilot CLI experimental mode, request a Rubber Duck critique before finalizing a complex design; focus on contract stability, rollout risk, cross-repo edge cases, and unnecessary complexity

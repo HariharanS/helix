@@ -43,6 +43,7 @@ Think about WHAT to test, not HOW to implement. Your job is to precisely encode 
 - Include edge cases only if they're in the AC or obviously critical
 - Do NOT create test infrastructure (base classes, helpers) unless the task requires it
 - Do NOT write or modify production code
+- When available in Copilot CLI experimental mode and the test set is non-trivial, request a Rubber Duck critique before expensive execution; focus on missing scenarios, weak assertions, and false confidence from incomplete coverage
 
 ## Output
 

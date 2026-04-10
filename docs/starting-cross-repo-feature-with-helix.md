@@ -53,6 +53,21 @@ Move to Ralph loop or fleet only after:
 - the contract between repos is locked
 - the execution plan has repo-scoped tasks with verified commands and ownership
 
+## Optional Copilot Rubber Duck Checkpoints
+
+If you are using GitHub Copilot CLI experimental mode, and Rubber Duck is available to your session, you can ask for a critique at the stage boundaries where a second opinion has the highest return. In the current Copilot rollout, this typically means using a Claude-family orchestrator with GPT-5.4 access enabled.
+
+Use it sparingly:
+
+- after PRD, if requirements still feel ambiguous or risky
+- after tech design, before task breakdown, if contracts or rollout paths feel fragile
+- after task breakdown, before Ralph loop or fleet, if ownership or commands may be unsafe
+- after a complex implementation, if the change spans multiple files or boundaries
+- after writing tests, before relying on them as proof
+- whenever the current agent is stuck or looping
+
+Treat Rubber Duck as advisory only. If it changes the shape of the work, move back to the right phase and update the workspace artifacts.
+
 ## Phase 0: SETUP — Create And Sync The Workspace
 
 Before you ask Helix to plan or code, create a workspace for the feature.
@@ -374,11 +389,25 @@ We need unit tests first, sandbox integration tests for downstream behavior, and
 Make the acceptance criteria explicit and identify which repos own which behaviors.
 ```
 
+Optional second opinion:
+
+```text
+Critique this PRD before we move to design.
+Focus on hidden assumptions, ambiguous acceptance criteria, and missing repo-boundary behavior.
+```
+
 ### 4. Move to tech design
 
 ```text
 @helix Create the technical design for this feature.
 Lock the contracts between repos and define where unit, sandbox integration, and Playwright tests belong.
+```
+
+Optional second opinion:
+
+```text
+Critique this tech design before task breakdown.
+Focus on contract stability, rollout risk, cross-repo edge cases, and unnecessary complexity.
 ```
 
 ### 5. Break the work down
@@ -387,6 +416,13 @@ Lock the contracts between repos and define where unit, sandbox integration, and
 @helix Break this feature into repo-scoped tasks and create the execution plan.
 Do not create cross-repo implementation tasks.
 Verify focused and full test commands per repo.
+```
+
+Optional second opinion:
+
+```text
+Critique this execution plan before autonomous implementation.
+Focus on missing commands, overlapping write ownership, unsafe parallelism, and weak done criteria.
 ```
 
 ### 6. Start implementation

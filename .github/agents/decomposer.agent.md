@@ -192,3 +192,4 @@ A task is TOO BIG if:
 - Do NOT mark a task as autopilot-safe unless `context_bundle`, `commands`, `ownership.write_paths`, and `done_when` are all populated
 - Parallel groups are allowed only when write paths are disjoint and shared contracts are already locked
 - If a command cannot be verified from the repo, leave the task out of fleet mode and mark it for human review instead of guessing
+- When available in Copilot CLI experimental mode, request a Rubber Duck critique before marking an execution plan autopilot-safe; focus on missing commands, overlapping ownership, unsafe parallelism, and weak `done_when` criteria

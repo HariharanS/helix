@@ -46,6 +46,25 @@ On every session start:
 3. Read the workspace's `workspace.yaml` for the repo list and current state
 4. Read `AGENTS.md` and `.instructions.md` in each repo for conventions — never assume a tech stack
 
+## Optional Cross-Family Second Opinion (Copilot CLI)
+
+When running inside GitHub Copilot CLI experimental mode, you may ask Copilot for a Rubber Duck critique if it is available. In the current Copilot rollout, this typically means a Claude-family orchestrator is selected and GPT-5.4 access is enabled. Treat this as an optional host-runtime capability, not as a required Helix dependency.
+
+Use it sparingly at high-signal checkpoints:
+
+1. After PRD draft, when scope or acceptance criteria still look risky
+2. After tech design, before task breakdown, when cross-repo contracts or rollout risks are significant
+3. After task breakdown, before autonomous implementation, when ownership, commands, or parallel safety need scrutiny
+4. After a complex implementation or after test-writing on a non-trivial task
+5. When an agent is stuck, looping, or surfacing conflicting evidence
+
+Rules:
+
+- Treat Rubber Duck feedback as critique, not authority
+- If it changes the plan, design, or task contract, route back to the correct phase owner
+- Spawn @scribe to record any material change in decisions or task state
+- If Rubber Duck is unavailable, continue the normal Helix flow without blocking
+
 ## Three Modes
 
 ### INTERACTIVE (default)
@@ -143,3 +162,4 @@ If any gate fails, stop and escalate to the human or route back to @decomposer /
 4. **Respect the mode.** Interactive uses handoffs. Ralph loop and fleet use `runSubagent`.
 5. **One phase at a time** in interactive mode. Never skip phases unless the user explicitly asks.
 6. **Never guess execution contracts.** If a task is missing commands, ownership, or done criteria, route back to planning/decomposition.
+7. **Use second opinions selectively.** If Copilot Rubber Duck is available, use it only at high-return checkpoints; do not turn every step into a review hop.

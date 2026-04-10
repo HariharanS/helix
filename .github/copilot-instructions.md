@@ -8,6 +8,8 @@ Helix is a meta-repo that coordinates work across multiple service repos.
 - Follow the Helix lifecycle: SETUP → JAM → PRD → TECH DESIGN → TASK BREAKDOWN → IMPLEMENTATION → REVIEW → DISTILL
 - Treat SETUP as mandatory: create or activate the workspace, sync repos, onboard or refresh repo context, then proceed
 - Treat IMPLEMENTATION as nested loops: task-level TDD (`RED → GREEN → REFACTOR → FULL SUITE`) inside scheduler loops (interactive handoff, Ralph loop, or fleet)
+- When available in GitHub Copilot CLI experimental mode, typically with a Claude-family orchestrator and GPT-5.4 access, use Rubber Duck sparingly for a second opinion at high-return checkpoints: after plan/PRD, after design, after task breakdown, after complex implementation, after writing tests, or when stuck
+- Treat Rubber Duck as advisory only: incorporate concrete issues, record material decisions, and continue normally when the feature is unavailable
 - Use task boards (`workspaces/{name}/task-boards/`) to track progress
 - Use execution plans (`workspaces/{name}/execution-plans/`) for deterministic autonomous implementation
 - Use decisions logs (`workspaces/{name}/decisions/`) to record significant decisions

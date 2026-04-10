@@ -130,6 +130,15 @@ Implementation loops:
 - Each lens runs independently
 - Blocking findings send work back to implementation before merge or PR creation
 
+## Optional Copilot Rubber Duck Checkpoints
+
+When Helix is running inside GitHub Copilot CLI experimental mode, it can use Rubber Duck as an optional cross-family second opinion. In the current Copilot rollout, this typically means a Claude-family orchestrator is selected and GPT-5.4 access is enabled. This is a host-runtime capability, not a Helix runtime dependency.
+
+- Best checkpoints: after PRD, after tech design, after task breakdown, after complex implementation, after writing tests, and when an agent is stuck
+- Best fit: complex refactors, cross-repo contract changes, high-stakes tasks, and execution plans that are about to enter Ralph loop or fleet mode
+- Treat the critique as advisory only; if it changes scope, design, or task safety, route back to the correct phase and record the decision
+- If Rubber Duck is unavailable, Helix continues its normal lifecycle without blocking
+
 ## Execution Modes
 
 | Mode | Mechanism | Use Case |

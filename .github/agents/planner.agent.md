@@ -98,3 +98,4 @@ Why this feature is needed. Business context.
 - If requirements conflict with each other, surface the conflict to the user
 - Omit empty or low-value sections rather than filling them with placeholders
 - Prefer precise bullets over explanatory paragraphs when the same meaning is preserved
+- When available in Copilot CLI experimental mode, request a Rubber Duck critique before finalizing a risky or cross-repo PRD; focus on hidden assumptions, ambiguous acceptance criteria, and missing repo-boundary behavior
