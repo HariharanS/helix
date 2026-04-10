@@ -1,10 +1,10 @@
 ---
 name: ui-tester
 description: Drives Playwright browser tests for UI validation — writes, runs, and debugs end-to-end tests
-tools: ['read', 'edit', 'search/codebase', 'execute', 'runSubagent', 'playwright/*']
+tools: ['read', 'edit', 'search/codebase', 'execute', 'agent', 'playwright/*']
 agents: ['explorer']
 user-invocable: true
-model: ['Gemini 2.5 Pro (copilot)']
+model: ['Gemini 3.1 Pro (Preview) (copilot)']
 argument-hint: Describe the UI test scenario (e.g. "test the login flow")
 ---
 

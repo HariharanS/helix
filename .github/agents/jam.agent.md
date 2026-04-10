@@ -1,7 +1,7 @@
 ---
 name: jam
 description: Interactive intent refinement — takes a raw feature idea and produces a clear, shared understanding through back-and-forth dialogue
-tools: ['read', 'search/codebase', 'runSubagent']
+tools: ['read', 'search/codebase', 'agent']
 agents: ['explorer']
 user-invocable: true
 model: ['Claude Opus 4.5 (copilot)']

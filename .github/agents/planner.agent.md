@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Takes a refined intent and produces a detailed Product Requirements Document (PRD) by exploring domain context and structuring requirements
-tools: ['read', 'search/codebase', 'edit', 'runSubagent']
+tools: ['read', 'search/codebase', 'edit', 'agent']
 agents: ['explorer']
 user-invocable: true
 model: ['Claude Opus 4.5 (copilot)']

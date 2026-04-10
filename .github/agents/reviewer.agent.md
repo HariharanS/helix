@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Multi-lens code review — checks security, correctness, domain logic, coding style, and test coverage before PR creation
-tools: ['read', 'search/codebase', 'execute', 'runSubagent']
+tools: ['read', 'search/codebase', 'execute', 'agent']
 agents: ['explorer']
 user-invocable: true
 model: ['Claude Sonnet 4 (copilot)']

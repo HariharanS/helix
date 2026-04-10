@@ -1,7 +1,7 @@
 ---
 name: decomposer
 description: Takes a technical design entry document and breaks it into small, independent, testable tasks with clear acceptance criteria and dependency mapping
-tools: ['read', 'search/codebase', 'edit', 'runSubagent']
+tools: ['read', 'search/codebase', 'edit', 'agent']
 agents: ['explorer']
 user-invocable: true
 model: ['Claude Sonnet 4 (copilot)']

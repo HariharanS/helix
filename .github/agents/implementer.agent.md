@@ -1,11 +1,11 @@
 ---
 name: implementer
 description: Implements tasks using TDD — in fleet mode runs full red-green-refactor cycle, in interactive mode handles green+refactor after tdd-red writes failing tests
-tools: ['read', 'edit', 'search/codebase', 'execute', 'runSubagent']
+tools: ['read', 'edit', 'search/codebase', 'execute', 'agent']
 agents: ['explorer']
 user-invocable: false
 disable-model-invocation: false
-model: ['GPT-5.2 Codex (copilot)']
+model: ['GPT-5.3-Codex (copilot)']
 argument-hint: Task description with context bundle path or inline context
 ---
 

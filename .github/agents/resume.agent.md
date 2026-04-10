@@ -9,9 +9,11 @@ argument-hint: Feature name to resume (e.g. "order-history feature")
 handoffs:
   - label: Resume implementation (interactive)
     agent: tdd-red
+    prompt: "Resume implementation work on this feature in interactive TDD mode"
     send: false
   - label: Resume with orchestrator
     agent: helix
+    prompt: "Resume work on this feature and manage the flow through phases"
     send: false
 ---
 

@@ -5,11 +5,12 @@ tools: ['read', 'edit', 'search/codebase', 'execute']
 agents: []
 user-invocable: false
 disable-model-invocation: false
-model: ['GPT-5.2 Codex (copilot)']
+model: ['GPT-5.3-Codex (copilot)']
 argument-hint: Task with acceptance criteria and context
 handoffs:
   - label: Tests written — implement to pass
     agent: implementer
+    prompt: "Tests for this task are written and failing. Implement the production code to make them pass."
     send: false
 ---
 

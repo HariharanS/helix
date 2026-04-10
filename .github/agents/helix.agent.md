@@ -1,7 +1,7 @@
 ---
 name: helix
 description: Helix coordinator — routes work through phases, manages modes, dispatches to specialist agents
-tools: ['read', 'search/codebase', 'runSubagent']
+tools: ['read', 'search/codebase', 'agent']
 agents: ['jam', 'planner', 'architect', 'decomposer', 'explorer', 'implementer', 'tdd-red', 'reviewer', 'distiller', 'resume', 'ui-tester', 'scribe']
 user-invocable: true
 model: ['Claude Sonnet 4 (copilot)']

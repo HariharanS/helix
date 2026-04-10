@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Takes a PRD and produces a technical design using pseudo code, mermaid diagrams, and interface contracts — separating domain logic from infrastructure
-tools: ['read', 'search/codebase', 'edit', 'runSubagent']
+tools: ['read', 'search/codebase', 'edit', 'agent']
 agents: ['explorer']
 user-invocable: true
 model: ['Claude Opus 4.5 (copilot)']
