@@ -135,6 +135,22 @@ Then use the `workspace-sync` skill or [`setup-workspace.ps1`](C:\Users\Harih\so
 
 Use the legacy Bash helper only for the old combined layout. The PowerShell script is the target entry point for the meta-repo model.
 
+### Optional: Enable Graph Retrieval Conservatively
+
+If you want structural code retrieval without making it mandatory, enable `code-review-graph` in `review-only` mode first:
+
+```powershell
+./scripts/set-context-provider.ps1 -Provider code-review-graph -Mode review-only
+```
+
+That keeps Helix in charge of process and workspace artifacts while using the graph only for review scoping and blast-radius analysis.
+
+If it is noisy, unhelpful, or too expensive, turn it back off:
+
+```powershell
+./scripts/set-context-provider.ps1 -Provider code-review-graph -Mode off
+```
+
 ### Setup Loop: Onboard Every Repo
 
 Because some repos may not be Helix-ready yet, onboarding is the first real step for only the repos that need it.

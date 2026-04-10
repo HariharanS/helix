@@ -14,6 +14,7 @@ Use this file to discover where relevant context lives in the installed Helix me
 
 - `repos.yml` is the registry of known repos, not runtime state
 - `.helix/repo-state/` contains generated readiness and scan results
+- `.helix/context-providers.yml` controls whether optional retrieval layers such as code-review-graph are enabled
 - `workspaces/<id>/workspace.yml` declares participating repos for a feature-space
 - workspace artifacts live under `workspaces/<id>/`
 - product code changes happen in attached repos, not in this meta repo

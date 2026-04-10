@@ -5,6 +5,7 @@ This directory contains helper scripts and hook implementations.
 ## What Lives Here
 
 - `install-helix.ps1` — materializes Helix into a meta repo
+- `set-context-provider.ps1` — enables or disables optional context providers such as code-review-graph
 - `sync-helix.ps1` — re-syncs managed Helix files from core into the meta repo
 - `setup-workspace.ps1` — attaches selected repos for a workspace and generates the `.code-workspace` file
 - `doctor.ps1` — validates manifests and readiness

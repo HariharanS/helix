@@ -6,10 +6,10 @@
  * - After git commit → suggest updating task board
  */
 
-const fs = require('fs');
+const { readHookInput } = require('./helix-runtime');
 
 function main() {
-  const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+  const input = readHookInput();
   const toolName = input.tool_name || '';
   const toolInput = input.tool_input || {};
   const toolResponse = input.tool_response || '';

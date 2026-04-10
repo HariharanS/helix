@@ -53,6 +53,16 @@ Run each lens independently. Report findings per lens.
 - Do tests follow repo patterns (naming, structure, assertions)?
 - Are edge cases tested?
 
+## Optional Graph-Assisted Review
+
+If `.helix/context-providers.yml` enables `code_review_graph`:
+
+- In `review-only` mode, use the graph only to scope blast radius, changed functions, and likely affected tests
+- In `full` mode, use the graph first to narrow your read set before running the full review lenses
+- Prefer token-light calls such as review context, impact radius, change detection, and targeted graph queries
+- Stay within the configured graph tool-call and token budget
+- If the graph is unavailable or over-inclusive, fall back to manual repo review without blocking
+
 ## Output Format
 
 ```markdown
@@ -91,3 +101,4 @@ Run each lens independently. Report findings per lens.
 - Spawn @explorer for additional context if needed — be specific about what you need
 - Review infrastructure changes — check that permissions follow least-privilege and conventions are followed
 - Read AGENTS.md and .instructions.md in each repo for conventions
+- Treat graph retrieval as a code-selection aid, not as a replacement for checking the PRD, tech design, and task contract

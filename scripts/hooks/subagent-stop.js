@@ -6,10 +6,10 @@
  * Logs completion for progress tracking.
  */
 
-const fs = require('fs');
+const { readHookInput } = require('./helix-runtime');
 
 function main() {
-  const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+  const input = readHookInput();
   const agentId = input.agent_id || 'unknown';
   const agentType = input.agent_type || 'unknown';
 

@@ -8,9 +8,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const { readHookInput } = require('./helix-runtime');
 
 function main() {
-  const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+  const input = readHookInput();
   const cwd = input.cwd || process.cwd();
   const sessionId = input.sessionId || 'unknown';
   const timestamp = new Date().toISOString();

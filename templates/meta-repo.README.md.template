@@ -17,7 +17,8 @@ It does not own product code. Product repos are attached from the registry only 
 1. Update `repos.yml` with the repos Helix can use
 2. Create or edit `workspaces/<workspace-id>/workspace.yml`
 3. Run `./scripts/setup-workspace.ps1 -Workspace <workspace-id>`
-4. Start Helix from the active meta repo workspace
+4. Optional: run `./scripts/set-context-provider.ps1 -Provider code-review-graph -Mode review-only`
+5. Start Helix from the active meta repo workspace
 
 ## Helix Docs
 
@@ -28,6 +29,7 @@ It does not own product code. Product repos are attached from the registry only 
 
 - `.github/` — agents, prompts, skills, and Copilot instructions
 - `.helix/` — install state, active workspace pointer, repo-state, generated state
+- `.helix/context-providers.yml` — optional graph retrieval switches and budgets
 - `workspaces/` — feature-space artifacts
 - `repos.yml` — repo registry
 <!-- HELIX:END overview -->

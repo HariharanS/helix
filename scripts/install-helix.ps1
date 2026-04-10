@@ -125,6 +125,7 @@ Add-ManagedTree -Items $items -SourceRelativeRoot 'templates' -TargetRelativeRoo
 Add-ManagedFile -Items $items -SourceRelative 'scripts/AGENTS.md' -TargetRelative 'scripts/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/Helix.Tools.psm1' -TargetRelative 'scripts/Helix.Tools.psm1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/install-helix.ps1' -TargetRelative 'scripts/install-helix.ps1' -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/set-context-provider.ps1' -TargetRelative 'scripts/set-context-provider.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/sync-helix.ps1' -TargetRelative 'scripts/sync-helix.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/setup-workspace.ps1' -TargetRelative 'scripts/setup-workspace.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/doctor.ps1' -TargetRelative 'scripts/doctor.ps1' -Category 'script' -SyncMode 'replace'
@@ -133,8 +134,10 @@ Add-ManagedFile -Items $items -SourceRelative 'hooks/hooks.json' -TargetRelative
 
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.README.md.template' -TargetRelative 'README.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.AGENTS.md.template' -TargetRelative 'AGENTS.md' -Category 'doc' -SyncMode 'merge-marked-sections'
+Add-ManagedFile -Items $items -SourceRelative 'templates/mcp.json.template' -TargetRelative '.mcp.json' -Category 'config' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/repos.yml.template' -TargetRelative 'repos.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/active-workspace.yml.template' -TargetRelative '.helix/active-workspace.yml' -Category 'manifest' -SyncMode 'seed-once'
+Add-ManagedFile -Items $items -SourceRelative 'templates/context-providers.yml.template' -TargetRelative '.helix/context-providers.yml' -Category 'manifest' -SyncMode 'seed-once'
 
 foreach ($item in $items) {
     Write-ManagedFile -Item $item -MetaRepoName $metaRepoName

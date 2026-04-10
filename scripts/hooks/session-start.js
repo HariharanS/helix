@@ -8,41 +8,25 @@
 
 const fs = require('fs');
 const path = require('path');
-const yaml = require === undefined ? null : null; // yaml parsing done manually below
-
-function parseYaml(content) {
-  // Simple YAML value parser for key: value pairs
-  const result = {};
-  for (const line of content.split('\n')) {
-    const match = line.match(/^(\w+):\s*(.+)$/);
-    if (match) {
-      result[match[1]] = match[2].trim();
-    }
-  }
-  return result;
-}
+const {
+  getActiveWorkspace,
+  getCodeReviewGraphPolicy,
+  getCodeReviewGraphServer,
+  readHookInput,
+} = require('./helix-runtime');
 
 function main() {
-  const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+  const input = readHookInput();
   const cwd = input.cwd || process.cwd();
 
   const messages = [];
 
   // 1. Check active workspace
-  const activeWsPath = fs.existsSync(path.join(cwd, '.helix', 'active-workspace.yml'))
-    ? path.join(cwd, '.helix', 'active-workspace.yml')
-    : path.join(cwd, '.helix', 'active-workspace.yaml');
-  let activeWorkspace = null;
-
-  if (fs.existsSync(activeWsPath)) {
-    const content = fs.readFileSync(activeWsPath, 'utf8');
-    const parsed = parseYaml(content);
-    if (parsed.active && parsed.active !== 'null') {
-      activeWorkspace = parsed.active;
-      messages.push(`[Helix] Active workspace: ${activeWorkspace}`);
-    } else {
-      messages.push('[Helix] No active workspace. Use workspace-sync to set one up.');
-    }
+  const activeWorkspace = getActiveWorkspace(cwd);
+  if (activeWorkspace) {
+    messages.push(`[Helix] Active workspace: ${activeWorkspace}`);
+  } else {
+    messages.push('[Helix] No active workspace. Use workspace-sync to set one up.');
   }
 
   // 2. Check memory index
@@ -72,6 +56,21 @@ function main() {
         messages.push(`[Helix] Decisions logs: ${files.join(', ')}`);
       }
     }
+  }
+
+  // 5. Check optional context provider state
+  const graphPolicy = getCodeReviewGraphPolicy(cwd);
+  if (graphPolicy.mode === 'off') {
+    messages.push('[Helix Context] code-review-graph: off.');
+  } else {
+    const server = getCodeReviewGraphServer(cwd);
+    const command =
+      server && server.command
+        ? ` via ${server.command}${Array.isArray(server.args) && server.args.length ? ` ${server.args.join(' ')}` : ''}`
+        : ' (MCP server missing from .mcp.json)';
+    messages.push(
+      `[Helix Context] code-review-graph: ${graphPolicy.mode}, detail=${graphPolicy.detailLevel}, budget=${graphPolicy.maxToolCallsPerTask} calls/${graphPolicy.maxContextTokensPerTask} tokens${command}.`
+    );
   }
 
   // Output

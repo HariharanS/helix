@@ -6,10 +6,10 @@
  * Reminds to run distill if significant work was done.
  */
 
-const fs = require('fs');
+const { readHookInput } = require('./helix-runtime');
 
 function main() {
-  const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+  const input = readHookInput();
 
   const output = {
     continue: true,

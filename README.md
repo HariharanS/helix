@@ -158,9 +158,19 @@ The target meta-repo manifest shapes are defined in [`docs/helix-instance-schema
 Current runtime tooling in this repo:
 
 - `scripts/install-helix.ps1` — install or sync managed Helix files into a meta repo
+- `scripts/set-context-provider.ps1` — enable or disable optional context providers such as code-review-graph
 - `scripts/setup-workspace.ps1` — attach selected repos and activate a workspace
 - `scripts/doctor.ps1` — validate manifests and refresh repo-state
 - `scripts/sync-helix.ps1` — re-sync an installed meta repo from its recorded Helix core source
+
+## Optional Structural Retrieval
+
+Helix can optionally layer in `code-review-graph` for code-centric retrieval.
+
+- Keep Helix workspace artifacts as the source of truth for intent, design, and task contracts
+- Use `code-review-graph` only as a code-selection engine for blast radius, changed-file scoping, and targeted dependency lookup
+- Start with `review-only` mode to limit token spend, then move to `full` only if the signal quality is worth it
+- Toggle it with `scripts/set-context-provider.ps1`; switching back to `off` removes the MCP server entry from `.mcp.json`
 
 ## Where To Start
 

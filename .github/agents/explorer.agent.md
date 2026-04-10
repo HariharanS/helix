@@ -29,34 +29,41 @@ You are **read-only** — never modify any files.
 
 1. Read `.helix/active-workspace.yml` for the active workspace name
 2. Read `workspaces/{workspace-name}/workspace.yml` for the selected repo list
-3. Clarify the question you are answering:
+3. Read `.helix/context-providers.yml` to see whether optional structural retrieval is off, `review-only`, or `full`
+4. Clarify the question you are answering:
    - What decision will the downstream agent make from this bundle?
    - Which repo owns the change?
    - Which contracts or dependencies cross repo boundaries?
-4. For each relevant repo in the workspace:
+5. If `code_review_graph.mode` is `full` and its MCP tools are available, use them first to narrow the search space:
+   - Start with token-light review or impact context
+   - Prefer targeted dependency or symbol queries over broad graph listings
+   - Stay within the configured tool-call and token budget
+   - If the graph result is noisy or incomplete, fall back to manual repo search
+6. If `code_review_graph.mode` is `review-only`, use graph retrieval only when gathering review context or blast-radius evidence; do not depend on it for general implementation discovery
+7. For each relevant repo in the workspace:
    a. If the workspace has 3+ repos, spawn a sub-explorer per repo via `agent` (passing: repo path, task description, what to look for)
    b. If the workspace has 1-2 repos, search directly using a multi-pass approach: directory scan, targeted reads, test patterns
-5. For each repo:
+8. For each repo:
    - Read root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files for conventions
    - Identify domain concepts, actors, invariants, and state transitions
    - Search for relevant classes, methods, interfaces, and integration points
    - Find existing test patterns and executable validation commands
    - Capture infrastructure/resources that shape the implementation
-6. Assemble a cross-repo context bundle with four lenses:
+9. Assemble a cross-repo context bundle with four lenses:
    - Domain
    - Technical/code
    - Tests/validation
    - Infrastructure/contracts
-7. Mark each non-obvious statement as either:
+10. Mark each non-obvious statement as either:
    - `fact` — backed by code, config, tests, or docs
    - `inference` — plausible conclusion from evidence, but not directly encoded
-8. Build anchors using multiple signals:
+11. Build anchors using multiple signals:
    - `path`
    - `symbol` if available
    - `anchor_text` for a stable nearby snippet or signature
    - `reason`
    - `stability` (`high`, `medium`, `low`)
-9. Write bundle to disk: `workspaces/{workspace-name}/context-bundle-{task-id}.md`
+12. Write bundle to disk: `workspaces/{workspace-name}/context-bundle-{task-id}.md`
 
 ## Output Format
 
@@ -136,6 +143,7 @@ If the supporting evidence is too large, create `workspaces/{workspace-name}/con
 - Every domain claim must have evidence or be explicitly marked as an inference
 - Always include at least one test pattern per repo if tests exist for the area
 - Include executable commands when you can prove them from package scripts, Makefiles, CI, or repo docs
+- Treat code-review-graph output as retrieval evidence, not as source-of-truth policy; repo conventions and workspace artifacts still win
 - Prefer `path + symbol + anchor_text` over path alone
 - Use `anchor_text` that is stable enough to relocate the code if the file shifts
 - Include only the 1-3 most relevant patterns; avoid pattern catalogs
