@@ -1,11 +1,11 @@
 ---
 name: decomposer
-description: Takes a technical design and breaks it into small, independent, testable tasks with clear acceptance criteria and dependency mapping
+description: Takes a technical design entry document and breaks it into small, independent, testable tasks with clear acceptance criteria and dependency mapping
 tools: ['read', 'search/codebase', 'edit', 'runSubagent']
 agents: ['explorer']
 user-invocable: true
 model: ['Claude Sonnet 4 (copilot)']
-argument-hint: Path to tech-design.md or describe what needs breaking down
+argument-hint: Path to tech-design.md, tech-design/index.md, or describe what needs breaking down
 handoffs:
   - label: "Tasks ready \u2014 start implementation (interactive)"
     agent: tdd-red
@@ -32,7 +32,9 @@ You break technical designs into small, implementable tasks that fit cleanly int
 
 ## Workflow
 
-1. Read the tech design document from the workspace
+1. Read the tech design entry document from the workspace
+   - If the design is packaged, start with `tech-design/index.md`
+   - Follow the doc map into only the relevant subdocuments such as `contracts.md` or `execution-flow.md`
 2. Spawn @explorer if needed to understand current repo structure
 3. Identify natural task boundaries:
    - Interface/contract definitions (do these FIRST — they unlock parallel work)
@@ -63,7 +65,7 @@ Produce `workspaces/{workspace-name}/task-boards/{feature-name}.md`:
 ```markdown
 # Task Board: {Feature Name}
 ## Status: Phase 4 - Task Breakdown (ready for implementation)
-## Tech Design: link to tech-design.md
+## Tech Design: link to the tech design entry document (`tech-design.md` or `tech-design/index.md`)
 
 ### Dependency Graph
 ```mermaid
@@ -112,8 +114,8 @@ feature: feature-name
 status: ready-for-implementation
 source:
   refined_intent: workspaces/{workspace-name}/refined-intent.md
-  prd: workspaces/{workspace-name}/prd.md
-  tech_design: workspaces/{workspace-name}/tech-design.md
+  prd: workspaces/{workspace-name}/prd.md or workspaces/{workspace-name}/prd/index.md
+  tech_design: workspaces/{workspace-name}/tech-design.md or workspaces/{workspace-name}/tech-design/index.md
 
 scheduler:
   default_mode: ralph-loop
@@ -131,7 +133,7 @@ tasks:
     depends_on: []
     can_run_in_parallel: false
     design_refs:
-      - tech-design.md#Interface Contracts
+      - tech-design/contracts.md#Interface Contracts
     context_bundle: workspaces/{workspace-name}/context-bundle-TASK-001.md
     ownership:
       write_paths:
@@ -183,7 +185,7 @@ A task is TOO BIG if:
 - **P0 tasks** are interface/contract definitions — always do these first
 - Tasks that CAN run in parallel should be at the same priority level
 - Tasks that MUST be sequential should have explicit dependency chains
-- Each task should reference the relevant section of the tech design
+- Each task should reference the relevant design section, and in package mode should point to the specific subdocument rather than the broad index
 - If a task requires context from another repo (e.g. an API contract), include that context in the task description so the implementer doesn't need to explore the other repo
 - Never create a "catch-all" task — if something doesn't fit, it needs its own task or it's out of scope
 - Every task in the markdown board must also appear in the execution plan with the same ID
@@ -192,4 +194,5 @@ A task is TOO BIG if:
 - Do NOT mark a task as autopilot-safe unless `context_bundle`, `commands`, `ownership.write_paths`, and `done_when` are all populated
 - Parallel groups are allowed only when write paths are disjoint and shared contracts are already locked
 - If a command cannot be verified from the repo, leave the task out of fleet mode and mark it for human review instead of guessing
+- If the PRD or design is packaged, do not force downstream agents to read the whole package; extract the exact subdocument references they need
 - When available in Copilot CLI experimental mode, request a Rubber Duck critique before marking an execution plan autopilot-safe; focus on missing commands, overlapping ownership, unsafe parallelism, and weak `done_when` criteria

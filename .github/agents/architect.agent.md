@@ -35,12 +35,37 @@ You produce technical designs from PRDs. Your designs are the bridge between req
    - Interface contracts (between services, between layers)
    - Data model (following the repo's storage patterns and conventions)
    - Infrastructure changes (following the repo's IaC patterns and conventions)
-4. Present to user for review and iterate
-5. Produce the tech design document
+4. Choose the output shape:
+   - **Small/simple feature:** single-file design
+   - **Cross-repo or larger feature:** package-first design with `index.md` plus targeted subdocuments
+5. Present to user for review and iterate
+6. Produce the tech design document or package
 
 ## Output Format
 
-Write `workspaces/{workspace-name}/tech-design.md`:
+For small or simple work, write `workspaces/{workspace-name}/tech-design.md`.
+
+For cross-repo or larger work, write a design package under `workspaces/{workspace-name}/tech-design/` and use `index.md` as the entry point:
+
+```text
+workspaces/{workspace-name}/tech-design/
+├── index.md
+├── contracts.md
+├── domain-model.md
+├── execution-flow.md
+├── rollout-and-risks.md
+└── annex.md                 # optional
+```
+
+`index.md` should stay short and should contain:
+
+- status, date, PRD entry path
+- architecture summary
+- affected repos summary
+- doc map with one-line descriptions
+- explicit read order for downstream agents
+
+Example single-file shape:
 
 ````markdown
 # Tech Design: {Feature Name}
@@ -141,4 +166,10 @@ sequenceDiagram
 - Read AGENTS.md and .instructions.md in each repo for conventions — match existing storage patterns, IaC patterns, handler patterns, and project structure
 - Keep pseudo code minimal and only detailed enough to lock logic or edge cases
 - Move long evidence or inventories to annex files instead of inflating the main design
+- Prefer a single-file design only when the whole artifact stays compact and easy to scan
+- Use a design package when contracts, rollout constraints, or repo boundaries would otherwise produce a large blob
+- In package mode, keep `index.md` under roughly 80 lines and move details into focused subdocuments
+- Put service and layer contracts in `contracts.md`; do not bury them inside narrative sections
+- Put sequence diagrams and flow detail in `execution-flow.md`, not in the index
+- Put rollout constraints, compatibility notes, and major risks in `rollout-and-risks.md`
 - When available in Copilot CLI experimental mode, request a Rubber Duck critique before finalizing a complex design; focus on contract stability, rollout risk, cross-repo edge cases, and unnecessary complexity

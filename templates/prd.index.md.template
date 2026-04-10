@@ -1,0 +1,29 @@
+# PRD: {Feature Name}
+**Status:** Draft | In Review | Approved
+**Date:** {date}
+**Author:** {author}
+
+## Background
+Short context for why this feature exists.
+
+## Objectives
+- Objective 1
+- Objective 2
+
+## Repos Affected
+- repo-path: why this repo is involved
+
+## Document Map
+- [user-stories.md](./user-stories.md): user stories and scenario-level acceptance criteria
+- [requirements.md](./requirements.md): functional and non-functional requirements
+- [repo-ownership.md](./repo-ownership.md): which repo owns which behavior
+- [risks-and-open-questions.md](./risks-and-open-questions.md): unresolved concerns, risks, and mitigations
+- [annex.md](./annex.md): optional deep evidence and large tables
+
+## Read Order
+1. `index.md`
+2. `repo-ownership.md`
+3. `requirements.md`
+4. `user-stories.md`
+5. `risks-and-open-questions.md`
+6. `annex.md` only if needed

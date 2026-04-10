@@ -16,4 +16,6 @@ Keep the task board concise. Put execution detail in the YAML execution plan, no
 
 Only mark tasks as safe for autopilot or parallel fleet execution when the execution contract is explicit and conflict-free.
 
-${input:tech_design_path:Path to the tech-design file (e.g. tech-design.md)}
+If the design is packaged, start from `tech-design/index.md` and reference the exact subdocuments each task depends on.
+
+${input:tech_design_path:Path to the tech-design entry document (e.g. tech-design.md or tech-design/index.md)}

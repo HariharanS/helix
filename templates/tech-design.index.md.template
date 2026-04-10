@@ -1,0 +1,28 @@
+# Tech Design: {Feature Name}
+**Status:** Draft | In Review | Approved
+**Date:** {date}
+**PRD:** {path-to-prd-entry}
+
+## Architecture Summary
+Short summary of the design and repo boundaries.
+
+## Repos Affected
+- repo-path: how this repo changes
+
+## Key Decisions
+- Decision: rationale
+
+## Document Map
+- [contracts.md](./contracts.md): service and layer contracts
+- [domain-model.md](./domain-model.md): entities, invariants, and pseudo code
+- [execution-flow.md](./execution-flow.md): sequence diagrams and end-to-end request flow
+- [rollout-and-risks.md](./rollout-and-risks.md): rollout, compatibility, risk, and mitigation
+- [annex.md](./annex.md): optional deep evidence and inventories
+
+## Read Order
+1. `index.md`
+2. `contracts.md`
+3. `execution-flow.md`
+4. `domain-model.md`
+5. `rollout-and-risks.md`
+6. `annex.md` only if needed

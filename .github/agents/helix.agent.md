@@ -132,7 +132,7 @@ When handing off or spawning a subagent, always include:
 
 - Current workspace name
 - Current phase
-- Relevant artifact paths (`refined-intent.md`, `prd.md`, `tech-design.md`, task board path)
+- Relevant artifact entry paths (`refined-intent.md`, `prd.md` or `prd/index.md`, `tech-design.md` or `tech-design/index.md`, task board path)
 - Execution plan path for implementation work
 - Any decisions made so far
 - Specific instructions for what the next agent should do

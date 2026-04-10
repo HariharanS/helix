@@ -1,0 +1,28 @@
+## Between Services
+
+### {Contract Name}
+```text
+POST /service-a/action
+Request: { fieldA: string, fieldB: number }
+Response: { id: string, status: "success" | "failed" }
+```
+
+Owner: repo-or-service
+
+Consumers:
+- repo-or-service
+
+Compatibility Notes:
+- backward compatibility rule
+
+## Between Layers
+
+### {Interface Name}
+```text
+interface IThingRepository
+  GetById(id: string) -> Thing
+  Save(thing: Thing) -> void
+```
+
+Implemented in:
+- repo-or-module

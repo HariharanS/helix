@@ -80,5 +80,6 @@ What does success look like?
 - The refined intent should be specific enough that a planner agent can produce a PRD without ambiguity
 - Keep the refined intent short and decision-oriented — capture resolved scope, not a transcript of the conversation
 - Omit empty sections and generic filler
+- Keep refined intent as a single short entry document by default; if supporting evidence or open-question analysis grows large, push that detail into explorer bundles or a small annex instead of bloating the intent doc
 - If the user is unsure about scope, help them draw boundaries by asking "if we had to ship this in one week, what would we cut?"
 - Read AGENTS.md and .instructions.md in each repo for conventions before making assumptions about how things work

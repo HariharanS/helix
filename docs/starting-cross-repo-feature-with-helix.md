@@ -192,6 +192,16 @@ For a cross-repo feature, the PRD should also name:
 
 Output goes to `workspaces/{name}/prd.md`.
 
+For cross-repo or larger features, prefer a PRD package instead:
+
+- `workspaces/{name}/prd/index.md`
+- `workspaces/{name}/prd/user-stories.md`
+- `workspaces/{name}/prd/requirements.md`
+- `workspaces/{name}/prd/repo-ownership.md`
+- `workspaces/{name}/prd/risks-and-open-questions.md`
+
+Keep `index.md` short and use it as the read entry point.
+
 The PRD loop is:
 
 - gather domain evidence
@@ -218,6 +228,16 @@ Use the design to decide the test layers:
 - **Playwright tests** prove the end-user flow across the UI
 
 Output goes to `workspaces/{name}/tech-design.md`.
+
+For cross-repo or larger features, prefer a design package instead:
+
+- `workspaces/{name}/tech-design/index.md`
+- `workspaces/{name}/tech-design/contracts.md`
+- `workspaces/{name}/tech-design/domain-model.md`
+- `workspaces/{name}/tech-design/execution-flow.md`
+- `workspaces/{name}/tech-design/rollout-and-risks.md`
+
+Keep `index.md` short and use it as the read entry point.
 
 The design loop is:
 

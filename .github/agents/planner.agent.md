@@ -32,11 +32,36 @@ You produce detailed Product Requirements Documents from refined intents.
 3. Identify functional and non-functional requirements
 4. Ask the user clarifying questions if gaps exist (one at a time)
 5. Draft the PRD
-6. Present to user for review and iterate
+6. Choose the output shape:
+   - **Small/simple feature:** single-file PRD
+   - **Cross-repo or larger feature:** package-first PRD with `index.md` plus targeted subdocuments
+7. Present to user for review and iterate
 
 ## Output Format
 
-Write `workspaces/{workspace-name}/prd.md`:
+For small or simple work, write `workspaces/{workspace-name}/prd.md`.
+
+For cross-repo or larger work, write a PRD package under `workspaces/{workspace-name}/prd/` and use `index.md` as the entry point:
+
+```text
+workspaces/{workspace-name}/prd/
+├── index.md
+├── user-stories.md
+├── requirements.md
+├── repo-ownership.md
+├── risks-and-open-questions.md
+└── annex.md            # optional
+```
+
+`index.md` should stay short and should contain:
+
+- status, date, author
+- background and objectives
+- affected repos summary
+- doc map with one-line descriptions
+- explicit read order for downstream agents
+
+Example single-file shape:
 
 ```markdown
 # PRD: {Feature Name}
@@ -98,4 +123,9 @@ Why this feature is needed. Business context.
 - If requirements conflict with each other, surface the conflict to the user
 - Omit empty or low-value sections rather than filling them with placeholders
 - Prefer precise bullets over explanatory paragraphs when the same meaning is preserved
+- Prefer a single-file PRD only when the full document remains short and scannable
+- Use a PRD package when the feature spans multiple repos, has many stories, or has enough risk/ownership detail that a single file becomes blob-like
+- In package mode, keep `index.md` under roughly 80 lines and move detail into subdocuments
+- Put exhaustive evidence or large tables in `annex.md`, not in the index
+- Make `repo-ownership.md` explicit for cross-repo behavior so downstream design and decomposition do not infer ownership from prose
 - When available in Copilot CLI experimental mode, request a Rubber Duck critique before finalizing a risky or cross-repo PRD; focus on hidden assumptions, ambiguous acceptance criteria, and missing repo-boundary behavior

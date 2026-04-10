@@ -5,6 +5,7 @@ This directory contains templates for generated Helix artifacts.
 ## What Lives Here
 
 - Artifact templates such as execution plans and context bundles
+- Package-first artifact templates such as PRD and tech-design entry docs
 - Template examples
 - Instruction and skill templates
 

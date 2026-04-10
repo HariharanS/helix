@@ -1,0 +1,20 @@
+## Functional Requirements
+
+### FR-001: {Title}
+- Description
+- Acceptance criteria
+- Affected repo(s)
+
+## Non-Functional Requirements
+
+### NFR-001: {Title}
+- Performance, security, scalability, observability, compatibility, or rollout constraints
+
+## Dependencies
+
+- External systems
+- Cross-repo contracts
+
+## Success Metrics
+
+- Metric and expected outcome
