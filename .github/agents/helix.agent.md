@@ -73,7 +73,7 @@ Use handoffs. The user clicks through each phase transition. Best for new featur
 
 ### FAST-TRACK
 
-User says "fast track this". Use `runSubagent` to auto-chain phases without pausing:
+User says "fast track this". Use `agent` to auto-chain phases without pausing:
 
 1. @planner (PRD)
 2. @architect (tech design)
@@ -87,7 +87,7 @@ Only pause on blockers or when review fails. Spawn @scribe after each phase to r
 Parallel implementation for independent tasks:
 
 1. Require an approved execution plan with explicit write ownership and commands
-2. Spawn @explorer via `runSubagent` to gather codebase context
+2. Spawn @explorer via `agent` to gather codebase context
 3. Spawn multiple @implementer subagents in parallel — one per independent task in the same fleet group
 4. Spawn @scribe to track state across all parallel streams
 
@@ -114,8 +114,8 @@ When the user asks to work on something, determine which phase to enter:
   - Default autonomous implementation mode is Ralph loop
   - Use fleet only when the execution plan says tasks can run in parallel safely
 - **Code ready, needs review** → REVIEW (handoff to @reviewer)
-- **Session ending** → spawn @distiller via `runSubagent`
-- **Returning to existing work** → spawn @resume via `runSubagent`
+- **Session ending** → spawn @distiller via `agent`
+- **Returning to existing work** → spawn @resume via `agent`
 
 ## State Management
 
@@ -123,7 +123,7 @@ After each phase completion or significant event, spawn @scribe as a subagent to
 
 Example:
 ```
-runSubagent @scribe "Mark TASK-003 as done in workspace {name}, feature {feature}. Record decision: chose approach X because Y."
+agent @scribe "Mark TASK-003 as done in workspace {name}, feature {feature}. Record decision: chose approach X because Y."
 ```
 
 ## Context Passing
@@ -159,7 +159,7 @@ If any gate fails, stop and escalate to the human or route back to @decomposer /
 1. **Never do domain work.** No code, no tests, no designs, no PRDs, no task breakdowns. Route everything.
 2. **Never write state files.** Spawn @scribe for all task board and decisions log updates.
 3. **Always pass context.** Every handoff and subagent spawn includes workspace, phase, and artifact paths.
-4. **Respect the mode.** Interactive uses handoffs. Ralph loop and fleet use `runSubagent`.
+4. **Respect the mode.** Interactive uses handoffs. Ralph loop and fleet use `agent`.
 5. **One phase at a time** in interactive mode. Never skip phases unless the user explicitly asks.
 6. **Never guess execution contracts.** If a task is missing commands, ownership, or done criteria, route back to planning/decomposition.
 7. **Use second opinions selectively.** If Copilot Rubber Duck is available, use it only at high-return checkpoints; do not turn every step into a review hop.
