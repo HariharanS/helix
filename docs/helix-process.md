@@ -14,8 +14,10 @@ Use this document when you need the full lifecycle, loops, artifacts, and phase 
 ## Lifecycle
 
 ```text
-SETUP -> JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
+SETUP -> JAM -> [AUTO-CURATE] -> PRD -> [AUTO-CURATE] -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
 ```
+
+Auto-curation uses the `/curate-context` skill (backed by code-review-graph) to produce tiered context bundles before planning phases. Skipped when context already exists or intent is still vague (JAM phase).
 
 ## Phase Contract
 
@@ -38,6 +40,7 @@ SETUP -> JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW
 - attach or clone only the repos needed now
 - inspect repo readiness and update `.helix/repo-state/`
 - onboard only repos that are not Helix-ready
+- register repos with code-review-graph and build graphs (via workspace-sync skill)
 - confirm active workspace
 
 ### `JAM`
@@ -84,6 +87,7 @@ Scheduler loops:
 
 ### `REVIEW`
 
+- invoke `/code-review-graph:review-delta` or `/code-review-graph:review-pr` for structural analysis (blast radius, affected flows, risk scoring)
 - test correctness
 - security and safety checks
 - domain logic checks

@@ -29,111 +29,40 @@ You are **read-only** — never modify any files.
 
 1. Read `.helix/active-workspace.yml` for the active workspace name
 2. Read `workspaces/{workspace-name}/workspace.yml` for the selected repo list
-3. Read `.helix/context-providers.yml` to see whether optional structural retrieval is off, `review-only`, or `full`
-4. Clarify the question you are answering:
+3. Clarify the question you are answering:
    - What decision will the downstream agent make from this bundle?
    - Which repo owns the change?
    - Which contracts or dependencies cross repo boundaries?
-5. If `code_review_graph.mode` is `full` and its MCP tools are available, use them first to narrow the search space:
-   - Start with token-light review or impact context
-   - Prefer targeted dependency or symbol queries over broad graph listings
-   - Stay within the configured tool-call and token budget
-   - If the graph result is noisy or incomplete, fall back to manual repo search
-6. If `code_review_graph.mode` is `review-only`, use graph retrieval only when gathering review context or blast-radius evidence; do not depend on it for general implementation discovery
-7. For each relevant repo in the workspace:
-   a. If the workspace has 3+ repos, spawn a sub-explorer per repo via `agent` (passing: repo path, task description, what to look for)
-   b. If the workspace has 1-2 repos, search directly using a multi-pass approach: directory scan, targeted reads, test patterns
-8. For each repo:
+4. **Invoke `/curate-context` skill** with the task description. This produces a tiered context bundle using code-review-graph as the primary retrieval engine, classifying files into primary (full content), secondary (signatures), and tertiary (path only) tiers.
+   - If the workspace has 3+ repos, spawn a sub-explorer per repo via `agent` (passing: repo path, task description, what to look for). Each sub-explorer also invokes `/curate-context`.
+5. **Enrich the bundle with domain context** that code-review-graph cannot provide:
    - Read root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files for conventions
-   - Identify domain concepts, actors, invariants, and state transitions
-   - Search for relevant classes, methods, interfaces, and integration points
+   - Identify domain concepts, actors, invariants, and state transitions from code comments, domain layer, and tests
+   - Capture cross-cutting contracts (HTTP, Event, Queue, DB) that shape the implementation
    - Find existing test patterns and executable validation commands
-   - Capture infrastructure/resources that shape the implementation
-9. Assemble a cross-repo context bundle with four lenses:
-   - Domain
-   - Technical/code
-   - Tests/validation
-   - Infrastructure/contracts
-10. Mark each non-obvious statement as either:
+   - Capture infrastructure/resources from SAM/CloudFormation templates
+6. Mark each non-obvious statement as either:
    - `fact` — backed by code, config, tests, or docs
    - `inference` — plausible conclusion from evidence, but not directly encoded
-11. Build anchors using multiple signals:
+7. Build anchors using multiple signals:
    - `path`
    - `symbol` if available
    - `anchor_text` for a stable nearby snippet or signature
    - `reason`
    - `stability` (`high`, `medium`, `low`)
-12. Write bundle to disk: `workspaces/{workspace-name}/context-bundle-{task-id}.md`
+8. Write enriched bundle to disk: `workspaces/{workspace-name}/context-bundle-{task-id}.md`
 
 ## Output Format
 
 Write context bundle to disk as `workspaces/{workspace-name}/context-bundle-{task-id}.md`.
 
-Use compact markdown with YAML frontmatter, not XML.
+Use the tiered context bundle template from `templates/context-bundle.md.template`. The template includes:
 
-```md
----
-task_id: TASK-XXX
-question: What decision or implementation this bundle supports
-primary_repo: ../path-to-repo
-confidence: high | medium | low
-last_verified: YYYY-MM-DD
----
+- **Context Tiers** (Primary, Secondary, Tertiary) — populated by the `/curate-context` skill from code-review-graph results
+- **Domain, Anchors, Patterns, Contracts, Tests, Infra** — enriched by the explorer with domain context, fact/inference classification, and cross-cutting evidence
+- **Avoid, Open Questions, Read Order** — populated during enrichment
 
-## Domain
-- Glossary:
-  - BusinessTerm: what it means here
-    Evidence: path/to/file#Symbol
-- Invariants:
-  - Rule: business rule that must remain true
-    Type: fact | inference
-    Evidence: path/to/file#Symbol
-- State:
-  - Pending -> Completed on TriggerName
-    Type: fact | inference
-    Evidence: path/to/file#Symbol
-
-## Anchors
-- path: path/to/file
-  symbol: ClassName.MethodName
-  anchor_text: stable nearby line or signature
-  reason: why this matters
-  stability: high | medium | low
-
-## Patterns
-- path: path/to/file#Symbol
-  summary: relevant implementation or test pattern
-  snippet: optional short snippet only if the symbol name is not enough
-
-## Contracts
-- kind: HTTP | Event | Queue | DB | File
-  owner: repo-or-service
-  summary: what matters to this task
-  evidence: path/to/file#Symbol
-
-## Tests
-- pattern: path/to/test#TestName
-  reason: behavior or style reference
-- commands:
-  - verify: command
-  - focused: command
-  - full: command
-
-## Infra
-- resource: ResourceName
-  type: Queue | DB | Function | Service | Topic | Job
-  role: why it matters
-  evidence: path/to/file#Symbol
-
-## Avoid
-- What not to do and why
-
-## Open Questions
-- What remains uncertain
-
-## Read Order
-- path/to/file#Symbol
-```
+Use compact markdown with YAML frontmatter, not XML. Mark each entry's `source` as `crg:tool_name` or `manual`.
 
 If the supporting evidence is too large, create `workspaces/{workspace-name}/context-bundle-{task-id}.annex.md` and keep the main bundle short.
 
@@ -143,7 +72,8 @@ If the supporting evidence is too large, create `workspaces/{workspace-name}/con
 - Every domain claim must have evidence or be explicitly marked as an inference
 - Always include at least one test pattern per repo if tests exist for the area
 - Include executable commands when you can prove them from package scripts, Makefiles, CI, or repo docs
-- Treat code-review-graph output as retrieval evidence, not as source-of-truth policy; repo conventions and workspace artifacts still win
+- The `/curate-context` skill handles code-review-graph interaction — trust its tiered output for code discovery; enrich with domain context only
+- Treat graph output as retrieval evidence, not as source-of-truth policy; repo conventions and workspace artifacts still win
 - Prefer `path + symbol + anchor_text` over path alone
 - Use `anchor_text` that is stable enough to relocate the code if the file shifts
 - Include only the 1-3 most relevant patterns; avoid pattern catalogs

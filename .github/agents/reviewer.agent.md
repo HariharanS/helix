@@ -53,15 +53,20 @@ Run each lens independently. Report findings per lens.
 - Do tests follow repo patterns (naming, structure, assertions)?
 - Are edge cases tested?
 
-## Optional Graph-Assisted Review
+## Graph-Assisted Review
 
-If `.helix/context-providers.yml` enables `code_review_graph`:
+Code-review-graph auto-updates after implementation (watch mode / PostToolUse hooks), so the graph reflects the current state of the code.
 
-- In `review-only` mode, use the graph only to scope blast radius, changed functions, and likely affected tests
-- In `full` mode, use the graph first to narrow your read set before running the full review lenses
-- Prefer token-light calls such as review context, impact radius, change detection, and targeted graph queries
-- Stay within the configured graph tool-call and token budget
-- If the graph is unavailable or over-inclusive, fall back to manual repo review without blocking
+Use CRG's built-in review skills before reading code manually:
+
+- For incremental reviews: invoke `/code-review-graph:review-delta`
+- For PR reviews: invoke `/code-review-graph:review-pr`
+
+These skills handle: graph sync, change detection, blast radius, affected flows, and structured report with risk scoring.
+
+Complement the skill output with Helix's review lenses (Security, Correctness, Domain Logic, Coding Style, Test Coverage) — the CRG skills provide structural analysis, while the lenses provide semantic judgment.
+
+If CRG skills are unavailable or the graph hasn't updated yet, fall back to manual review without blocking.
 
 ## Output Format
 

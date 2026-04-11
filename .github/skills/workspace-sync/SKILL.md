@@ -71,6 +71,18 @@ d. If repo-state says `needs-onboarding` or `partial`
          → Re-scan and update repo-state
 ```
 
+### 2b. Register Repos With Code-Review-Graph
+
+For each repo attached in step 2:
+
+1. Run `/code-review-graph:build-graph` against the repo if `.code-review-graph/graph.db` doesn't exist
+2. Run `code-review-graph register {repo-path} --alias {repo-id}` to enable cross-repo search
+3. Record CRG readiness in `.helix/repo-state/{repo-id}.yml`:
+   - `crg_indexed: true | false`
+   - `crg_last_build: YYYY-MM-DD`
+
+CRG's watch mode and PostToolUse hooks handle incremental updates during implementation — no manual rebuilds needed after initial setup.
+
 ### 3. Generate VS Code Workspace File
 
 Create `workspaces/{name}/{name}.code-workspace`:

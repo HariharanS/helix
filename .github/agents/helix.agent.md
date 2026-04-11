@@ -102,6 +102,21 @@ Default autonomous implementation mode:
 5. Recompute the next highest-priority unblocked task
 6. Repeat until no eligible tasks remain
 
+## Auto-Curation
+
+Before routing to PRD, TECH DESIGN, or TASK BREAKDOWN phases:
+
+1. Spawn @explorer via `agent` with the task description and workspace context
+2. Explorer invokes the `/curate-context` skill and enriches with domain context
+3. Wait for the tiered context bundle to be written to disk
+4. Include the context bundle path in the handoff to the next agent
+
+Skip auto-curation when:
+- The user explicitly provides context or file paths
+- A recent context bundle already exists for this task (check `last_verified` in frontmatter)
+- The phase is JAM (intent is still too vague for meaningful curation)
+- The phase is IMPLEMENTATION with an execution plan that already has `context_bundle` paths
+
 ## Phase Detection
 
 When the user asks to work on something, determine which phase to enter:

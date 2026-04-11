@@ -6,6 +6,33 @@ confidence: high | medium | low
 last_verified: YYYY-MM-DD
 ---
 
+## Context Tiers
+
+### Primary — full content
+<!-- Files directly involved. Downstream agents should read these fully. -->
+- path: path/to/file
+  symbol: ClassName.MethodName
+  reason: Entry point for this task
+  source: crg:query_graph | manual
+
+### Secondary — signatures only
+<!-- One-hop dependencies. Understand the interface, not the implementation. -->
+- path: path/to/file
+  symbol: ClassName
+  signature: |
+    public class OrderService : IOrderService
+    public async Task<Order> CreateOrder(CreateOrderRequest request)
+    public async Task<Order> GetOrder(string orderId)
+  reason: Called by primary file
+  source: crg:query_graph | manual
+
+### Tertiary — reference only
+<!-- Two+ hop dependencies. Know they exist, read only if needed. -->
+- path: path/to/file
+  symbol: OrderServiceTests
+  reason: Tests for OrderService
+  source: crg:query_graph | manual
+
 ## Domain
 - Glossary:
   - BusinessTerm: Meaning in this codebase

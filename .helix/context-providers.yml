@@ -1,7 +1,7 @@
 schema_version: 1
 providers:
   code_review_graph:
-    mode: review-only
-    detail_level: minimal
-    max_tool_calls_per_task: 5
-    max_context_tokens_per_task: 800
+    mode: full
+    detail_level: standard
+    max_tool_calls_per_task: 15
+    max_context_tokens_per_task: 4000
