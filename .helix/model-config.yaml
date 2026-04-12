@@ -4,9 +4,9 @@
 
 tiers:
   reasoning: Claude Opus 4.5 (copilot)      # Creative, strategic, design
-  coding: GPT-5.2 Codex (copilot)           # Code generation, tests
+  coding: GPT-5.3-Codex (copilot)            # Code generation, tests
   analysis: Claude Sonnet 4 (copilot)        # Review, routing, decomposition
-  visual: Gemini 2.5 Pro (copilot)           # UI testing, visual understanding
+  visual: Gemini 3.1 Pro (Preview) (copilot)  # UI testing, visual understanding
   fast: Claude Haiku 4.5 (copilot)           # Exploration, summaries, state mgmt
 
 assignments:

@@ -1,12 +1,5 @@
 {
   "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@microsoft/mcp-server-playwright"
-      ]
-    },
     "code-review-graph": {
       "command": "uvx",
       "args": [

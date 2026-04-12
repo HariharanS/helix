@@ -1,7 +1,7 @@
 ---
 name: implementer
 description: Implements tasks using TDD — in fleet mode runs full red-green-refactor cycle, in interactive mode handles green+refactor after tdd-red writes failing tests
-tools: ['read', 'edit', 'search/codebase', 'execute', 'agent']
+tools: [vscode/runCommand, execute, read, agent, edit, search/codebase, web, todo]
 agents: ['explorer']
 user-invocable: false
 disable-model-invocation: false

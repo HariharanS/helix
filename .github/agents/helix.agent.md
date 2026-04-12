@@ -1,7 +1,7 @@
 ---
 name: helix
 description: Helix coordinator — routes work through phases, manages modes, dispatches to specialist agents
-tools: ['read', 'search/codebase', 'agent']
+tools: [vscode/memory, vscode/runCommand, vscode/askQuestions, read, agent, edit/createDirectory, edit/createFile, search/codebase, web, todo]
 agents: ['jam', 'planner', 'architect', 'decomposer', 'explorer', 'implementer', 'tdd-red', 'reviewer', 'distiller', 'resume', 'ui-tester', 'scribe']
 user-invocable: true
 model: ['Claude Sonnet 4 (copilot)']
@@ -65,7 +65,7 @@ Rules:
 - Spawn @scribe to record any material change in decisions or task state
 - If Rubber Duck is unavailable, continue the normal Helix flow without blocking
 
-## Three Modes
+## Execution Modes
 
 ### INTERACTIVE (default)
 
