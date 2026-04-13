@@ -29,7 +29,7 @@ Read and analyze the repo structure. Detect everything dynamically — never ass
    - `Cargo.toml` → Rust
    - `pom.xml` / `build.gradle` → Java/Kotlin
 3. **Framework detection:** Look for:
-   - IaC: `template.yaml` (SAM), `cdk.json` (CDK), `*.tf` (Terraform), `serverless.yml`, `Pulumi.yaml`
+   - IaC: `serverless.yml` or `template.yaml` (SAM), `cdk.json` (CDK), `*.tf` (Terraform), `serverless.yml`, `Pulumi.yaml`
    - Web: `next.config.*`, `angular.json`, `vite.config.*`, `nuxt.config.*`
    - API: `openapi.*`, `swagger.*`, route/controller directories
 4. **Infrastructure inventory:** Parse IaC files for:
