@@ -4,6 +4,7 @@ This directory contains helper scripts and hook implementations.
 
 ## What Lives Here
 
+- `init-meta-repo.ps1` — bootstraps a fresh Helix meta repo and verifies the baseline install state
 - `install-helix.ps1` — materializes Helix into a meta repo
 - `set-context-provider.ps1` — enables or disables optional context providers such as code-review-graph
 - `sync-helix.ps1` — re-syncs managed Helix files from core into the meta repo

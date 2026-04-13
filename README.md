@@ -89,6 +89,7 @@ The full lifecycle, loops, and artifact rules are defined in [`docs/helix-proces
 
 | Agent | Tier | Purpose |
 |------|------|---------|
+| `setup` | analysis | Owns post-bootstrap setup before Helix orchestration begins |
 | `helix` | analysis | Pure dispatcher and phase router |
 | `jam` | reasoning | Clarifies intent |
 | `planner` | reasoning | Produces PRD |
@@ -157,6 +158,7 @@ The target meta-repo manifest shapes are defined in [`docs/helix-instance-schema
 
 Current runtime tooling in this repo:
 
+- `scripts/init-meta-repo.ps1` — bootstrap Helix into a new meta repo and verify the baseline install state
 - `scripts/install-helix.ps1` — install or sync managed Helix files into a meta repo
 - `scripts/set-context-provider.ps1` — enable or disable optional context providers such as code-review-graph
 - `scripts/setup-workspace.ps1` — attach selected repos and activate a workspace
@@ -174,6 +176,7 @@ Helix can optionally layer in `code-review-graph` for code-centric retrieval.
 
 ## Where To Start
 
+- Bootstrap a new meta repo: run `scripts/init-meta-repo.ps1`, then update `repos.yml`, create `workspaces/{name}/workspace.yml`, and use the `setup` agent or `workspace-sync` skill to attach the selected repos
 - New to Helix: [`docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
 - Canonical lifecycle and loops: [`docs/helix-process.md`](./docs/helix-process.md)
 - Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)

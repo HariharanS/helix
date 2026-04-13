@@ -1,6 +1,6 @@
 ---
 name: workspace-sync
-description: Attaches the repos selected by a workspace, refreshes repo-state, generates the VS Code .code-workspace file, and activates the workspace
+description: Validates a prepared repo registry and workspace manifest, runs the script-owned workspace setup flow, verifies outcomes, and then handles optional follow-on setup work
 argument-hint: "Workspace name (e.g. 'order-feature') or path to workspace.yml"
 user-invocable: true
 disable-model-invocation: true
@@ -8,18 +8,31 @@ disable-model-invocation: true
 
 # Workspace Sync Skill
 
-Sets up a workspace by reading the repo registry plus one workspace manifest, attaching only the repos that feature-space needs, refreshing repo-state, and generating IDE configuration.
+Uses the script-owned workspace setup path once Helix is installed and the user has updated `repos.yml` plus `workspaces/{name}/workspace.yml`.
 
 ## Workflow
 
-### 1. Read The Registry And Workspace
+### 1. Confirm Helix Is Installed
 
-> **Note:** `repos.yml` is an instance-owned file created during installation from `templates/repos.yml.template`. It lives in the installed meta-repo, not in helix-core. If it does not exist, run `install-helix.ps1` first or create it from the template.
+- Check for `.helix/install-state.yml`, `repos.yml`, and `scripts/setup-workspace.ps1`
+- If bootstrap is missing, stop and tell the user to run `scripts/init-meta-repo.ps1` first
+- Do not try to install Helix from this skill
+
+### 2. Validate The Registry And Workspace
+
+`repos.yml` is an instance-owned file created during installation from `templates/repos.yml.template`. The workspace manifest lives at `workspaces/{name}/workspace.yml`.
 
 ```
 repos.yml
 workspaces/{name}/workspace.yml
 ```
+
+Before setup:
+
+- ensure `repos.yml` contains real repo definitions rather than sample placeholder values
+- ensure every `workspace.repos[*].repo_id` resolves to a registry entry
+- ensure the workspace manifest is complete enough for `scripts/setup-workspace.ps1`
+- if either manifest is missing or still needs edits, pause and ask the user to update it before continuing
 
 Registry example:
 ```yaml
@@ -46,89 +59,43 @@ repos:
     role: dependency
 ```
 
-### 2. For Each Repo
+### 3. Run The Authoritative Setup Script
 
-```
-a. Look up repo_id in repos.yml
+Run `scripts/setup-workspace.ps1` with the requested workspace name or manifest path.
 
-b. Path exists?
-   YES → git fetch + git status (report if behind remote)
-   NO  → Clone the repo:
-         - Azure DevOps URLs → az repos clone
-         - GitHub URLs → gh repo clone
-         - Other → git clone
+- Pass `-CloneMissing` only when the user wants missing workspace repos cloned locally
+- Pass `-FetchExisting` only when the user wants already-present repos refreshed
+- Pass `-IncludeClaudeSettings` only when Claude Desktop configuration is explicitly requested
+- Do not mutate `repos.yml` from this skill
+- Do not implement clone logic here; the script is the source of truth
 
-c. Refresh `.helix/repo-state/{repo-id}.yml`
-   - capture presence
-   - capture git branch / remote / dirty status when available
-   - capture readiness signals:
-     - root `AGENTS.md`
-     - nested `AGENTS.md`
-     - `.github/instructions/`
-     - `.github/skills/`
-     - tests present
+### 4. Verify Definitive Outcomes
 
-d. If repo-state says `needs-onboarding` or `partial`
-   YES → Run onboard skill against that repo
-         → Re-scan and update repo-state
-```
+After `scripts/setup-workspace.ps1` succeeds, verify:
 
-### 2b. Register Repos With Code-Review-Graph
+- `workspaces/{name}/{name}.code-workspace` exists
+- `.helix/active-workspace.yml` points at the selected workspace
+- `.helix/repo-state/{repo-id}.yml` exists for every repo in the workspace manifest
+- the status table from the script reflects the expected presence and readiness values
 
-For each repo attached in step 2:
+Report status using the generated repo-state files as the source of truth.
 
-1. Run `/code-review-graph:build-graph` against the repo if `.code-review-graph/graph.db` doesn't exist
-2. Run `code-review-graph register {repo-path} --alias {repo-id}` to enable cross-repo search
-3. Record CRG readiness in `.helix/repo-state/{repo-id}.yml`:
-   - `crg_indexed: true | false`
-   - `crg_last_build: YYYY-MM-DD`
+### 5. Optional Follow-On Setup
 
-CRG does not currently auto-refresh through Helix hooks. Rebuild or refresh the graph explicitly when implementation changes make the indexed state stale.
+Only after baseline workspace attach succeeds:
 
-### 3. Generate VS Code Workspace File
+- if repo-state says `needs-onboarding` or `partial`, run the `onboard` skill for those repos and refresh repo-state afterward
+- if the user wants structural retrieval, enable or verify `code-review-graph` after the workspace is attached
+- keep onboarding and graph registration separate from baseline attach success so failures are easy to diagnose
 
-Create `workspaces/{name}/{name}.code-workspace`:
+## Output
 
-```json
-{
-  "folders": [
-    { "name": "meta-repo", "path": "../.." },
-    { "name": "service-a", "path": "../../../service-a" },
-    { "name": "service-b", "path": "../../../service-b" }
-  ],
-  "settings": {
-    "chat.agentFilesLocations": [{ "source": ".github/agents" }],
-    "chat.skillsLocations": [{ "source": ".github/skills" }],
-    "chat.hookFilesLocations": [{ "source": ".github/hooks" }]
-  }
-}
-```
+- Updated `.helix/active-workspace.yml`
+- Generated `workspaces/{name}/{name}.code-workspace`
+- Refreshed `.helix/repo-state/*.yml` for the workspace repos
+- A setup report that separates baseline attach results from optional onboarding and graph work
 
-Repo-scoped hooks live under `.github/hooks/`. The `chat.hookFilesLocations` setting points at the same canonical hook directory and now exists only as a VS Code compatibility shim.
-
-### 4. Optional: Update .claude/settings.local.json (Claude Desktop Only)
-
-If you also use Claude Desktop, add repo paths to `additionalDirectories`. This is not required for GitHub Copilot CLI or VS Code:
-
-```json
-{
-  "permissions": {
-    "additionalDirectories": [
-      "../service-a",
-      "../service-b"
-    ]
-  }
-}
-```
-
-### 5. Set Active Workspace
-
-Update `.helix/active-workspace.yml`:
-```yaml
-active: order-feature
-```
-
-### 6. Report Status
+## Error Handling
 
 ```markdown
 # Workspace Sync: {name}
@@ -143,16 +110,16 @@ Updated: .helix/active-workspace.yml
 Optional: .claude/settings.local.json when Claude Desktop integration is explicitly requested
 ```
 
-## Error Handling
-
-- Clone fails → report error, continue with other repos
-- Onboard fails → report error, leave repo-state at `partial` or `needs-onboarding`, continue
-- Repo behind remote → warn but don't auto-pull (developer decision)
-- Workspace repo_id missing from repos.yml → stop and ask for registry repair
+- Helix not installed → stop and point to `scripts/init-meta-repo.ps1`
+- `repos.yml` or `workspace.yml` missing or still using placeholder values → stop and ask the user to repair the manifests
+- `setup-workspace.ps1` fails → surface the script output and do not continue to onboarding or graph setup
+- Onboard fails → report error and leave repo-state at `partial` or `needs-onboarding`
+- Graph setup fails → report it separately from baseline workspace attach
 
 ## Prerequisites
 
-- `az` CLI authenticated (for Azure DevOps repos)
-- `gh` CLI authenticated (for GitHub repos)
+- Helix bootstrap already completed via `scripts/init-meta-repo.ps1` or the equivalent installer flow
+- `repos.yml` has been updated with the real repo registry
+- `workspaces/{name}/workspace.yml` has been created or updated with the participating repos
 - `git` available
 - Prefer [`scripts/setup-workspace.ps1`](../../../scripts/setup-workspace.ps1) for the target meta-repo model; the old Bash helper is legacy

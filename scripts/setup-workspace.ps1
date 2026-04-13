@@ -10,6 +10,81 @@ param(
 
 Import-Module (Join-Path $PSScriptRoot 'Helix.Tools.psm1') -Force
 
+function Test-HelixPlaceholderValue {
+    param([string]$Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $true
+    }
+
+    return $Value -match 'your-org' -or $Value -in @(
+        'example-feature',
+        'service-a',
+        'web-app',
+        'Example Feature',
+        'Short description of the feature-space',
+        'One-sentence desired outcome'
+    )
+}
+
+function Assert-RegistryAndWorkspaceReady {
+    param(
+        [Parameter(Mandatory = $true)]$Registry,
+        [Parameter(Mandatory = $true)]$WorkspaceManifest,
+        [Parameter(Mandatory = $true)][string]$WorkspaceName
+    )
+
+    if (-not $Registry.repos -or @($Registry.repos).Count -eq 0) {
+        throw "repos.yml does not define any repos. Update the registry before running setup-workspace.ps1."
+    }
+
+    $seenIds = @{}
+    $seenPaths = @{}
+
+    foreach ($repo in $Registry.repos) {
+        $repoId = [string]$repo.id
+        $remote = [string]$repo.remote
+        $localPath = [string]$repo.local_path
+
+        if ([string]::IsNullOrWhiteSpace($repoId)) {
+            throw "repos.yml contains a repo entry without an id."
+        }
+
+        if ([string]::IsNullOrWhiteSpace($remote)) {
+            throw "Repo '$repoId' is missing a remote in repos.yml."
+        }
+
+        if ([string]::IsNullOrWhiteSpace($localPath)) {
+            throw "Repo '$repoId' is missing a local_path in repos.yml."
+        }
+
+        if ($seenIds.ContainsKey($repoId)) {
+            throw "Duplicate repo id '$repoId' in repos.yml."
+        }
+        $seenIds[$repoId] = $true
+
+        if ($seenPaths.ContainsKey($localPath)) {
+            throw "Duplicate repo local_path '$localPath' in repos.yml."
+        }
+        $seenPaths[$localPath] = $true
+
+        if (Test-HelixPlaceholderValue -Value $remote) {
+            throw "Repo '$repoId' in repos.yml still uses a template placeholder remote ('$remote'). Update repos.yml before running setup-workspace.ps1."
+        }
+    }
+
+    if (-not $WorkspaceManifest.repos -or @($WorkspaceManifest.repos).Count -eq 0) {
+        throw "Workspace '$WorkspaceName' does not define any repos. Update the workspace manifest before running setup-workspace.ps1."
+    }
+
+    foreach ($workspaceRepo in $WorkspaceManifest.repos) {
+        $repoId = [string]$workspaceRepo.repo_id
+        if ([string]::IsNullOrWhiteSpace($repoId)) {
+            throw "Workspace '$WorkspaceName' contains a repo entry without repo_id."
+        }
+    }
+}
+
 $TargetRoot = Get-HelixRoot -StartPath $TargetRoot
 $registryPath = Join-Path $TargetRoot 'repos.yml'
 if (-not (Test-Path $registryPath)) {
@@ -22,6 +97,8 @@ $workspaceName = Split-Path $workspaceDir -Leaf
 
 $registry = Import-HelixYamlFile -Path $registryPath
 $workspaceManifest = Import-HelixYamlFile -Path $workspacePath
+
+Assert-RegistryAndWorkspaceReady -Registry $registry -WorkspaceManifest $workspaceManifest -WorkspaceName $workspaceName
 
 $repoIndex = @{}
 foreach ($repo in $registry.repos) {

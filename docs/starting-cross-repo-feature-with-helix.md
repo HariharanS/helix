@@ -70,7 +70,26 @@ Treat the critique as advisory only. If it changes the shape of the work, move b
 
 ## Phase 0: SETUP — Create And Sync The Workspace
 
-Before you ask Helix to plan or code, create a workspace for the feature.
+Before you ask Helix to plan or code, bootstrap the meta repo and create a workspace for the feature.
+
+### 0a. Bootstrap The Meta Repo
+
+Run the bootstrap command from `helix-core` into the target meta-repo root:
+
+```powershell
+./scripts/init-meta-repo.ps1 -TargetRoot C:/path/to/meta-repo
+```
+
+That should install or sync Helix into the target root and verify the baseline install state, including `.helix/install-state.yml`, the managed `.github/` runtime files, and the starter manifests.
+
+### 0b. Author The Registry And Workspace Manifests
+
+After bootstrap:
+
+- update `repos.yml` with the real repo registry for your environment
+- create or update `workspaces/{name}/workspace.yml` for the subset of repos this feature-space needs
+
+Keep `repos.yml` declarative. Defining the registry should not clone every repo. Cloning or attaching happens only when the workspace is set up.
 
 The target meta-repo model uses:
 
@@ -125,7 +144,7 @@ artifacts:
   decisions_dir: decisions/
 ```
 
-Then use the `workspace-sync` skill or [`setup-workspace.ps1`](../scripts/setup-workspace.ps1) to:
+Then use the `setup` agent, the `workspace-sync` skill, or [`setup-workspace.ps1`](../scripts/setup-workspace.ps1) to:
 
 - clone or attach only the selected repos
 - generate or refresh `.helix/repo-state/*.yml`

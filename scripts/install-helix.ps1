@@ -160,6 +160,7 @@ Add-ManagedFile -Items $items -SourceRelative 'workspaces/AGENTS.md' -TargetRela
 Add-ManagedTree -Items $items -SourceRelativeRoot 'templates' -TargetRelativeRoot 'templates' -Category 'template' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/AGENTS.md' -TargetRelative 'scripts/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/Helix.Tools.psm1' -TargetRelative 'scripts/Helix.Tools.psm1' -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/init-meta-repo.ps1' -TargetRelative 'scripts/init-meta-repo.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/install-helix.ps1' -TargetRelative 'scripts/install-helix.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/set-context-provider.ps1' -TargetRelative 'scripts/set-context-provider.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/sync-helix.ps1' -TargetRelative 'scripts/sync-helix.ps1' -Category 'script' -SyncMode 'replace'
