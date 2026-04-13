@@ -4,6 +4,7 @@ param(
     [string]$TargetRoot = (Get-Location).Path,
     [switch]$CloneMissing,
     [switch]$FetchExisting,
+    [switch]$IncludeClaudeSettings,
     [switch]$SkipClaudeSettings
 )
 
@@ -89,7 +90,7 @@ $workspaceConfig = [ordered]@{
             [ordered]@{ source = '.github/skills' }
         )
         'chat.hookFilesLocations' = @(
-            [ordered]@{ source = 'hooks' }
+            [ordered]@{ source = '.github/hooks' }
         )
     }
 }
@@ -104,7 +105,11 @@ $activeWorkspace = [ordered]@{
 }
 Write-HelixYamlFile -Path (Join-Path $TargetRoot '.helix/active-workspace.yml') -Value $activeWorkspace
 
-if (-not $SkipClaudeSettings) {
+if ($SkipClaudeSettings) {
+    Write-Warning "SkipClaudeSettings is deprecated because Claude settings are no longer written by default. Use -IncludeClaudeSettings when you explicitly want Claude Desktop configuration."
+}
+
+if ($IncludeClaudeSettings) {
     $claudeDir = Join-Path $TargetRoot '.claude'
     New-HelixDirectory -Path $claudeDir
     $settingsPath = Join-Path $claudeDir 'settings.local.json'

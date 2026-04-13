@@ -4,7 +4,7 @@ description: Drives Playwright browser tests for UI validation — writes, runs,
 tools: ['read', 'edit', 'search/codebase', 'execute', 'agent']
 agents: ['explorer']
 user-invocable: true
-model: ['Auto (copilot)']
+model: Auto (copilot)
 argument-hint: Describe the UI test scenario (e.g. "test the login flow")
 ---
 

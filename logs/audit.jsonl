@@ -1,0 +1,6 @@
+{"event":"preToolUse","timestamp":1776052540001,"cwd":"C:\\Users\\Harih\\source\\personal\\github-copilot-multi-agent-setup\\helix","toolName":"Bash","toolArgs":{"command":"sudo rm -rf /"},"command":"sudo rm -rf /"}
+{"event":"preToolUse","timestamp":1776052540133,"cwd":"C:\\Users\\Harih\\source\\personal\\github-copilot-multi-agent-setup\\helix","toolName":"Bash","toolArgs":{"command":"git status"},"command":"git status"}
+{"event":"preToolUse","timestamp":1776052545464,"cwd":"C:\\Users\\Harih\\source\\personal\\github-copilot-multi-agent-setup\\helix","toolName":"Bash","toolArgs":{"command":"sudo rm -rf /"},"command":"sudo rm -rf /"}
+{"event":"preToolUse","timestamp":1776052545512,"cwd":"C:\\Users\\Harih\\source\\personal\\github-copilot-multi-agent-setup\\helix","toolName":"Bash","toolArgs":{"command":"git status"},"command":"git status"}
+{"event":"preToolUse","timestamp":1704614600000,"cwd":"C:\\Users\\Harih\\source\\personal\\github-copilot-multi-agent-setup\\helix","toolName":"bash","toolArgs":"{\"command\":\"sudo rm -rf /\"}","command":"sudo rm -rf /"}
+{"event":"preToolUse","timestamp":1704614600000,"cwd":"C:\\Users\\Harih\\source\\personal\\github-copilot-multi-agent-setup\\helix","toolName":"bash","toolArgs":"{\"command\":\"git status\"}","command":"git status"}

@@ -4,7 +4,7 @@ description: Helix coordinator — routes work through phases, manages modes, di
 tools: [vscode/memory, vscode/runCommand, vscode/askQuestions, read, agent, edit/createDirectory, edit/createFile, search/codebase, web, todo]
 agents: ['jam', 'planner', 'architect', 'decomposer', 'explorer', 'implementer', 'tdd-red', 'reviewer', 'distiller', 'resume', 'ui-tester', 'scribe']
 user-invocable: true
-model: ['Claude Sonnet 4 (copilot)']
+model: Claude Sonnet 4 (copilot)
 argument-hint: What you want to work on (e.g. "start feature X", "resume work", "fast track from PRD to implementation")
 handoffs:
   - label: Jam on a new feature
@@ -46,9 +46,9 @@ On every session start:
 3. Read the workspace's `workspace.yml` for the selected repo list and current state
 4. Read the root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files in each repo for conventions — never assume a tech stack
 
-## Optional Cross-Family Second Opinion (Copilot CLI)
+## Optional Second-Opinion Critique
 
-When running inside GitHub Copilot CLI experimental mode, you may ask Copilot for a Rubber Duck critique if it is available. In the current Copilot rollout, this typically means a Claude-family orchestrator is selected and GPT-5.4 access is enabled. Treat this as an optional host-runtime capability, not as a required Helix dependency.
+When the host runtime provides an optional second-opinion critique capability, you may ask for a critique at high-signal checkpoints. Treat this as an optional host-runtime capability, not as a required Helix dependency.
 
 Use it sparingly at high-signal checkpoints:
 
@@ -60,10 +60,10 @@ Use it sparingly at high-signal checkpoints:
 
 Rules:
 
-- Treat Rubber Duck feedback as critique, not authority
+- Treat second-opinion feedback as critique, not authority
 - If it changes the plan, design, or task contract, route back to the correct phase owner
 - Spawn @scribe to record any material change in decisions or task state
-- If Rubber Duck is unavailable, continue the normal Helix flow without blocking
+- If that capability is unavailable, continue the normal Helix flow without blocking
 
 ## Execution Modes
 
@@ -181,4 +181,4 @@ If any gate fails, stop and escalate to the human or route back to @decomposer /
 4. **Respect the mode.** Interactive uses handoffs. Ralph loop and fleet use `agent`.
 5. **One phase at a time** in interactive mode. Never skip phases unless the user explicitly asks.
 6. **Never guess execution contracts.** If a task is missing commands, ownership, or done criteria, route back to planning/decomposition.
-7. **Use second opinions selectively.** If Copilot Rubber Duck is available, use it only at high-return checkpoints; do not turn every step into a review hop.
+7. **Use second opinions selectively.** If an optional critique capability is available, use it only at high-return checkpoints; do not turn every step into a review hop.

@@ -98,9 +98,44 @@ function Write-ManagedFile {
     }
 }
 
+function Remove-StaleManagedPath {
+    param([string]$RelativePath)
+
+    $targetPath = Join-Path $TargetRoot $RelativePath
+    if (-not (Test-Path $targetPath)) {
+        return
+    }
+
+    Remove-Item -LiteralPath $targetPath -Force -Recurse
+
+    $parent = Split-Path -Parent $targetPath
+    while ($parent -and (Test-Path $parent) -and $parent -ne $TargetRoot) {
+        $children = @(Get-ChildItem -LiteralPath $parent -Force)
+        if ($children.Count -gt 0) {
+            break
+        }
+
+        Remove-Item -LiteralPath $parent -Force
+        $parent = Split-Path -Parent $parent
+    }
+}
+
 $SourceRoot = [System.IO.Path]::GetFullPath($SourceRoot)
 $TargetRoot = [System.IO.Path]::GetFullPath($TargetRoot)
 $metaRepoName = Split-Path $TargetRoot -Leaf
+$existingInstallStatePath = Join-Path $TargetRoot '.helix/install-state.yml'
+$previousManagedPaths = @()
+
+if (Test-Path $existingInstallStatePath) {
+    try {
+        $existingInstallState = Import-HelixYamlFile -Path $existingInstallStatePath
+        if ($existingInstallState.managed_paths) {
+            $previousManagedPaths = @($existingInstallState.managed_paths | ForEach-Object { [string]$_.path })
+        }
+    } catch {
+        Write-Warning "Unable to read existing install state at '$existingInstallStatePath'. Stale managed-path cleanup will be skipped."
+    }
+}
 
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/repo-state')
@@ -110,6 +145,7 @@ New-HelixDirectory -Path (Join-Path $TargetRoot 'workspaces')
 $items = [System.Collections.Generic.List[object]]::new()
 
 Add-ManagedTree -Items $items -SourceRelativeRoot '.github/agents' -TargetRelativeRoot '.github/agents' -Category 'agent' -SyncMode 'replace'
+Add-ManagedTree -Items $items -SourceRelativeRoot '.github/hooks' -TargetRelativeRoot '.github/hooks' -Category 'hook-config' -SyncMode 'replace'
 Add-ManagedTree -Items $items -SourceRelativeRoot '.github/prompts' -TargetRelativeRoot '.github/prompts' -Category 'prompt' -SyncMode 'replace'
 Add-ManagedTree -Items $items -SourceRelativeRoot '.github/skills' -TargetRelativeRoot '.github/skills' -Category 'skill' -SyncMode 'replace'
 
@@ -129,8 +165,6 @@ Add-ManagedFile -Items $items -SourceRelative 'scripts/set-context-provider.ps1'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/sync-helix.ps1' -TargetRelative 'scripts/sync-helix.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/setup-workspace.ps1' -TargetRelative 'scripts/setup-workspace.ps1' -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/doctor.ps1' -TargetRelative 'scripts/doctor.ps1' -Category 'script' -SyncMode 'replace'
-Add-ManagedTree -Items $items -SourceRelativeRoot 'scripts/hooks' -TargetRelativeRoot 'scripts/hooks' -Category 'hook' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'hooks/hooks.json' -TargetRelative 'hooks/hooks.json' -Category 'hook-config' -SyncMode 'replace'
 
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.README.md.template' -TargetRelative 'README.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.AGENTS.md.template' -TargetRelative 'AGENTS.md' -Category 'doc' -SyncMode 'merge-marked-sections'
@@ -166,6 +200,17 @@ foreach ($gitKeep in $gitKeepTargets) {
     }) | Out-Null
 }
 
+$currentManagedPathSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($managedItem in $items) {
+    $null = $currentManagedPathSet.Add([string]$managedItem.path)
+}
+
+foreach ($previousPath in $previousManagedPaths) {
+    if (-not $currentManagedPathSet.Contains($previousPath)) {
+        Remove-StaleManagedPath -RelativePath $previousPath
+    }
+}
+
 $sourceReference = if ([System.IO.Path]::IsPathRooted($SourceRoot)) {
     Get-HelixRelativePath -BasePath $TargetRoot -TargetPath $SourceRoot
 } else {
@@ -183,6 +228,7 @@ $installState = [ordered]@{
     last_sync_at = (Get-Date).ToUniversalTime().ToString('o')
     runtime_surface = [ordered]@{
         agents_dir = '.github/agents'
+        hooks_dir = '.github/hooks'
         prompts_dir = '.github/prompts'
         skills_dir = '.github/skills'
         instructions_file = '.github/copilot-instructions.md'

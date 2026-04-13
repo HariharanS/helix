@@ -4,7 +4,7 @@ description: Multi-lens code review — checks security, correctness, domain log
 tools: [vscode/runCommand, execute, read, agent, search/codebase, web, todo]
 agents: ['explorer']
 user-invocable: true
-model: ['Claude Sonnet 4 (copilot)']
+model: Claude Sonnet 4 (copilot)
 argument-hint: Branch name or description of changes to review
 handoffs:
   - label: Review complete — create PR
@@ -55,7 +55,7 @@ Run each lens independently. Report findings per lens.
 
 ## Graph-Assisted Review
 
-Code-review-graph auto-updates after implementation (watch mode / PostToolUse hooks), so the graph reflects the current state of the code.
+Treat code-review-graph freshness as an explicit prerequisite. If the graph may be stale after implementation work, rebuild or refresh it before relying on graph-assisted review output.
 
 Use CRG's built-in review skills before reading code manually:
 

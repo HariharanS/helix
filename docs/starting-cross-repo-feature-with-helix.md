@@ -53,9 +53,9 @@ Move to Ralph loop or fleet only after:
 - the contract between repos is locked
 - the execution plan has repo-scoped tasks with verified commands and ownership
 
-## Optional Copilot Rubber Duck Checkpoints
+## Optional Second-Opinion Checkpoints
 
-If you are using GitHub Copilot CLI experimental mode, and Rubber Duck is available to your session, you can ask for a critique at the stage boundaries where a second opinion has the highest return. In the current Copilot rollout, this typically means using a Claude-family orchestrator with GPT-5.4 access enabled.
+If your Copilot runtime provides an optional second-opinion critique capability, you can ask for a critique at the stage boundaries where a second opinion has the highest return.
 
 Use it sparingly:
 
@@ -66,7 +66,7 @@ Use it sparingly:
 - after writing tests, before relying on them as proof
 - whenever the current agent is stuck or looping
 
-Treat Rubber Duck as advisory only. If it changes the shape of the work, move back to the right phase and update the workspace artifacts.
+Treat the critique as advisory only. If it changes the shape of the work, move back to the right phase and update the workspace artifacts.
 
 ## Phase 0: SETUP — Create And Sync The Workspace
 

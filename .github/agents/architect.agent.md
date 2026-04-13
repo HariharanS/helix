@@ -4,7 +4,7 @@ description: Takes a PRD and produces a technical design using pseudo code, merm
 tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
 user-invocable: true
-model: ['Claude Opus 4.5 (copilot)']
+model: Claude Opus 4.5 (copilot)
 argument-hint: Path to prd.md or describe what needs technical design
 handoffs:
   - label: "Tech design complete — break down into tasks"
@@ -172,4 +172,4 @@ sequenceDiagram
 - Put service and layer contracts in `contracts.md`; do not bury them inside narrative sections
 - Put sequence diagrams and flow detail in `execution-flow.md`, not in the index
 - Put rollout constraints, compatibility notes, and major risks in `rollout-and-risks.md`
-- When available in Copilot CLI experimental mode, request a Rubber Duck critique before finalizing a complex design; focus on contract stability, rollout risk, cross-repo edge cases, and unnecessary complexity
+- When an optional second-opinion critique capability is available, request a critique before finalizing a complex design; focus on contract stability, rollout risk, cross-repo edge cases, and unnecessary complexity

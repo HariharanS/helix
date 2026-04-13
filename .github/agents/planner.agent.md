@@ -4,7 +4,7 @@ description: Takes a refined intent and produces a detailed Product Requirements
 tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
 user-invocable: true
-model: ['Claude Opus 4.5 (copilot)']
+model: Claude Opus 4.5 (copilot)
 argument-hint: Path to refined-intent.md or describe the feature to plan
 handoffs:
   - label: "PRD complete — design technical approach"
@@ -128,4 +128,4 @@ Why this feature is needed. Business context.
 - In package mode, keep `index.md` under roughly 80 lines and move detail into subdocuments
 - Put exhaustive evidence or large tables in `annex.md`, not in the index
 - Make `repo-ownership.md` explicit for cross-repo behavior so downstream design and decomposition do not infer ownership from prose
-- When available in Copilot CLI experimental mode, request a Rubber Duck critique before finalizing a risky or cross-repo PRD; focus on hidden assumptions, ambiguous acceptance criteria, and missing repo-boundary behavior
+- When an optional second-opinion critique capability is available, request a critique before finalizing a risky or cross-repo PRD; focus on hidden assumptions, ambiguous acceptance criteria, and missing repo-boundary behavior

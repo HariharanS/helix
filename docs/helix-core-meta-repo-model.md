@@ -166,6 +166,7 @@ Recommended flow:
 Managed by `helix-core` installer:
 
 - `.github/agents/*`
+- `.github/hooks/*`
 - `.github/prompts/*`
 - `.github/skills/*`
 - `.github/copilot-instructions.md`

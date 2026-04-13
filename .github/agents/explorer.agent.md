@@ -5,7 +5,7 @@ tools: ['read', 'search/codebase', 'search/usages', 'agent']
 agents: ['explorer']
 user-invocable: false
 disable-model-invocation: false
-model: ['Claude Haiku 4.5 (copilot)']
+model: Claude Haiku 4.5 (copilot)
 argument-hint: Describe what context you need gathered (e.g. "find all data access patterns across workspace repos")
 ---
 

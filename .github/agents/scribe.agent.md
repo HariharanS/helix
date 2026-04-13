@@ -5,7 +5,7 @@ tools: ['read', 'edit']
 agents: []
 user-invocable: false
 disable-model-invocation: false
-model: ['Claude Haiku 4.5 (copilot)']
+model: Claude Haiku 4.5 (copilot)
 argument-hint: State update instruction (e.g. "mark TASK-001 as done", "record decision about API design")
 ---
 

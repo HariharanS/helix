@@ -181,9 +181,9 @@ Helix can optionally layer in `code-review-graph` for code-centric retrieval.
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)
 - Agent navigation and source-of-truth rules: [`AGENTS.md`](./AGENTS.md)
 
-## Optional Copilot Rubber Duck
+## Optional Second-Opinion Critique
 
-When running inside GitHub Copilot CLI experimental mode, Helix can use Rubber Duck as an optional second opinion at high-return checkpoints.
+When Copilot provides an optional second-opinion critique capability, Helix can use it at high-return checkpoints.
 
 - Best checkpoints: after PRD, after design, after task breakdown, after complex implementation, after writing tests, and when stuck
 - Treat the critique as advisory

@@ -4,7 +4,7 @@ description: Briefs the user on where a feature left off — reads task board, d
 tools: ['read', 'search/codebase', 'execute']
 agents: []
 user-invocable: true
-model: ['Claude Haiku 4.5 (copilot)']
+model: Claude Haiku 4.5 (copilot)
 argument-hint: Feature name to resume (e.g. "order-history feature")
 handoffs:
   - label: Resume implementation (interactive)

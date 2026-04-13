@@ -18,9 +18,55 @@ function Add-WarningLine([string]$Message) {
     $script:warnings += $Message
 }
 
+$agentDir = Join-Path $TargetRoot '.github/agents'
+if (Test-Path $agentDir) {
+    Get-ChildItem -Path $agentDir -Filter '*.agent.md' -File | ForEach-Object {
+        $frontmatterHead = Get-Content -LiteralPath $_.FullName -TotalCount 12
+        if ($frontmatterHead -match '^model:\s*\[') {
+            Add-Issue "Agent '$($_.Name)' has malformed custom agent frontmatter: 'model' must be a string, not an array."
+        }
+    }
+}
+
+$agentTemplatePath = Join-Path $TargetRoot 'templates/agent.agent.md.template'
+if (Test-Path $agentTemplatePath) {
+    $templateHead = Get-Content -LiteralPath $agentTemplatePath -TotalCount 12
+    if ($templateHead -match '^model:\s*\[') {
+        Add-Issue "Template 'templates/agent.agent.md.template' uses malformed custom agent frontmatter: 'model' must be a string, not an array."
+    }
+}
+
+$mcpPath = Join-Path $TargetRoot '.mcp.json'
+if (Test-Path $mcpPath) {
+    try {
+        $mcpConfig = Get-Content -LiteralPath $mcpPath -Raw | ConvertFrom-Json
+        $hasCodeReviewGraph = $null -ne $mcpConfig.mcpServers -and ($mcpConfig.mcpServers.PSObject.Properties.Name -contains 'code-review-graph')
+        if ($hasCodeReviewGraph) {
+            $runtimeAvailable = (Get-Command uvx -ErrorAction SilentlyContinue) -or (Get-Command code-review-graph -ErrorAction SilentlyContinue)
+            if (-not $runtimeAvailable) {
+                Add-WarningLine "'.mcp.json' enables 'code-review-graph', but no 'uvx' or 'code-review-graph' executable was found in PATH. Copilot will fall back to manual context when the MCP server cannot start."
+            }
+        }
+    } catch {
+        Add-Issue "Invalid JSON in '.mcp.json'."
+    }
+}
+
 $installStatePath = Join-Path $TargetRoot '.helix/install-state.yml'
-if (-not (Test-Path $installStatePath)) {
-    Add-Issue "Missing .helix/install-state.yml"
+$registryPath = Join-Path $TargetRoot 'repos.yml'
+$hasInstallState = Test-Path $installStatePath
+$hasRegistry = Test-Path $registryPath
+
+if (-not $hasInstallState -and -not $hasRegistry) {
+    Add-WarningLine "Helix instance state is not bootstrapped in '$TargetRoot'. Missing '.helix/install-state.yml' and 'repos.yml'. Run install-helix.ps1 in a target meta repo before using doctor for instance validation."
+} else {
+    if (-not $hasInstallState) {
+        Add-Issue "Missing .helix/install-state.yml"
+    }
+
+    if (-not $hasRegistry) {
+        Add-Issue "Missing repos.yml"
+    }
 }
 
 $activeWorkspacePath = Get-HelixActiveWorkspacePath -HelixRoot $TargetRoot
@@ -28,11 +74,8 @@ if (-not (Test-Path $activeWorkspacePath)) {
     Add-WarningLine "Missing active workspace pointer (.helix/active-workspace.yml)"
 }
 
-$registryPath = Join-Path $TargetRoot 'repos.yml'
 $repoIndex = @{}
-if (-not (Test-Path $registryPath)) {
-    Add-Issue "Missing repos.yml"
-} else {
+if ($hasRegistry) {
     $registry = Import-HelixYamlFile -Path $registryPath
     $seenIds = @{}
     $seenPaths = @{}

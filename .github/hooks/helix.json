@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/session-start.js",
+        "powershell": "node ./scripts/session-start.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/user-prompt-submitted.js",
+        "powershell": "node ./scripts/user-prompt-submitted.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ],
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/pre-tool-use.js",
+        "powershell": "node ./scripts/pre-tool-use.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/post-tool-use.js",
+        "powershell": "node ./scripts/post-tool-use.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/agent-stop.js",
+        "powershell": "node ./scripts/agent-stop.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ],
+    "subagentStop": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/subagent-stop.js",
+        "powershell": "node ./scripts/subagent-stop.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ],
+    "sessionEnd": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/session-end.js",
+        "powershell": "node ./scripts/session-end.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ],
+    "errorOccurred": [
+      {
+        "type": "command",
+        "bash": "node ./scripts/error-occurred.js",
+        "powershell": "node ./scripts/error-occurred.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

@@ -83,7 +83,7 @@ For each repo attached in step 2:
    - `crg_indexed: true | false`
    - `crg_last_build: YYYY-MM-DD`
 
-CRG's watch mode and PostToolUse hooks handle incremental updates during implementation — no manual rebuilds needed after initial setup.
+CRG does not currently auto-refresh through Helix hooks. Rebuild or refresh the graph explicitly when implementation changes make the indexed state stale.
 
 ### 3. Generate VS Code Workspace File
 
@@ -99,14 +99,16 @@ Create `workspaces/{name}/{name}.code-workspace`:
   "settings": {
     "chat.agentFilesLocations": [{ "source": ".github/agents" }],
     "chat.skillsLocations": [{ "source": ".github/skills" }],
-    "chat.hookFilesLocations": [{ "source": "hooks" }]
+    "chat.hookFilesLocations": [{ "source": ".github/hooks" }]
   }
 }
 ```
 
-### 4. Update .claude/settings.local.json
+Repo-scoped hooks live under `.github/hooks/`. The `chat.hookFilesLocations` setting points at the same canonical hook directory and now exists only as a VS Code compatibility shim.
 
-Add repo paths to `additionalDirectories` for Copilot CLI access:
+### 4. Optional: Update .claude/settings.local.json (Claude Desktop Only)
+
+If you also use Claude Desktop, add repo paths to `additionalDirectories`. This is not required for GitHub Copilot CLI or VS Code:
 
 ```json
 {
@@ -137,7 +139,8 @@ active: order-feature
 | service-b | ../service-b | cloned | partial | main | onboard |
 
 Generated: {name}.code-workspace, .helix/repo-state/*.yml
-Updated: .claude/settings.local.json, .helix/active-workspace.yml
+Updated: .helix/active-workspace.yml
+Optional: .claude/settings.local.json when Claude Desktop integration is explicitly requested
 ```
 
 ## Error Handling
@@ -152,4 +155,4 @@ Updated: .claude/settings.local.json, .helix/active-workspace.yml
 - `az` CLI authenticated (for Azure DevOps repos)
 - `gh` CLI authenticated (for GitHub repos)
 - `git` available
-- Prefer [`scripts/setup-workspace.ps1`](../../scripts/setup-workspace.ps1) for the target meta-repo model; the old Bash helper is legacy
+- Prefer [`scripts/setup-workspace.ps1`](../../../scripts/setup-workspace.ps1) for the target meta-repo model; the old Bash helper is legacy

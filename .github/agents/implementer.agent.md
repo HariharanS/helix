@@ -5,7 +5,7 @@ tools: [vscode/runCommand, execute, read, agent, edit, search/codebase, web, tod
 agents: ['explorer']
 user-invocable: true
 disable-model-invocation: false
-model: ['GPT-5.3-Codex (copilot)']
+model: GPT-5.3-Codex (copilot)
 argument-hint: Task description with context bundle path or inline context
 handoffs:
   - label: "Implementation complete — review"
@@ -123,4 +123,4 @@ blocker: Only if blocked — describe the issue
 - If `code_review_graph.mode` is `review-only` or `off`, do not depend on graph retrieval for implementation; use the bundle and spawn @explorer when you need more evidence
 - If you need more context than what was provided, spawn @explorer with a specific question
 - Treat `done_when` as the definition of done — if it is not met, the task is not complete
-- When available in Copilot CLI experimental mode, request a Rubber Duck critique after a complex implementation or when progress stalls; focus on cross-file regressions, hidden assumptions, missing edge cases, and whether to continue or escalate
+- When an optional second-opinion critique capability is available, request a critique after a complex implementation or when progress stalls; focus on cross-file regressions, hidden assumptions, missing edge cases, and whether to continue or escalate

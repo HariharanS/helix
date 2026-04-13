@@ -71,9 +71,9 @@ Do **not** read the entire repo by default.
 - When those artifacts grow large, prefer an indexed package structure instead of inflating a single blob.
 - The explorer bundle model already supports progressive disclosure through a main bundle plus optional annex.
 
-## Optional Copilot Rubber Duck
+## Optional Second-Opinion Critique
 
-When Helix is running inside GitHub Copilot CLI experimental mode, it can use Rubber Duck as an optional second opinion.
+When Helix is running in a host that provides an optional second-opinion critique capability, it can use that critique sparingly.
 
 - Treat it as a host-runtime capability, not a Helix dependency
 - Use it sparingly at high-return checkpoints

@@ -3,7 +3,7 @@
 # Legacy helper for the pre-split combined layout.
 # Reads workspace.yaml, clones/pulls repos, generates .code-workspace file
 #
-# Usage: ./setup-workspace.sh <workspace-name>
+# Usage: ./setup-workspace.sh <workspace-name> [--include-claude-settings]
 #
 # Reads from: workspaces/<workspace-name>/workspace.yaml
 # Expected YAML format:
@@ -19,7 +19,16 @@
 
 set -euo pipefail
 
-WORKSPACE_NAME="${1:?Usage: setup-workspace.sh <workspace-name>}"
+WORKSPACE_NAME="${1:?Usage: setup-workspace.sh <workspace-name> [--include-claude-settings]}"
+INCLUDE_CLAUDE_SETTINGS=false
+
+if [ "${2:-}" = "--include-claude-settings" ]; then
+  INCLUDE_CLAUDE_SETTINGS=true
+elif [ -n "${2:-}" ]; then
+  echo "Usage: setup-workspace.sh <workspace-name> [--include-claude-settings]"
+  exit 1
+fi
+
 HELIX_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WS_DIR="${HELIX_ROOT}/workspaces/${WORKSPACE_NAME}"
 WS_YAML="${WS_DIR}/workspace.yaml"
@@ -117,31 +126,34 @@ cat > "$WORKSPACE_FILE" << EOF
 }
 EOF
 
-# Update .claude/settings.json with additionalDirectories
-CLAUDE_SETTINGS="${HELIX_ROOT}/.claude/settings.json"
-echo "Updating: $CLAUDE_SETTINGS"
+if [ "$INCLUDE_CLAUDE_SETTINGS" = true ]; then
+  # Update .claude/settings.json with additionalDirectories
+  CLAUDE_SETTINGS="${HELIX_ROOT}/.claude/settings.json"
+  mkdir -p "$(dirname "$CLAUDE_SETTINGS")"
+  echo "Updating: $CLAUDE_SETTINGS"
 
-# Collect repo paths for additionalDirectories
-ADDITIONAL_DIRS="[]"
-while IFS= read -r line; do
-  if echo "$line" | grep -q "^  - path:"; then
-    RPATH=$(echo "$line" | sed 's/.*path:\s*//')
-    if [ "$ADDITIONAL_DIRS" = "[]" ]; then
-      ADDITIONAL_DIRS="[\"${RPATH}\""
-    else
-      ADDITIONAL_DIRS="${ADDITIONAL_DIRS}, \"${RPATH}\""
+  # Collect repo paths for additionalDirectories
+  ADDITIONAL_DIRS="[]"
+  while IFS= read -r line; do
+    if echo "$line" | grep -q "^  - path:"; then
+      RPATH=$(echo "$line" | sed 's/.*path:\s*//')
+      if [ "$ADDITIONAL_DIRS" = "[]" ]; then
+        ADDITIONAL_DIRS="[\"${RPATH}\""
+      else
+        ADDITIONAL_DIRS="${ADDITIONAL_DIRS}, \"${RPATH}\""
+      fi
     fi
-  fi
-done < "$WS_YAML"
-ADDITIONAL_DIRS="${ADDITIONAL_DIRS}]"
+  done < "$WS_YAML"
+  ADDITIONAL_DIRS="${ADDITIONAL_DIRS}]"
 
-cat > "$CLAUDE_SETTINGS" << EOF
+  cat > "$CLAUDE_SETTINGS" << EOF
 {
   "permissions": {
     "additionalDirectories": ${ADDITIONAL_DIRS}
   }
 }
 EOF
+fi
 
 # Update active workspace pointer
 ACTIVE_WS="${HELIX_ROOT}/.helix/active-workspace.yaml"
@@ -157,3 +169,6 @@ echo ""
 echo "Workspace setup complete!"
 echo "  Open in VS Code: code ${WORKSPACE_FILE}"
 echo "  Active workspace: ${WORKSPACE_NAME}"
+if [ "$INCLUDE_CLAUDE_SETTINGS" = true ]; then
+  echo "  Claude Desktop settings updated"
+fi

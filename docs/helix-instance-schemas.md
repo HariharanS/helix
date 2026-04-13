@@ -311,6 +311,7 @@ Do not use it for:
 | `last_sync_at` | no | string | ISO timestamp |
 | `runtime_surface` | yes | map | Runtime-facing directories in the meta repo |
 | `runtime_surface.agents_dir` | yes | string | Usually `.github/agents` |
+| `runtime_surface.hooks_dir` | yes | string | Usually `.github/hooks` |
 | `runtime_surface.prompts_dir` | yes | string | Usually `.github/prompts` |
 | `runtime_surface.skills_dir` | yes | string | Usually `.github/skills` |
 | `runtime_surface.instructions_file` | yes | string | Usually `.github/copilot-instructions.md` |
@@ -336,6 +337,7 @@ last_sync_at: 2026-04-10T09:15:00Z
 
 runtime_surface:
   agents_dir: .github/agents
+  hooks_dir: .github/hooks
   prompts_dir: .github/prompts
   skills_dir: .github/skills
   instructions_file: .github/copilot-instructions.md

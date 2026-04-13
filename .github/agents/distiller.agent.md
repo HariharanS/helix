@@ -4,7 +4,7 @@ description: Extracts learnings from completed sessions — produces episodic su
 tools: ['read', 'edit', 'search/codebase']
 agents: []
 user-invocable: true
-model: ['Claude Haiku 4.5 (copilot)']
+model: Claude Haiku 4.5 (copilot)
 argument-hint: Describe the session to distill or say "distill current session"
 ---
 

@@ -4,7 +4,7 @@ description: Takes a technical design entry document and breaks it into small, i
 tools: ['read', 'search/codebase', 'edit', 'agent']
 agents: ['explorer']
 user-invocable: true
-model: ['Claude Sonnet 4 (copilot)']
+model: Claude Sonnet 4 (copilot)
 argument-hint: Path to tech-design.md, tech-design/index.md, or describe what needs breaking down
 handoffs:
   - label: "Tasks ready \u2014 start implementation (interactive)"
@@ -159,4 +159,4 @@ A task is TOO BIG if:
 - Parallel groups are allowed only when write paths are disjoint and shared contracts are already locked
 - If a command cannot be verified from the repo, leave the task out of fleet mode and mark it for human review instead of guessing
 - If the PRD or design is packaged, do not force downstream agents to read the whole package; extract the exact subdocument references they need
-- When available in Copilot CLI experimental mode, request a Rubber Duck critique before marking an execution plan autopilot-safe; focus on missing commands, overlapping ownership, unsafe parallelism, and weak `done_when` criteria
+- When an optional second-opinion critique capability is available, request a critique before marking an execution plan autopilot-safe; focus on missing commands, overlapping ownership, unsafe parallelism, and weak `done_when` criteria

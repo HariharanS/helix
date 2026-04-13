@@ -11,6 +11,7 @@ last_sync_at: 2026-04-10T09:15:00Z
 
 runtime_surface:
   agents_dir: .github/agents
+  hooks_dir: .github/hooks
   prompts_dir: .github/prompts
   skills_dir: .github/skills
   instructions_file: .github/copilot-instructions.md

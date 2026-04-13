@@ -17,7 +17,7 @@ This directory contains helper scripts and hook implementations.
 
 1. Read [`../AGENTS.md`](../AGENTS.md) for repo-level rules
 2. Read the specific script you intend to change
-3. If working on hooks, also inspect [`../hooks/hooks.json`](../hooks/hooks.json)
+3. If working on hooks, inspect [`../.github/hooks/helix.json`](../.github/hooks/helix.json) and the runtime under [`../.github/hooks/scripts`](../.github/hooks/scripts)
 
 ## Editing Rules
 

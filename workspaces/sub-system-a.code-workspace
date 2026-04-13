@@ -6,13 +6,13 @@
   ],
   "settings": {
     "chat.agentFilesLocations": [
-      { "source": "agents" }
+      { "source": ".github/agents" }
     ],
     "chat.skillsLocations": [
-      { "source": "skills" }
+      { "source": ".github/skills" }
     ],
     "chat.hookFilesLocations": [
-      { "source": "hooks" }
+      { "source": ".github/hooks" }
     ]
   }
 }
