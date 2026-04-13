@@ -2,8 +2,8 @@ feature: feature-name
 status: ready-for-implementation
 source:
   refined_intent: workspaces/{workspace-name}/refined-intent.md
-  prd: workspaces/{workspace-name}/prd.md
-  tech_design: workspaces/{workspace-name}/tech-design.md
+  prd: workspaces/{workspace-name}/prd.md                # or prd/index.md for package-first
+  tech_design: workspaces/{workspace-name}/tech-design.md  # or tech-design/index.md for package-first
 
 scheduler:
   default_mode: ralph-loop

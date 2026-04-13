@@ -116,7 +116,7 @@ Add-ManagedTree -Items $items -SourceRelativeRoot '.github/skills' -TargetRelati
 Add-ManagedFile -Items $items -SourceRelative '.github/AGENTS.md' -TargetRelative '.github/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.github/copilot-instructions.md' -TargetRelative '.github/copilot-instructions.md' -Category 'instruction' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.helix/AGENTS.md' -TargetRelative '.helix/AGENTS.md' -Category 'doc' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative '.helix/model-config.yaml' -TargetRelative '.helix/model-config.yaml' -Category 'config' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative '.helix/model-config.yml' -TargetRelative '.helix/model-config.yml' -Category 'config' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/AGENTS.md' -TargetRelative 'docs/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/helix-process.md' -TargetRelative 'docs/helix-process.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/helix-instance-schemas.md' -TargetRelative 'docs/helix-instance-schemas.md' -Category 'doc' -SyncMode 'replace'

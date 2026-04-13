@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 # Refactor Skill
 
-Applies consistent patterns across a codebase, informed by Helix memory learnings and repo conventions.
+Applies consistent patterns across a codebase, informed by Helix memory learnings and repo conventions. This is a standalone user-invocable skill, not part of the orchestrated agent flow.
 
 ## Workflow
 

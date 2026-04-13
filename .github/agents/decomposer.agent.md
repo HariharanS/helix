@@ -60,50 +60,14 @@ Produce BOTH:
 
 ### Human Task Board
 
-Produce `workspaces/{workspace-name}/task-boards/{feature-name}.md`:
+Produce `workspaces/{workspace-name}/task-boards/{feature-name}.md` by invoking the `/task-board` skill with the **Create** operation.
 
-```markdown
-# Task Board: {Feature Name}
-## Status: Phase 4 - Task Breakdown (ready for implementation)
-## Tech Design: link to the tech design entry document (`tech-design.md` or `tech-design/index.md`)
+The `/task-board` skill defines the canonical board format (header, dependency graph, sections, per-task structure). Follow its format exactly — do not invent an alternative layout.
 
-### Dependency Graph
-```mermaid
-graph TD
-    T1[TASK-001: Interface contracts] --> T2[TASK-002: Domain logic]
-    T1 --> T3[TASK-003: Data access]
-    T2 --> T4[TASK-004: Handler/endpoint]
-    T3 --> T4
-    T4 --> T5[TASK-005: Integration test]
-```
-
-### Backlog
-
-#### TASK-001: Define repository interface
-- **Repo:** path/to/repo
-- **Deps:** none
-- **Priority:** P0 (unlocks parallel work)
-- **AC:**
-  - [ ] Interface defined following repo conventions
-  - [ ] Return types defined
-  - [ ] Unit test for contract validation
-
-#### TASK-002: Implement domain logic
-- **Repo:** path/to/repo
-- **Deps:** TASK-001
-- **Priority:** P1
-- **AC:**
-  - [ ] Domain service method validates input
-  - [ ] Calls repository interface
-  - [ ] Returns expected result
-  - [ ] Unit tests cover: valid input, empty result, invalid input
-
-### In Progress
-
-### Blocked
-
-### Done
-```
+When creating, provide the skill with:
+- Feature name and tech design link
+- All tasks with their repo, deps, priority, and acceptance criteria
+- The mermaid dependency graph
 
 ### Machine-Readable Execution Plan
 

@@ -1,6 +1,6 @@
 # Starting A Cross-Repo Feature With Helix
 
-See also: [Helix Platform Roadmap](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\docs\helix-platform-roadmap.md)
+See also: [Helix Platform Roadmap](./helix-platform-roadmap.md)
 
 This guide is for the case where:
 
@@ -125,7 +125,7 @@ artifacts:
   decisions_dir: decisions/
 ```
 
-Then use the `workspace-sync` skill or [`setup-workspace.ps1`](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\scripts\setup-workspace.ps1) to:
+Then use the `workspace-sync` skill or [`setup-workspace.ps1`](../scripts/setup-workspace.ps1) to:
 
 - clone or attach only the selected repos
 - generate or refresh `.helix/repo-state/*.yml`

@@ -5,9 +5,9 @@ This directory holds Helix runtime state and memory-like artifacts.
 ## What Lives Here
 
 - `active-workspace.yml` — current workspace pointer
-- `install-state.yml` — what Helix installed into the meta repo, if this repo is acting as an installed instance
+- `install-state.yml` — what Helix installed into the meta repo (instance-only — created by install-helix)
 - `repo-state/` — generated readiness and scan results per repo
-- `model-config.yaml` — model-to-role assignments
+- `model-config.yml` — model-to-role assignments
 - `context-providers.yml` — optional retrieval providers and token budgets
 - `memory/index.md` — entry point to durable learnings
 - `memory/episodes/` — episodic session summaries
@@ -19,7 +19,7 @@ This directory holds Helix runtime state and memory-like artifacts.
 2. Read [`install-state.yml`](./install-state.yml) when it exists and you need install and managed-file context
 3. Read `repo-state/<repo-id>.yml` when you need readiness or onboarding status for a repo
 4. Read [`context-providers.yml`](./context-providers.yml) before assuming optional graph or retrieval tooling is enabled
-5. Read [`model-config.yaml`](./model-config.yaml) when you need role/model assignment context
+5. Read [`model-config.yml`](./model-config.yml) when you need role/model assignment context
 6. Start memory access at [`memory/index.md`](./memory/index.md)
 7. Open specific episode or learning files only if the index points you there
 

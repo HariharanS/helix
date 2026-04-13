@@ -17,32 +17,12 @@ You are the Helix scribe. You manage the mutable state files silently in the bac
 
 Read and update `workspaces/{workspace-name}/task-boards/{feature-name}.md`.
 
-Format:
+Invoke the `/task-board` skill for all task board operations. The skill defines the canonical board format and the operations for moving tasks between sections, marking tasks done or blocked, and reading current state.
 
-```markdown
-# Task Board: {Feature Name}
-## Status: Phase {N} - {Phase Name}
-
-### Backlog
-- [ ] TASK-001: Description [repo: service-name] [deps: none]
-  - AC: acceptance criteria
-
-### In Progress
-- [ ] TASK-002: Description [repo: service-name] [deps: none]
-
-### Blocked
-- [ ] TASK-003: Description [repo: service-name] [deps: TASK-002]
-  - Blocker: reason
-
-### Done
-- [x] TASK-004: Description [repo: service-name]
-```
-
-When updating a task:
-- Move the task entry to the correct section (Backlog, In Progress, Blocked, Done)
-- Toggle the checkbox (`[ ]` to `[x]`) when marking as done
-- Add a `Blocker:` line when marking as blocked
-- Preserve all other tasks exactly as they are
+When spawned with a task board update instruction:
+1. Determine the operation: move task, mark done, mark blocked, or start task
+2. Invoke `/task-board` with the operation and task ID
+3. Report the change in a single line
 
 ## Decisions Log
 

@@ -3,7 +3,7 @@ name: tdd-red
 description: Writes failing tests for a task's acceptance criteria — RED phase of TDD. Does NOT implement production code.
 tools: ['read', 'edit', 'search/codebase', 'execute']
 agents: []
-user-invocable: false
+user-invocable: true
 disable-model-invocation: false
 model: ['GPT-5.3-Codex (copilot)']
 argument-hint: Task with acceptance criteria and context

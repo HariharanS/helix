@@ -97,10 +97,14 @@ Default autonomous implementation mode:
 
 1. Read `workspaces/{workspace-name}/execution-plans/{feature-name}.yaml`
 2. Pick the highest-priority unblocked task that is marked safe for autonomy
-3. Spawn @implementer for that task
-4. Spawn @scribe to mark the result
-5. Recompute the next highest-priority unblocked task
-6. Repeat until no eligible tasks remain
+3. If the task's `context_bundle` file does not exist on disk:
+   a. Spawn @explorer with the task description, design refs, and ownership scope
+   b. Explorer invokes `/curate-context` scoped to the task
+   c. Wait for `context-bundle-TASK-XXX.md` to be written
+4. Spawn @implementer with execution plan path + context bundle path
+5. Spawn @scribe to mark the result
+6. Recompute the next highest-priority unblocked task
+7. Repeat until no eligible tasks remain
 
 ## Auto-Curation
 
@@ -111,11 +115,11 @@ Before routing to PRD, TECH DESIGN, or TASK BREAKDOWN phases:
 3. Wait for the tiered context bundle to be written to disk
 4. Include the context bundle path in the handoff to the next agent
 
-Skip auto-curation when:
+Skip phase-level auto-curation when:
 - The user explicitly provides context or file paths
 - A recent context bundle already exists for this task (check `last_verified` in frontmatter)
 - The phase is JAM (intent is still too vague for meaningful curation)
-- The phase is IMPLEMENTATION with an execution plan that already has `context_bundle` paths
+- The phase is IMPLEMENTATION — per-task curation happens inside the Ralph loop instead (step 3)
 
 ## Phase Detection
 

@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 # TDD Cycle Skill
 
-Runs a complete red-green-refactor cycle for a single task.
+Runs a complete red-green-refactor cycle for a single task. This is a standalone user-invocable skill, not part of the orchestrated agent flow (the implementer agent runs its own TDD cycle internally).
 
 ## Workflow
 

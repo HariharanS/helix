@@ -31,12 +31,12 @@ argument-hint: {what input it expects}
 
 **Guidelines:**
 - Choose model tier based on task type (reasoning/coding/analysis/visual/fast)
-- Reference `.helix/model-config.yaml` for tier assignments
+- Reference `.helix/model-config.yml` for tier assignments
 - Agent must be tech-agnostic — no stack-specific references
 - Include "Read AGENTS.md and .instructions.md for conventions" directive
 - Keep agent instructions lean — avoid long narrative guidance and generic advice
 - Prefer markdown or YAML-shaped outputs over XML unless strict parsing is required
-- Update `.helix/model-config.yaml` assignments section
+- Update `.helix/model-config.yml` assignments section
 
 ### 2. Skill
 
@@ -91,7 +91,7 @@ workspaces/{name}/
 
 **Guidelines:**
 - Ask for participating repo ids and workspace-specific roles
-- Do not duplicate repo registry details from `repos.yml`
+- Do not duplicate repo registry details from `repos.yml` (instance-owned — created during installation from `templates/repos.yml.template`)
 - Set status to "draft" or "active" as appropriate
 - Suggest running workspace-sync after creation
 

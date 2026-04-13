@@ -1,8 +1,8 @@
 ---
+# NOTE: This is a snapshot for illustration purposes. The live version is at .github/prompts/jam.prompt.md
 name: jam
 description: Start an interactive jam session to refine a feature idea into a clear intent
 agent: jam
-mode: ask
 tools: ['read', 'search/codebase']
 ---
 

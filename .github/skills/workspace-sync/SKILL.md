@@ -14,6 +14,8 @@ Sets up a workspace by reading the repo registry plus one workspace manifest, at
 
 ### 1. Read The Registry And Workspace
 
+> **Note:** `repos.yml` is an instance-owned file created during installation from `templates/repos.yml.template`. It lives in the installed meta-repo, not in helix-core. If it does not exist, run `install-helix.ps1` first or create it from the template.
+
 ```
 repos.yml
 workspaces/{name}/workspace.yml
@@ -150,4 +152,4 @@ Updated: .claude/settings.local.json, .helix/active-workspace.yml
 - `az` CLI authenticated (for Azure DevOps repos)
 - `gh` CLI authenticated (for GitHub repos)
 - `git` available
-- Prefer [`scripts/setup-workspace.ps1`](C:\Users\Harih\source\personal\github-copilot-multi-agent-setup\helix\scripts\setup-workspace.ps1) for the target meta-repo model; the old Bash helper is legacy
+- Prefer [`scripts/setup-workspace.ps1`](../../scripts/setup-workspace.ps1) for the target meta-repo model; the old Bash helper is legacy

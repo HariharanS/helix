@@ -3,10 +3,15 @@ name: implementer
 description: Implements tasks using TDD — in fleet mode runs full red-green-refactor cycle, in interactive mode handles green+refactor after tdd-red writes failing tests
 tools: [vscode/runCommand, execute, read, agent, edit, search/codebase, web, todo]
 agents: ['explorer']
-user-invocable: false
+user-invocable: true
 disable-model-invocation: false
 model: ['GPT-5.3-Codex (copilot)']
 argument-hint: Task description with context bundle path or inline context
+handoffs:
+  - label: "Implementation complete — review"
+    agent: reviewer
+    prompt: ""
+    send: false
 ---
 
 # Implementer Agent

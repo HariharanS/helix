@@ -30,7 +30,7 @@ b. Follow CRG's suggested tools to expand context:
    - `get_affected_flows_tool` for execution flow context (HTTP handlers, event handlers, Lambda entry points)
    - `list_communities_tool` / `get_community_tool` for architectural groupings
 
-c. Use `detail_level="minimal"` on all calls. Escalate to `standard` only if minimal output is too compressed to classify tiers.
+c. Use the configured `detail_level` from `.helix/context-providers.yml` on all calls. The config file is the control point — do not hardcode a level here.
 
 d. Use `get_docs_section_tool` if unsure how a CRG tool works (self-serve docs).
 
