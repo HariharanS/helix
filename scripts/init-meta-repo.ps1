@@ -78,11 +78,12 @@ function Assert-BaselineFiles {
         'repos.yml',
         'README.md',
         'AGENTS.md',
-        'docs/helix-process.md',
-        'docs/helix-instance-schemas.md',
-        'scripts/install-helix.ps1',
-        'scripts/setup-workspace.ps1',
-        'scripts/doctor.ps1'
+        'helix/docs/helix-core-meta-repo-model.md',
+        'helix/docs/helix-process.md',
+        'helix/docs/helix-instance-schemas.md',
+        'helix/scripts/install-helix.ps1',
+        'helix/scripts/setup-workspace.ps1',
+        'helix/scripts/doctor.ps1'
     )
 
     $missing = @(

@@ -21,7 +21,7 @@ Use this directory when changing how Helix behaves.
 ## Editing Rules
 
 - Put global rules in `copilot-instructions.md`, not repeated across every agent file
-- Keep the full Helix lifecycle and packaging story in `../docs/helix-process.md` and `../docs/helix-core-meta-repo-model.md`, not in `copilot-instructions.md`
+- In installed meta repos, keep the full Helix lifecycle and packaging story in `helix/docs/helix-process.md` and `helix/docs/helix-core-meta-repo-model.md`; in `helix-core` source those canonical docs live under `docs/`
 - Keep agent files role-focused; avoid turning them into long human documentation
 - Keep skills procedural and reusable; do not hide product-specific context inside them
 - Keep prompts as scaffolds, not policy engines

@@ -50,11 +50,12 @@ The coordination repo that a team clones and commits.
 Owns:
 
 - installed runtime-facing `.github` files
+- installed Helix-managed docs, scripts, and templates under `helix/`
 - root `README.md` and `AGENTS.md`
 - `repos.yml`
 - `workspaces/`
 - `.helix/` runtime tracking and generated state
-- docs that explain the local instance
+- optional local docs that explain the instance
 
 ### Product Repos
 
@@ -73,6 +74,8 @@ Own:
 meta-repo/
 ├── .github/
 │   ├── agents/
+│   ├── hooks/
+│   │   └── logs/
 │   ├── prompts/
 │   ├── skills/
 │   └── copilot-instructions.md
@@ -81,9 +84,13 @@ meta-repo/
 │   ├── active-workspace.yml
 │   ├── repo-state/
 │   └── generated/
-├── docs/
-│   ├── helix-process.md
-│   └── ...
+├── helix/
+│   ├── docs/
+│   │   ├── helix-core-meta-repo-model.md
+│   │   ├── helix-process.md
+│   │   └── helix-instance-schemas.md
+│   ├── scripts/
+│   └── templates/
 ├── workspaces/
 │   └── <workspace-id>/
 ├── AGENTS.md
@@ -100,9 +107,22 @@ Runtime surface for Copilot and VS Code.
 Install from `helix-core`:
 
 - `agents/`
+- `hooks/` and live audit logs under `.github/hooks/logs/`
 - `prompts/`
 - `skills/`
 - `copilot-instructions.md`
+
+### `helix/`
+
+Installed Helix-managed human-facing assets.
+
+Keep here:
+
+- canonical process docs
+- installer, sync, and setup scripts
+- artifact and manifest templates
+
+Do not use `helix/` for workspace-specific task boards, decisions, or other feature artifacts.
 
 ### `.helix/`
 
@@ -145,6 +165,8 @@ Each workspace should declare:
 - phase artifacts
 - task and execution outputs
 
+Task boards and decisions are canonical inside `workspaces/<id>/...`, not at the meta-repo root.
+
 This is where `JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL` lives.
 
 ## Installation Model
@@ -155,7 +177,7 @@ Recommended flow:
 
 1. clone or create the meta repo
 2. run Helix install from local `helix-core`
-3. materialize managed files into `.github/`, root docs, and starter `.helix/`
+3. materialize managed files into `.github/`, `helix/`, and starter `.helix/`
 4. populate `repos.yml`
 5. create a workspace
 6. attach only the repos that workspace needs
@@ -170,9 +192,11 @@ Managed by `helix-core` installer:
 - `.github/prompts/*`
 - `.github/skills/*`
 - `.github/copilot-instructions.md`
+- `helix/docs/*`
+- `helix/scripts/*`
+- `helix/templates/*`
 - starter `README.md`
 - starter `AGENTS.md`
-- canonical process docs
 
 Local or instance-owned:
 
@@ -181,6 +205,7 @@ Local or instance-owned:
 - `.helix/generated/*`
 - `workspaces/*`
 - org- or project-specific docs
+- any legacy root `decisions/` or `task-boards/` directories until they are manually removed
 
 Track managed installs in `.helix/install-state.yml`.
 

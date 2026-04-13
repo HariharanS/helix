@@ -1,7 +1,7 @@
 # Helix — Global Conventions
 
 This workspace uses the Helix multi-agent development system.
-Use [`docs/helix-process.md`](../docs/helix-process.md) as the canonical lifecycle definition and [`docs/helix-core-meta-repo-model.md`](../docs/helix-core-meta-repo-model.md) as the canonical packaging model.
+In an installed meta repo, use `helix/docs/helix-process.md` as the canonical lifecycle definition and `helix/docs/helix-core-meta-repo-model.md` as the canonical packaging model.
 
 ## Execution Rules
 
@@ -11,6 +11,7 @@ Use [`docs/helix-process.md`](../docs/helix-process.md) as the canonical lifecyc
 - Use task boards (`workspaces/{name}/task-boards/`) for human status
 - Use execution plans (`workspaces/{name}/execution-plans/`) for deterministic autonomous implementation
 - Use decisions logs (`workspaces/{name}/decisions/`) for significant decisions
+- Treat root `decisions/` and `task-boards/` as deprecated legacy placeholders, not active artifact destinations
 - Use memory in `.helix/memory/` for distilled learnings, not raw transcripts
 - Check `.helix/active-workspace.yml` for current workspace context
 - When an optional second-opinion critique capability is available, use it sparingly at high-return checkpoints and treat it as advisory only

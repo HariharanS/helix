@@ -61,7 +61,7 @@ Do NOT re-scan code that CRG already indexed. If a file appeared in graph result
 
 ### 5. Write Context Bundle
 
-Write the bundle to `workspaces/{workspace}/context-bundle-{task-id}.md` using the tiered context bundle template from `templates/context-bundle.md.template`.
+Write the bundle to `workspaces/{workspace}/context-bundle-{task-id}.md` using the tiered context bundle template from `helix/templates/context-bundle.md.template`.
 
 Populate:
 - Frontmatter: task_id, question, primary_repo, confidence, last_verified (today's date)

@@ -18,19 +18,25 @@ runtime_surface:
 
 managed_paths:
   - path: .github/agents/helix.agent.md
-    source: runtime/.github/agents/helix.agent.md
+    source: .github/agents/helix.agent.md
     category: agent
     sync_mode: replace
     required: true
 
   - path: .github/copilot-instructions.md
-    source: runtime/.github/copilot-instructions.md
+    source: .github/copilot-instructions.md
     category: instruction
     sync_mode: replace
     required: true
 
   - path: README.md
-    source: runtime/README.md
+    source: templates/meta-repo.README.md.template
     category: doc
     sync_mode: merge-marked-sections
+    required: true
+
+  - path: helix/docs/helix-process.md
+    source: docs/helix-process.md
+    category: doc
+    sync_mode: replace
     required: true

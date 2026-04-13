@@ -18,6 +18,43 @@ function Add-WarningLine([string]$Message) {
     $script:warnings += $Message
 }
 
+function Resolve-WorkspaceArtifactPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$WorkspaceRoot,
+        [string]$ArtifactValue
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ArtifactValue)) {
+        return $null
+    }
+
+    if ([System.IO.Path]::IsPathRooted($ArtifactValue)) {
+        return [System.IO.Path]::GetFullPath($ArtifactValue)
+    }
+
+    return [System.IO.Path]::GetFullPath((Join-Path $WorkspaceRoot $ArtifactValue))
+}
+
+function Test-PathWithinRoot {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Root
+    )
+
+    $normalizedRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/')
+    $normalizedPath = [System.IO.Path]::GetFullPath($Path)
+
+    return $normalizedPath.Equals($normalizedRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalizedPath.StartsWith($normalizedRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase) -or
+        $normalizedPath.StartsWith($normalizedRoot + [System.IO.Path]::AltDirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Test-DirectoryHasFiles {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    return (Test-Path $Path) -and (@(Get-ChildItem -LiteralPath $Path -Recurse -File -ErrorAction SilentlyContinue).Count -gt 0)
+}
+
 $agentDir = Join-Path $TargetRoot '.github/agents'
 if (Test-Path $agentDir) {
     Get-ChildItem -Path $agentDir -Filter '*.agent.md' -File | ForEach-Object {
@@ -28,11 +65,19 @@ if (Test-Path $agentDir) {
     }
 }
 
-$agentTemplatePath = Join-Path $TargetRoot 'templates/agent.agent.md.template'
+$installedTemplatePath = Join-Path $TargetRoot 'helix/templates/agent.agent.md.template'
+$legacyTemplatePath = Join-Path $TargetRoot 'templates/agent.agent.md.template'
+$agentTemplatePath = if (Test-Path $installedTemplatePath) {
+    $installedTemplatePath
+} else {
+    $legacyTemplatePath
+}
+
 if (Test-Path $agentTemplatePath) {
     $templateHead = Get-Content -LiteralPath $agentTemplatePath -TotalCount 12
     if ($templateHead -match '^model:\s*\[') {
-        Add-Issue "Template 'templates/agent.agent.md.template' uses malformed custom agent frontmatter: 'model' must be a string, not an array."
+        $templateLabel = Get-HelixRelativePath -BasePath $TargetRoot -TargetPath $agentTemplatePath
+        Add-Issue "Template '$templateLabel' uses malformed custom agent frontmatter: 'model' must be a string, not an array."
     }
 }
 
@@ -72,6 +117,24 @@ if (-not $hasInstallState -and -not $hasRegistry) {
 $activeWorkspacePath = Get-HelixActiveWorkspacePath -HelixRoot $TargetRoot
 if (-not (Test-Path $activeWorkspacePath)) {
     Add-WarningLine "Missing active workspace pointer (.helix/active-workspace.yml)"
+}
+
+$installedAssetRoot = Join-Path $TargetRoot 'helix'
+if (Test-Path $installedAssetRoot) {
+    $legacyDirectoryWarnings = [ordered]@{
+        'decisions' = "Legacy root 'decisions/' contains content. Move it manually to 'workspaces/<workspace-id>/decisions/' if still relevant."
+        'task-boards' = "Legacy root 'task-boards/' contains content. Move it manually to 'workspaces/<workspace-id>/task-boards/' if still relevant."
+        'docs' = "Legacy root 'docs/' still contains files. Installed managed docs now live under 'helix/docs/'."
+        'scripts' = "Legacy root 'scripts/' still contains files. Installed managed scripts now live under 'helix/scripts/'."
+        'templates' = "Legacy root 'templates/' still contains files. Installed managed templates now live under 'helix/templates/'."
+    }
+
+    foreach ($legacyDirectory in $legacyDirectoryWarnings.Keys) {
+        $legacyPath = Join-Path $TargetRoot $legacyDirectory
+        if (Test-DirectoryHasFiles -Path $legacyPath) {
+            Add-WarningLine $legacyDirectoryWarnings[$legacyDirectory]
+        }
+    }
 }
 
 $repoIndex = @{}
@@ -128,10 +191,32 @@ if (Test-Path $workspacesRoot) {
 
         foreach ($artifactKey in @('refined_intent', 'prd', 'tech_design')) {
             if ($workspace.artifacts.Contains($artifactKey) -and $workspace.artifacts[$artifactKey]) {
-                $artifactPath = Join-Path $_.FullName ([string]$workspace.artifacts[$artifactKey])
+                $artifactPath = Resolve-WorkspaceArtifactPath -WorkspaceRoot $_.FullName -ArtifactValue ([string]$workspace.artifacts[$artifactKey])
                 if (-not (Test-Path $artifactPath)) {
                     Add-WarningLine "Workspace '$($_.Name)' artifact '$artifactKey' points to missing path '$artifactPath'."
                 }
+            }
+        }
+
+        $legacyArtifactRoots = [ordered]@{
+            'task_board_dir' = 'task-boards'
+            'decisions_dir' = 'decisions'
+        }
+
+        foreach ($artifactKey in $legacyArtifactRoots.Keys) {
+            if (-not $workspace.artifacts.Contains($artifactKey) -or -not $workspace.artifacts[$artifactKey]) {
+                continue
+            }
+
+            $artifactPath = Resolve-WorkspaceArtifactPath -WorkspaceRoot $_.FullName -ArtifactValue ([string]$workspace.artifacts[$artifactKey])
+            if (-not (Test-PathWithinRoot -Path $artifactPath -Root $_.FullName)) {
+                Add-WarningLine "Workspace '$($_.Name)' artifact '$artifactKey' resolves outside the workspace root: '$artifactPath'."
+                continue
+            }
+
+            $legacyRootPath = [System.IO.Path]::GetFullPath((Join-Path $TargetRoot $legacyArtifactRoots[$artifactKey]))
+            if ($artifactPath.Equals($legacyRootPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+                Add-WarningLine "Workspace '$($_.Name)' artifact '$artifactKey' points to legacy root '$($legacyArtifactRoots[$artifactKey])/' instead of staying under 'workspaces/$($_.Name)/'."
             }
         }
     }

@@ -82,6 +82,8 @@ Run the bootstrap command from `helix-core` into the target meta-repo root:
 
 That should install or sync Helix into the target root and verify the baseline install state, including `.helix/install-state.yml`, the managed `.github/` runtime files, and the starter manifests.
 
+After bootstrap, the installed Helix-managed docs, scripts, and templates live under `helix/` inside the target meta repo.
+
 ### 0b. Author The Registry And Workspace Manifests
 
 After bootstrap:
@@ -144,7 +146,9 @@ artifacts:
   decisions_dir: decisions/
 ```
 
-Then use the `setup` agent, the `workspace-sync` skill, or [`setup-workspace.ps1`](../scripts/setup-workspace.ps1) to:
+Keep task boards and decisions inside each workspace. Root `decisions/` and `task-boards/` directories are deprecated legacy placeholders, not the active model.
+
+Then use the `setup` agent, the `workspace-sync` skill, or the installed `helix/scripts/setup-workspace.ps1` command to:
 
 - clone or attach only the selected repos
 - generate or refresh `.helix/repo-state/*.yml`
@@ -159,7 +163,7 @@ Use the legacy Bash helper only for the old combined layout. The PowerShell scri
 If you want structural code retrieval without making it mandatory, enable `code-review-graph` in `review-only` mode first:
 
 ```powershell
-./scripts/set-context-provider.ps1 -Provider code-review-graph -Mode review-only
+./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode review-only
 ```
 
 That keeps Helix in charge of process and workspace artifacts while using the graph only for review scoping and blast-radius analysis.
@@ -167,7 +171,7 @@ That keeps Helix in charge of process and workspace artifacts while using the gr
 If it is noisy, unhelpful, or too expensive, turn it back off:
 
 ```powershell
-./scripts/set-context-provider.ps1 -Provider code-review-graph -Mode off
+./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode off
 ```
 
 ### Setup Loop: Onboard Every Repo

@@ -142,6 +142,8 @@ New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/repo-state')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/generated')
 New-HelixDirectory -Path (Join-Path $TargetRoot 'workspaces')
 
+$managedAssetRoot = 'helix'
+
 $items = [System.Collections.Generic.List[object]]::new()
 
 Add-ManagedTree -Items $items -SourceRelativeRoot '.github/agents' -TargetRelativeRoot '.github/agents' -Category 'agent' -SyncMode 'replace'
@@ -153,19 +155,20 @@ Add-ManagedFile -Items $items -SourceRelative '.github/AGENTS.md' -TargetRelativ
 Add-ManagedFile -Items $items -SourceRelative '.github/copilot-instructions.md' -TargetRelative '.github/copilot-instructions.md' -Category 'instruction' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.helix/AGENTS.md' -TargetRelative '.helix/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.helix/model-config.yml' -TargetRelative '.helix/model-config.yml' -Category 'config' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'docs/AGENTS.md' -TargetRelative 'docs/AGENTS.md' -Category 'doc' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'docs/helix-process.md' -TargetRelative 'docs/helix-process.md' -Category 'doc' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'docs/helix-instance-schemas.md' -TargetRelative 'docs/helix-instance-schemas.md' -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/AGENTS.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/AGENTS.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/helix-core-meta-repo-model.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/helix-core-meta-repo-model.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/helix-process.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/helix-process.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/helix-instance-schemas.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/helix-instance-schemas.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'workspaces/AGENTS.md' -TargetRelative 'workspaces/AGENTS.md' -Category 'doc' -SyncMode 'replace'
-Add-ManagedTree -Items $items -SourceRelativeRoot 'templates' -TargetRelativeRoot 'templates' -Category 'template' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/AGENTS.md' -TargetRelative 'scripts/AGENTS.md' -Category 'doc' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/Helix.Tools.psm1' -TargetRelative 'scripts/Helix.Tools.psm1' -Category 'script' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/init-meta-repo.ps1' -TargetRelative 'scripts/init-meta-repo.ps1' -Category 'script' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/install-helix.ps1' -TargetRelative 'scripts/install-helix.ps1' -Category 'script' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/set-context-provider.ps1' -TargetRelative 'scripts/set-context-provider.ps1' -Category 'script' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/sync-helix.ps1' -TargetRelative 'scripts/sync-helix.ps1' -Category 'script' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/setup-workspace.ps1' -TargetRelative 'scripts/setup-workspace.ps1' -Category 'script' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative 'scripts/doctor.ps1' -TargetRelative 'scripts/doctor.ps1' -Category 'script' -SyncMode 'replace'
+Add-ManagedTree -Items $items -SourceRelativeRoot 'templates' -TargetRelativeRoot (Join-Path $managedAssetRoot 'templates') -Category 'template' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/AGENTS.md' -TargetRelative (Join-Path $managedAssetRoot 'scripts/AGENTS.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/Helix.Tools.psm1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/Helix.Tools.psm1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/init-meta-repo.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/init-meta-repo.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/install-helix.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/install-helix.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/set-context-provider.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/set-context-provider.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/sync-helix.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/sync-helix.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/setup-workspace.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/setup-workspace.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/doctor.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/doctor.ps1') -Category 'script' -SyncMode 'replace'
 
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.README.md.template' -TargetRelative 'README.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.AGENTS.md.template' -TargetRelative 'AGENTS.md' -Category 'doc' -SyncMode 'merge-marked-sections'
@@ -206,10 +209,26 @@ foreach ($managedItem in $items) {
     $null = $currentManagedPathSet.Add([string]$managedItem.path)
 }
 
-foreach ($previousPath in $previousManagedPaths) {
-    if (-not $currentManagedPathSet.Contains($previousPath)) {
-        Remove-StaleManagedPath -RelativePath $previousPath
+$staleManagedPaths = @(
+    $previousManagedPaths | Where-Object {
+        -not $currentManagedPathSet.Contains($_)
     }
+)
+
+$legacyManagedRoots = @('docs/', 'scripts/', 'templates/')
+$legacyManagedUpgradePaths = @(
+    $staleManagedPaths | Where-Object {
+        $normalized = ([string]$_).Replace('\', '/')
+        $legacyManagedRoots | Where-Object { $normalized.StartsWith($_, [System.StringComparison]::OrdinalIgnoreCase) }
+    }
+)
+
+if ($legacyManagedUpgradePaths.Count -gt 0) {
+    Write-Warning "Helix upgrade is removing legacy managed root assets from docs/, scripts/, and templates/; managed assets now live under helix/."
+}
+
+foreach ($previousPath in $staleManagedPaths) {
+    Remove-StaleManagedPath -RelativePath $previousPath
 }
 
 $sourceReference = if ([System.IO.Path]::IsPathRooted($SourceRoot)) {

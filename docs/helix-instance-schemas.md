@@ -22,6 +22,7 @@ The current combined Helix repo still contains some legacy `*.yaml` files from t
 - registry data and runtime state must stay separate
 - workspace manifests should reference repo ids, not duplicate repo registry details
 - artifact entry paths should be explicit so agents do not need broad scans
+- workspace artifact directories must stay under the workspace root; do not point them at legacy root `decisions/` or `task-boards/` folders
 
 ## `repos.yml`
 
@@ -200,6 +201,7 @@ artifacts:
 - `focus_areas` are relative to the selected repo root
 - artifact paths should point to entry docs, not annexes
 - artifact paths are relative to the workspace root
+- `artifacts.task_board_dir` and `artifacts.decisions_dir` should stay inside the workspace directory, not point at root legacy paths
 
 ## `.helix/active-workspace.yml`
 
@@ -344,31 +346,31 @@ runtime_surface:
 
 managed_paths:
   - path: .github/agents/helix.agent.md
-    source: runtime/.github/agents/helix.agent.md
+    source: .github/agents/helix.agent.md
     category: agent
     sync_mode: replace
     required: true
 
   - path: .github/copilot-instructions.md
-    source: runtime/.github/copilot-instructions.md
+    source: .github/copilot-instructions.md
     category: instruction
     sync_mode: replace
     required: true
 
   - path: README.md
-    source: runtime/README.md
+    source: templates/meta-repo.README.md.template
     category: doc
     sync_mode: merge-marked-sections
     required: true
 
   - path: AGENTS.md
-    source: runtime/AGENTS.md
+    source: templates/meta-repo.AGENTS.md.template
     category: doc
     sync_mode: merge-marked-sections
     required: true
 
-  - path: docs/helix-process.md
-    source: runtime/docs/helix-process.md
+  - path: helix/docs/helix-process.md
+    source: docs/helix-process.md
     category: doc
     sync_mode: replace
     required: true

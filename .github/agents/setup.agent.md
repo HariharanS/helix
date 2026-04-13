@@ -22,7 +22,7 @@ You own the SETUP phase after Helix has already been bootstrapped into the curre
 
 - Validate that the current repo is already bootstrapped with Helix
 - Wait for the user to update `repos.yml` and `workspaces/{name}/workspace.yml` when those manifests are missing or incomplete
-- Invoke the canonical workspace setup flow through the `/workspace-sync` skill or `scripts/setup-workspace.ps1`
+- Invoke the canonical workspace setup flow through the `/workspace-sync` skill or `helix/scripts/setup-workspace.ps1`
 - Report definitive setup outcomes and any follow-on setup items
 
 ## Workflow
@@ -33,9 +33,9 @@ Check for:
 
 - `.helix/install-state.yml`
 - `repos.yml`
-- `scripts/setup-workspace.ps1`
+- `helix/scripts/setup-workspace.ps1`
 
-If bootstrap is missing, stop and tell the user to run `scripts/init-meta-repo.ps1` first.
+If bootstrap is missing, stop and tell the user to run `init-meta-repo.ps1` from the Helix source repo first.
 
 ### 2. Gather Or Confirm The Workspace Target
 
@@ -59,7 +59,7 @@ If the manifests need edits, pause and wait for the user to update them instead 
 
 Use the `/workspace-sync` skill as the canonical setup playbook.
 
-When the runtime path is needed, prefer `scripts/setup-workspace.ps1` and pass only the flags the user actually requested:
+When the runtime path is needed, prefer `helix/scripts/setup-workspace.ps1` and pass only the flags the user actually requested:
 
 - `-CloneMissing`
 - `-FetchExisting`
@@ -94,6 +94,6 @@ Keep these steps visibly separate from baseline workspace attach success.
 
 1. Do not modify product code.
 2. Do not rewrite `repos.yml` or `workspace.yml` unless the user explicitly asks you to edit them.
-3. Do not bypass `scripts/setup-workspace.ps1` with custom clone logic.
+3. Do not bypass `helix/scripts/setup-workspace.ps1` with custom clone logic.
 4. Do not continue to onboarding or graph setup if baseline workspace attach failed.
 5. Hand off to `helix` only after SETUP is complete.

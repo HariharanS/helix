@@ -14,13 +14,13 @@ Uses the script-owned workspace setup path once Helix is installed and the user 
 
 ### 1. Confirm Helix Is Installed
 
-- Check for `.helix/install-state.yml`, `repos.yml`, and `scripts/setup-workspace.ps1`
-- If bootstrap is missing, stop and tell the user to run `scripts/init-meta-repo.ps1` first
+- Check for `.helix/install-state.yml`, `repos.yml`, and `helix/scripts/setup-workspace.ps1`
+- If bootstrap is missing, stop and tell the user to run `init-meta-repo.ps1` from the Helix source repo first
 - Do not try to install Helix from this skill
 
 ### 2. Validate The Registry And Workspace
 
-`repos.yml` is an instance-owned file created during installation from `templates/repos.yml.template`. The workspace manifest lives at `workspaces/{name}/workspace.yml`.
+`repos.yml` is an instance-owned file created during installation from `helix/templates/repos.yml.template`. The workspace manifest lives at `workspaces/{name}/workspace.yml`.
 
 ```
 repos.yml
@@ -31,7 +31,7 @@ Before setup:
 
 - ensure `repos.yml` contains real repo definitions rather than sample placeholder values
 - ensure every `workspace.repos[*].repo_id` resolves to a registry entry
-- ensure the workspace manifest is complete enough for `scripts/setup-workspace.ps1`
+- ensure the workspace manifest is complete enough for `helix/scripts/setup-workspace.ps1`
 - if either manifest is missing or still needs edits, pause and ask the user to update it before continuing
 
 Registry example:
@@ -61,7 +61,7 @@ repos:
 
 ### 3. Run The Authoritative Setup Script
 
-Run `scripts/setup-workspace.ps1` with the requested workspace name or manifest path.
+Run `helix/scripts/setup-workspace.ps1` with the requested workspace name or manifest path.
 
 - Pass `-CloneMissing` only when the user wants missing workspace repos cloned locally
 - Pass `-FetchExisting` only when the user wants already-present repos refreshed
@@ -71,7 +71,7 @@ Run `scripts/setup-workspace.ps1` with the requested workspace name or manifest 
 
 ### 4. Verify Definitive Outcomes
 
-After `scripts/setup-workspace.ps1` succeeds, verify:
+After `helix/scripts/setup-workspace.ps1` succeeds, verify:
 
 - `workspaces/{name}/{name}.code-workspace` exists
 - `.helix/active-workspace.yml` points at the selected workspace
@@ -110,7 +110,7 @@ Updated: .helix/active-workspace.yml
 Optional: .claude/settings.local.json when Claude Desktop integration is explicitly requested
 ```
 
-- Helix not installed → stop and point to `scripts/init-meta-repo.ps1`
+- Helix not installed → stop and point to `init-meta-repo.ps1` from the Helix source repo
 - `repos.yml` or `workspace.yml` missing or still using placeholder values → stop and ask the user to repair the manifests
 - `setup-workspace.ps1` fails → surface the script output and do not continue to onboarding or graph setup
 - Onboard fails → report error and leave repo-state at `partial` or `needs-onboarding`
@@ -118,8 +118,8 @@ Optional: .claude/settings.local.json when Claude Desktop integration is explici
 
 ## Prerequisites
 
-- Helix bootstrap already completed via `scripts/init-meta-repo.ps1` or the equivalent installer flow
+- Helix bootstrap already completed via `init-meta-repo.ps1` from the Helix source repo or the equivalent installer flow
 - `repos.yml` has been updated with the real repo registry
 - `workspaces/{name}/workspace.yml` has been created or updated with the participating repos
 - `git` available
-- Prefer [`scripts/setup-workspace.ps1`](../../../scripts/setup-workspace.ps1) for the target meta-repo model; the old Bash helper is legacy
+- Prefer `helix/scripts/setup-workspace.ps1` for the target meta-repo model; the old Bash helper is legacy

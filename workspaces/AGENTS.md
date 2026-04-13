@@ -26,7 +26,7 @@ Current target-state naming uses `workspace.yml`. Older combined-repo examples m
 - `decisions/` records why important choices were made
 - `context-bundle-*.md` is task-scoped evidence for downstream agents
 
-Top-level `helix/decisions/` and `helix/task-boards/` are legacy placeholders, not the active workspace model.
+Top-level `decisions/` and `task-boards/` are deprecated legacy placeholders, and `helix/` is not the home for workspace artifacts.
 
 ## Retrieval Order
 

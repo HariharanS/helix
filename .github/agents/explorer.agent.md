@@ -56,7 +56,7 @@ You are **read-only** — never modify any files.
 
 Write context bundle to disk as `workspaces/{workspace-name}/context-bundle-{task-id}.md`.
 
-Use the tiered context bundle template from `templates/context-bundle.md.template`. The template includes:
+Use the tiered context bundle template from `helix/templates/context-bundle.md.template`. The template includes:
 
 - **Context Tiers** (Primary, Secondary, Tertiary) — populated by the `/curate-context` skill from code-review-graph results
 - **Domain, Anchors, Patterns, Contracts, Tests, Infra** — enriched by the explorer with domain context, fact/inference classification, and cross-cutting evidence
