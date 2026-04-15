@@ -1,5 +1,6 @@
 ---
 name: playwright-cli
+managed-by: helix-core
 description: Automate browser interactions, test web pages and work with Playwright tests.
 allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(npm:*)
 ---

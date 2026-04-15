@@ -1,11 +1,12 @@
 ---
 name: setup
+managed-by: helix-core
 description: Setup owner — validates bootstrap state, waits for registry and workspace manifests, runs workspace setup, and reports readiness before handoff to Helix
-tools: [vscode/askQuestions, vscode/runCommand, read, search/codebase, web, todo]
+tools: [vscode/runCommand, vscode/askQuestions, execute, read, agent, search/codebase, web, todo]
 agents: []
 user-invocable: true
 disable-model-invocation: false
-model: Claude Sonnet 4 (copilot)
+model: Claude Sonnet 4.6 (copilot)
 argument-hint: Workspace name or setup request (e.g. "set up workspace order-history")
 handoffs:
   - label: Setup complete — start Helix
@@ -85,10 +86,50 @@ Then report:
 
 Only after baseline workspace setup is successful:
 
-- run `onboard` for repos marked `needs-onboarding` or `partial`
-- enable or verify `code-review-graph` only when the user wants structural retrieval during setup
+#### 6a. Onboard Repos
+
+Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in repo-state. Run repos in parallel where possible. Each onboard run produces a **Cross-Cutting Patterns table** (Phase 3e of the onboard skill) — collect these outputs.
+
+#### 6b. Refresh Repo-State
+
+After all onboarding completes, re-run `helix/scripts/setup-workspace.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every repo-state signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
+
+#### 6c. Review Cross-Cutting Promotion Candidates
+
+Aggregate the promotion tables from all onboard outputs. Deduplicate by pattern name. Present the consolidated table to the user for approval before creating any meta-repo skills.
+
+Gate for promotion — all must be true before creating a meta-repo skill:
+- Pattern appears in 2 or more repos
+- Consistent parameterization across repos
+- No existing meta-repo skill already covers it (check `{meta-repo}/.github/skills/`)
+
+After human approval, for each approved pattern:
+- Create `{meta-repo}/.github/skills/{suggested-skill-name}/SKILL.md` with correct frontmatter (`managed-by: user`; use the `maker` skill for schema)
+- Remove any duplicate repo-level SKILL.md files that were generated for the same pattern
+
+#### 6d. Create Workspace Platform AGENTS.md
+
+Create or update `workspaces/{name}/AGENTS.md` as a platform-level architecture document. Include:
+- All repos in the workspace, their roles, and primary responsibilities
+- End-to-end data flow diagram (mermaid) showing how repos connect
+- Shared patterns and conventions common across repos
+- Cross-repo glossary terms
+- Read-order recommendation for agents working across this workspace
+
+Add this retrieval note at the top of the file:
+
+```
+> Agents working in this workspace should read this file before reading individual repo AGENTS.md files.
+> It provides platform-level context that individual repo docs do not repeat.
+```
 
 Keep these steps visibly separate from baseline workspace attach success.
+
+## CLI Mode
+
+In Copilot CLI, `vscode/askQuestions` is unavailable in sub-agents.
+
+Setup validation questions (missing manifests, unclear repo paths, confirmation gates) should be surfaced as a single structured block returned to the caller rather than asked one-by-one as inline text. The caller uses `ask_user` to collect answers in one form submission.
 
 ## Rules
 
@@ -97,3 +138,4 @@ Keep these steps visibly separate from baseline workspace attach success.
 3. Do not bypass `helix/scripts/setup-workspace.ps1` with custom clone logic.
 4. Do not continue to onboarding or graph setup if baseline workspace attach failed.
 5. Hand off to `helix` only after SETUP is complete.
+6. After onboarding, always refresh repo-state by re-running `setup-workspace.ps1`, never by manually editing `.helix/repo-state/*.yml` files.

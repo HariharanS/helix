@@ -1,5 +1,6 @@
 ---
 name: reviewer
+managed-by: helix-core
 description: Multi-lens code review — checks security, correctness, domain logic, coding style, and test coverage before PR creation
 tools: [vscode/runCommand, execute, read, agent, search/codebase, web, todo]
 agents: ['explorer']

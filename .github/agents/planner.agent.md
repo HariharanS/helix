@@ -1,5 +1,6 @@
 ---
 name: planner
+managed-by: helix-core
 description: Takes a refined intent and produces a detailed Product Requirements Document (PRD) by exploring domain context and structuring requirements
 tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
@@ -113,6 +114,14 @@ Why this feature is needed. Business context.
 ## Success Metrics
 - How to measure if this feature is working as intended
 ```
+
+## CLI Mode
+
+In Copilot CLI, `vscode/askQuestions` is unavailable in sub-agents.
+
+**Preferred pattern:** Run this phase at the top level of the main CLI chat. The host agent uses `ask_user` for structured PRD clarifications, avoiding relay overhead entirely.
+
+**If invoked as a sub-agent in CLI:** Read all workspace artifacts thoroughly before asking anything. If gaps remain, bundle ALL open questions into a single structured return block — do not ask one-by-one inline.
 
 ## Guidelines
 

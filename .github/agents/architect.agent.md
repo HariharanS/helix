@@ -1,5 +1,6 @@
 ---
 name: architect
+managed-by: helix-core
 description: Takes a PRD and produces a technical design using pseudo code, mermaid diagrams, and interface contracts — separating domain logic from infrastructure
 tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
@@ -154,6 +155,14 @@ sequenceDiagram
 ## Risks
 - Risk and mitigation
 ````
+
+## CLI Mode
+
+In Copilot CLI, `vscode/askQuestions` is unavailable in sub-agents.
+
+**Preferred pattern:** Run this phase at the top level of the main CLI chat. The host agent uses `ask_user` for design decisions and trade-off choices, avoiding relay overhead entirely.
+
+**If invoked as a sub-agent in CLI:** Read all workspace artifacts and the PRD before asking anything. If design questions remain unresolvable from artifacts alone, bundle ALL of them into a single structured return block — do not relay questions one-by-one.
 
 ## Guidelines
 

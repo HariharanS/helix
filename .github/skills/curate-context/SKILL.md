@@ -1,5 +1,6 @@
 ---
 name: curate-context
+managed-by: helix-core
 description: Graph-first context curation — uses code-review-graph to discover relevant code, classifies files into primary/secondary/tertiary tiers, writes a context bundle
 argument-hint: "Task description and optional seed files (e.g. 'Add order cancellation endpoint' or 'TASK-003')"
 user-invocable: true

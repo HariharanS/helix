@@ -1,5 +1,6 @@
 ---
 name: scribe
+managed-by: helix-core
 description: Background state manager — updates task boards, decisions log, and workspace state on behalf of other agents
 tools: ['read', 'edit']
 agents: []

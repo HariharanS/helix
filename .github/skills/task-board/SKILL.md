@@ -1,5 +1,6 @@
 ---
 name: task-board
+managed-by: helix-core
 description: Single source of truth for task board format and operations — create, update, and read task boards
 argument-hint: "Operation and target (e.g. 'create order-history', 'move TASK-003 to done', 'read current state')"
 user-invocable: true

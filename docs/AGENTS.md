@@ -13,8 +13,9 @@ This directory contains human-facing documentation.
 1. Read [`../README.md`](../README.md) for the high-level product story
 2. Read [`helix-process.md`](./helix-process.md) for the canonical lifecycle
 3. Read [`helix-instance-schemas.md`](./helix-instance-schemas.md) when working on meta-repo manifests or installer behavior
-4. Read only the specific guide relevant to the task
-5. Do not use `docs/` as the default source for implementation details when a workspace artifact, execution plan, or context bundle exists
+4. Read [`cli-workflow.md`](./cli-workflow.md) when operating from Copilot CLI — defines the CLI-first phase playbook and which agents to invoke at each phase
+5. Read only the specific guide relevant to the task
+6. Do not use `docs/` as the default source for implementation details when a workspace artifact, execution plan, or context bundle exists
 
 ## Writing Rules
 

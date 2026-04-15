@@ -1,5 +1,6 @@
 ---
 name: refactor
+managed-by: helix-core
 description: Applies cross-cutting refactoring patterns from memory and conventions across a codebase
 argument-hint: "Describe the refactoring (e.g. 'apply error handling pattern from learnings', 'standardize API response format')"
 user-invocable: true

@@ -1,5 +1,6 @@
 ---
 name: workspace-sync
+managed-by: helix-core
 description: Validates a prepared repo registry and workspace manifest, runs the script-owned workspace setup flow, verifies outcomes, and then handles optional follow-on setup work
 argument-hint: "Workspace name (e.g. 'order-feature') or path to workspace.yml"
 user-invocable: true
@@ -84,15 +85,52 @@ Report status using the generated repo-state files as the source of truth.
 
 Only after baseline workspace attach succeeds:
 
-- if repo-state says `needs-onboarding` or `partial`, run the `onboard` skill for those repos and refresh repo-state afterward
-- if the user wants structural retrieval, enable or verify `code-review-graph` after the workspace is attached
-- keep onboarding and graph registration separate from baseline attach success so failures are easy to diagnose
+#### 5a. Onboard Repos
+
+Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in repo-state. Run repos in parallel where possible. Each onboard run produces a **Cross-Cutting Patterns table** — collect these outputs.
+
+#### 5b. Refresh Repo-State
+
+After all onboarding completes, re-run `helix/scripts/setup-workspace.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
+
+#### 5c. Review Cross-Cutting Promotion Candidates
+
+Aggregate the promotion tables from all onboard outputs. Deduplicate by pattern name. Present the consolidated table to the user for approval before creating any meta-repo skills.
+
+Gate for promotion — all must be true:
+- Pattern appears in 2 or more repos
+- Consistent parameterization across repos
+- No existing meta-repo skill already covers it (check `{meta-repo}/.github/skills/`)
+
+After human approval, for each approved pattern:
+- Create `{meta-repo}/.github/skills/{suggested-skill-name}/SKILL.md` with correct frontmatter (`managed-by: user`; use the `maker` skill for schema)
+- Remove any duplicate repo-level SKILL.md files generated for the same pattern
+
+#### 5d. Create Workspace Platform AGENTS.md
+
+Create or update `workspaces/{name}/AGENTS.md` as a platform-level architecture document. Include:
+- All repos in the workspace, their roles, and primary responsibilities
+- End-to-end data flow diagram (mermaid) showing how repos connect
+- Shared patterns and conventions common across repos
+- Cross-repo glossary terms
+- Read-order recommendation for agents working across this workspace
+
+Add this retrieval note at the top:
+
+```
+> Agents working in this workspace should read this file before reading individual repo AGENTS.md files.
+> It provides platform-level context that individual repo docs do not repeat.
+```
+
+#### 5e. Enable Code-Review-Graph (optional)
+
+Enable or verify `code-review-graph` only when the user explicitly wants structural retrieval during setup. Keep this step separate from baseline attach and onboarding success.
 
 ## Output
 
 - Updated `.helix/active-workspace.yml`
 - Generated `workspaces/{name}/{name}.code-workspace`
-- Refreshed `.helix/repo-state/*.yml` for the workspace repos
+- Refreshed `.helix/repo-state/*.yml` for the workspace repos (via script, not manual edits)
 - A setup report that separates baseline attach results from optional onboarding and graph work
 
 ## Error Handling

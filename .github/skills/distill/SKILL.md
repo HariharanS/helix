@@ -1,5 +1,6 @@
 ---
 name: distill
+managed-by: helix-core
 description: Extracts learnings from the current or past session — updates episodic memory, long-term learnings, and identifies candidate skills
 argument-hint: Optional feature name or "current session"
 user-invocable: true

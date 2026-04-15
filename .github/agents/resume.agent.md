@@ -1,5 +1,6 @@
 ---
 name: resume
+managed-by: helix-core
 description: Briefs the user on where a feature left off — reads task board, decisions, memory, and git log to provide a concise status update
 tools: ['read', 'search/codebase', 'execute']
 agents: []

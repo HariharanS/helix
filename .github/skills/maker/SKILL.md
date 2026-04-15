@@ -1,5 +1,6 @@
 ---
 name: maker
+managed-by: helix-core
 description: Creates new agents, skills, prompts, or workspaces from templates and conventions
 argument-hint: "What to create (e.g. 'new skill for API scaffolding', 'new workspace for order-feature', 'new prompt for code review')"
 user-invocable: true
@@ -37,6 +38,7 @@ argument-hint: {what input it expects}
 - Keep agent instructions lean — avoid long narrative guidance and generic advice
 - Prefer markdown or YAML-shaped outputs over XML unless strict parsing is required
 - Update `.helix/model-config.yml` assignments section
+- Do NOT add `managed-by` — user-created agents are untagged by convention
 
 ### 2. Skill
 
@@ -45,6 +47,7 @@ Creates a new `.github/skills/{name}/SKILL.md` with:
 ```yaml
 ---
 name: {name}
+managed-by: helix-runtime
 description: {one-line description}
 argument-hint: {what input it expects}
 user-invocable: true

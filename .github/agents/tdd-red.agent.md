@@ -1,5 +1,6 @@
 ---
 name: tdd-red
+managed-by: helix-core
 description: Writes failing tests for a task's acceptance criteria — RED phase of TDD. Does NOT implement production code.
 tools: ['read', 'edit', 'search/codebase', 'execute']
 agents: []

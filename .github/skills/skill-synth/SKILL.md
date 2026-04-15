@@ -1,5 +1,6 @@
 ---
 name: skill-synth
+managed-by: helix-core
 description: Scans codebase for repeating patterns, evaluates skill-worthiness, and produces candidate skill reports for the maker skill to create
 argument-hint: "Repo path to scan (e.g. '../service-a') or 'workspace' to scan all repos"
 user-invocable: true

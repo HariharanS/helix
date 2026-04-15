@@ -15,6 +15,7 @@ In an installed meta repo, use `helix/docs/helix-process.md` as the canonical li
 - Use memory in `.helix/memory/` for distilled learnings, not raw transcripts
 - Check `.helix/active-workspace.yml` for current workspace context
 - When an optional second-opinion critique capability is available, use it sparingly at high-return checkpoints and treat it as advisory only
+- When operating from Copilot CLI, read `helix/docs/cli-workflow.md` for the phase-by-phase CLI playbook — it defines which phases run at the top level vs as sub-agents
 
 ## Code Principles
 

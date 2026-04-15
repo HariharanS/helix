@@ -1,5 +1,6 @@
 ---
 name: explorer
+managed-by: helix-core
 description: Workspace-aware context gatherer — searches across repos in the active workspace, spawns sub-explorers, produces file-based context bundles
 tools: ['read', 'search/codebase', 'search/usages', 'agent']
 agents: ['explorer']

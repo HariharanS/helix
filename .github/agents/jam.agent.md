@@ -1,10 +1,11 @@
 ---
 name: jam
+managed-by: helix-core
 description: Interactive intent refinement — takes a raw feature idea and produces a clear, shared understanding through back-and-forth dialogue
 tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
 user-invocable: true
-model: Claude Opus 4.5 (copilot)
+model: Claude Opus 4.6 (copilot)
 argument-hint: Describe the feature or idea you want to refine
 handoffs:
   - label: "Intent refined — create PRD"
@@ -72,6 +73,19 @@ What does success look like?
 ## Success Criteria
 - How to verify the feature works end-to-end
 ```
+
+## CLI Mode
+
+In Copilot CLI, `vscode/askQuestions` is unavailable in sub-agents.
+
+**Preferred pattern:** Run this phase at the top level of the main CLI chat (not via `@helix`). The host agent has the `ask_user` tool and can conduct the dialogue natively with structured form inputs — no relay, no wasted tokens.
+
+**If invoked as a sub-agent in CLI:** Do not ask questions as inline text — relay burns premium tokens. Instead, on your first response:
+1. Read all workspace artifacts to understand existing context
+2. Produce a complete, prioritised list of all questions you need answered
+3. Return them as a single structured block to the caller
+
+The caller should surface these via `ask_user` in one form submission, then relay all answers back before you proceed.
 
 ## Guidelines
 

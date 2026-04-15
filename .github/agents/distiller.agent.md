@@ -1,5 +1,6 @@
 ---
 name: distiller
+managed-by: helix-core
 description: Extracts learnings from completed sessions — produces episodic summaries, identifies long-term patterns, and discovers candidate skills
 tools: ['read', 'edit', 'search/codebase']
 agents: []

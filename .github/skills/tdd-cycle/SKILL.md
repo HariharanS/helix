@@ -1,5 +1,6 @@
 ---
 name: tdd-cycle
+managed-by: helix-core
 description: Runs a complete TDD red-green-refactor cycle for a single task — writes failing tests, implements, refactors, and commits
 argument-hint: Task ID and description (e.g. "TASK-001 implement GetOrderHistory")
 user-invocable: true
