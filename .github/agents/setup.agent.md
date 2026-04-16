@@ -125,6 +125,43 @@ Add this retrieval note at the top of the file:
 
 Keep these steps visibly separate from baseline workspace attach success.
 
+### 7. Code-Review-Graph Build (Recommended)
+
+After step 6d, build the code-review-graph for all repos in the workspace. This step is **optional** at baseline setup but **strongly recommended** — without it, the `/curate-context` skill falls back to manual scanning with `confidence: low`, degrading PRD and tech-design quality.
+
+> Skip this step only if the user explicitly defers it. Report that CRG is unbuilt in the setup summary so downstream phases know to expect low-confidence context.
+
+For each repo in `workspace.repos`, run from the **meta-repo root**:
+
+```powershell
+# IMPORTANT: --repo requires a path (full absolute or relative from meta-repo root).
+# An alias name alone silently builds 0 nodes.
+python -m code_review_graph build --repo ".\{relative-path-to-repo}" --skip-flows
+```
+
+If the relative path fails (exits with error or 0 nodes), retry with the full absolute path:
+```powershell
+python -m code_review_graph build --repo "C:\<absolute-path-to-repo>"
+```
+
+**Validate each build** by checking node count > 0:
+```powershell
+python -m code_review_graph status --repo ".\{relative-path-to-repo}"
+```
+Flag any repo with 0 nodes as a setup gap; do not fail the overall setup.
+
+Then generate wiki pages (needed for agent navigation):
+```powershell
+python -m code_review_graph wiki --repo ".\{relative-path-to-repo}"
+```
+
+Report node/edge counts per repo in the setup summary.
+
+**After code changes**, refresh the graph with:
+```powershell
+python -m code_review_graph update --repo ".\{relative-path-to-repo}"
+```
+
 ## CLI Mode
 
 In Copilot CLI, `vscode/askQuestions` is unavailable in sub-agents.

@@ -13,9 +13,12 @@ In an installed meta repo, use `helix/docs/helix-process.md` as the canonical li
 - Use decisions logs (`workspaces/{name}/decisions/`) for significant decisions
 - Treat root `decisions/` and `task-boards/` as deprecated legacy placeholders, not active artifact destinations
 - Use memory in `.helix/memory/` for distilled learnings, not raw transcripts
-- Check `.helix/active-workspace.yml` for current workspace context
+- Check `.helix/active-workspace.yml` for current workspace context; if `active:` is set, read `workspaces/{active}/AGENTS.md` and any AGENTS.md files in subdirectories of that workspace folder before starting work
 - When an optional second-opinion critique capability is available, use it sparingly at high-return checkpoints and treat it as advisory only
 - When operating from Copilot CLI, read `helix/docs/cli-workflow.md` for the phase-by-phase CLI playbook — it defines which phases run at the top level vs as sub-agents
+- **Model dispatch:** When dispatching specialist agents via `task()`, always read `.helix/model-config.yml` and pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is NOT auto-applied by the `task()` tool
+- **Code exploration:** Before PRD, TECH DESIGN, or TASK BREAKDOWN phases, spawn the `explorer` agent with the `/curate-context` skill to build a code-grounded context bundle; never assert code facts without this step when `code_review_graph.mode` is `full`
+- **Lifecycle agent:** For autonomous phases (TASK BREAKDOWN, IMPLEMENTATION, REVIEW, DISTILL), prefer `@helix` for orchestration. For interactive phases (JAM, PRD, TECH DESIGN), invoke the specialist agent **directly** (`@jam`, `@planner`, `@architect`) — direct invocation gives them top-level `ask_user` capability; never dispatch these as `task()` sub-agents in CLI
 
 ## Code Principles
 

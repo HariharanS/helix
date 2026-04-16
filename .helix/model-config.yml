@@ -1,15 +1,41 @@
 # Helix Model Configuration
 # Default model assignments per tier. Each agent's frontmatter contains its model.
 # To override: edit the agent's .agent.md frontmatter `model` field.
+#
+# IMPORTANT: The task() CLI tool does NOT auto-apply agent frontmatter models.
+# Callers MUST pass model: explicitly using the task_ids values below.
 
 tiers:
-  reasoning: Claude Opus 4.5 (copilot)      # Creative, strategic, design
-  coding: GPT-5.3-Codex (copilot)            # Code generation, tests
-  analysis: Claude Sonnet 4 (copilot)        # Review, routing, decomposition
+  reasoning: Claude Opus 4.6 (copilot)       # Creative, strategic, design
+  coding: GPT-5.3-Codex (copilot)             # Code generation, tests
+  analysis: Claude Sonnet 4.6 (copilot)       # Review, routing, decomposition, orchestration
   visual: Gemini 3.1 Pro (Preview) (copilot)  # UI testing, visual understanding
-  fast: Claude Haiku 4.5 (copilot)           # Exploration, summaries, state mgmt
+  fast: Claude Haiku 4.5 (copilot)            # Exploration, summaries, state mgmt
+
+# task() CLI model IDs — pass these as `model:` when calling task().
+# Agent frontmatter friendly names are NOT accepted by task(); use these short IDs.
+task_ids:
+  reasoning: claude-opus-4.6
+  coding: gpt-5.3-codex
+  analysis: claude-sonnet-4.6
+  fast: claude-haiku-4.5
+  visual_cli_fallback: claude-sonnet-4.6  # Gemini not available in CLI task() tool; loses image-native capability
 
 assignments:
+  helix: analysis
+  setup: analysis
+  scribe: fast
+  jam: reasoning
+  planner: reasoning
+  architect: reasoning
+  decomposer: analysis
+  explorer: fast
+  implementer: coding
+  tdd-red: coding
+  reviewer: analysis
+  distiller: fast
+  resume: fast
+  ui-tester: visual
   helix: analysis
   scribe: fast
   jam: reasoning

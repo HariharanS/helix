@@ -5,7 +5,7 @@ description: Multi-lens code review — checks security, correctness, domain log
 tools: [vscode/runCommand, execute, read, agent, search/codebase, web, todo]
 agents: ['explorer']
 user-invocable: true
-model: Claude Sonnet 4 (copilot)
+model: Claude Sonnet 4.6 (copilot)
 argument-hint: Branch name or description of changes to review
 handoffs:
   - label: Review complete — create PR

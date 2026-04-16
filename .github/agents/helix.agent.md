@@ -46,6 +46,7 @@ On every session start:
 2. If no workspace is active, ask the user to activate one or create a new one
 3. Read the workspace's `workspace.yml` for the selected repo list and current state
 4. Read the root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files in each repo for conventions — never assume a tech stack
+5. Read `.helix/model-config.yml`. When dispatching any sub-agent via `task()`, always pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is **not** auto-applied by the `task()` tool.
 
 ## Optional Second-Opinion Critique
 
@@ -178,15 +179,15 @@ If any gate fails, stop and escalate to the human or route back to @decomposer /
 
 Detect CLI mode: if `vscode/askQuestions` is absent from your available tools, you are running in Copilot CLI.
 
-**Interactive phases (JAM, PRD, TECH DESIGN):** Do not dispatch as sub-agents — they cannot use `ask_user` in CLI and the relay pattern burns premium tokens. Instead, surface the phase as a direct instruction to the user:
-> *"To run the JAM phase, say to the main CLI agent: 'Run the JAM phase for workspace {name}'"*
+**Interactive phases (JAM, PRD, TECH DESIGN):** Do not dispatch as sub-agents via `task()` — they cannot use `ask_user` when spawned that way. Instead, surface them as direct invocation instructions:
+> *"To run the PRD phase, switch to `@planner` directly — it runs as a top-level agent with full ask_user capability and reads from `workspaces/{name}/refined-intent.md`."*
 
-The host CLI agent will conduct the phase using `ask_user` and write the artifact. Resume orchestration once the artifact is written.
+Direct invocation (`@planner`, `@jam`, `@architect`) gives the specialist agent full interactive capability. Context continuity is maintained by the artifact chain on disk, not by conversation history.
 
 **Autonomous phases (DECOMPOSER, IMPLEMENTER, REVIEWER, SCRIBE, DISTILLER, EXPLORER):** Dispatch normally as background sub-agents — no user interaction required.
 
 **Phase handoffs:** No clickable buttons exist in CLI. Surface next steps as explicit plain-text suggestions:
-> *"PRD complete. Next step — say: 'Design the tech approach for {workspace} using workspaces/{workspace}/prd/index.md'"*
+> *"PRD complete. Next step — switch to `@architect` and say: 'Design the tech approach for {workspace} using workspaces/{workspace}/prd/index.md'"*
 
 **`vscode/runCommand`:** Not available in CLI. Autonomous agents should use `execute` (shell commands) for test execution.
 
