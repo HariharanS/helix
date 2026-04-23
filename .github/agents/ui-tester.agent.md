@@ -2,7 +2,7 @@
 name: ui-tester
 managed-by: helix-core
 description: Drives Playwright browser tests for UI validation — writes, runs, and debugs end-to-end tests
-tools: ['read', 'edit', 'search/codebase', 'execute', 'agent']
+tools: ['read', 'edit', 'search/codebase', 'execute', 'agent', 'read_agent', 'write_agent']
 agents: ['explorer']
 user-invocable: true
 model: Auto (copilot)

@@ -160,13 +160,13 @@ Use the legacy Bash helper only for the old combined layout. The PowerShell scri
 
 ### Optional: Enable Graph Retrieval Conservatively
 
-If you want structural code retrieval without making it mandatory, enable `code-review-graph` in `review-only` mode first:
+If you want structural code retrieval without making it mandatory, enable `code-review-graph` in `mcp` mode only after the graph is built:
 
 ```powershell
-./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode review-only
+./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp
 ```
 
-That keeps Helix in charge of process and workspace artifacts while using the graph only for review scoping and blast-radius analysis.
+That keeps Helix in charge of process and workspace artifacts while using the graph for targeted structural retrieval when it is actually available.
 
 If it is noisy, unhelpful, or too expensive, turn it back off:
 

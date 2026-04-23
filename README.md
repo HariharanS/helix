@@ -171,7 +171,7 @@ Helix can optionally layer in `code-review-graph` for code-centric retrieval.
 
 - Keep Helix workspace artifacts as the source of truth for intent, design, and task contracts
 - Use `code-review-graph` only as a code-selection engine for blast radius, changed-file scoping, and targeted dependency lookup
-- Start with `review-only` mode to limit token spend, then move to `full` only if the signal quality is worth it
+- Keep the provider `off` by default, then switch to `mcp` only when the graph is built and the signal quality is worth the extra tool calls and tokens
 - Toggle it with `scripts/set-context-provider.ps1`; switching back to `off` removes the MCP server entry from `.mcp.json`
 
 ## Where To Start

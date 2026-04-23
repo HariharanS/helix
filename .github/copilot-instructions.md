@@ -17,7 +17,7 @@ In an installed meta repo, use `helix/docs/helix-process.md` as the canonical li
 - When an optional second-opinion critique capability is available, use it sparingly at high-return checkpoints and treat it as advisory only
 - When operating from Copilot CLI, read `helix/docs/cli-workflow.md` for the phase-by-phase CLI playbook — it defines which phases run at the top level vs as sub-agents
 - **Model dispatch:** When dispatching specialist agents via `task()`, always read `.helix/model-config.yml` and pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is NOT auto-applied by the `task()` tool
-- **Code exploration:** Before PRD, TECH DESIGN, or TASK BREAKDOWN phases, spawn the `explorer` agent with the `/curate-context` skill to build a code-grounded context bundle; never assert code facts without this step when `code_review_graph.mode` is `full`
+- **Code exploration:** Before PRD, TECH DESIGN, or TASK BREAKDOWN phases, spawn `explorer` with the `/curate-context` skill to build a code-grounded context bundle; never assert code facts without this step when `code_review_graph.mode` is not `off`
 - **Lifecycle agent:** For autonomous phases (TASK BREAKDOWN, IMPLEMENTATION, REVIEW, DISTILL), prefer `@helix` for orchestration. For interactive phases (JAM, PRD, TECH DESIGN), invoke the specialist agent **directly** (`@jam`, `@planner`, `@architect`) — direct invocation gives them top-level `ask_user` capability; never dispatch these as `task()` sub-agents in CLI
 
 ## Code Principles
@@ -37,9 +37,9 @@ In an installed meta repo, use `helix/docs/helix-process.md` as the canonical li
 - Treat domain claims as evidence-backed only when supported by code, tests, config, or approved design docs
 - Each repo's conventions are discovered by the onboard skill — not hardcoded
 - Never assume a tech stack — always read repo conventions first
-- If `code_review_graph.mode` is `review-only`, use graph retrieval only for review, blast-radius, and changed-file scoping
-- If `code_review_graph.mode` is `full` and its MCP tools are available, prefer targeted graph queries over broad code scans, but stay inside the configured tool-call and token budget
-- If graph retrieval is disabled, unavailable, or noisy, fall back immediately to manual repo search and context bundles
+- If `code_review_graph.mode` is `mcp`, use MCP tool calls for graph queries; stay within the token and call budgets in `context-providers.yml`
+- If `code_review_graph.mode` is `off` or graph retrieval fails, fall back immediately to manual repo search and context bundles
+- **Skill invocation:** Skills with `disable-model-invocation: true` have no agent backing — to invoke one, read `.github/skills/{name}/SKILL.md` and execute its workflow inline. The calling agent IS the executor.
 
 ## Context Economy
 
@@ -48,4 +48,4 @@ In an installed meta repo, use `helix/docs/helix-process.md` as the canonical li
 - Keep persistent instructions narrow and non-obvious
 - Omit empty sections and avoid generic best-practice filler
 - Move large supporting evidence into annex files instead of the main artifact
-- For code-review-graph, prefer minimal-detail calls and targeted entity queries over broad list or dump-style retrieval
+- For code-review-graph, use standard-detail calls and targeted entity queries over broad list or dump-style retrieval

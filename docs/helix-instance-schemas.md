@@ -320,9 +320,19 @@ Do not use it for:
 | `managed_paths` | yes | list | Installed and tracked files |
 | `managed_paths[].path` | yes | string | Path relative to the meta-repo root |
 | `managed_paths[].source` | yes | string | Path relative to the `helix-core` root |
-| `managed_paths[].category` | yes | string | `agent`, `prompt`, `skill`, `doc`, `instruction`, `template` |
+| `managed_paths[].category` | yes | string | `agent`, `hook-config`, `prompt`, `skill`, `doc`, `instruction`, `config`, `template`, `script`, or `manifest` |
 | `managed_paths[].sync_mode` | yes | string | `replace`, `seed-once`, or `merge-marked-sections` |
 | `managed_paths[].required` | no | boolean | Whether Helix expects it to exist after sync |
+
+### Sync Mode Semantics
+
+Use `managed_paths[].sync_mode` to decide where a local fix belongs:
+
+| `sync_mode` | Meaning | Typical upstream action |
+|---|---|---|
+| `replace` | Installed file is fully managed by `helix-core` and overwritten on sync | change the source file in `helix-core` |
+| `merge-marked-sections` | Installed file is seeded from a template but preserves local sections outside managed markers | change the template and preserve documented local override areas |
+| `seed-once` | Installed file is created from a template once, then becomes instance-owned | change the template for new installs; add a migration script only if existing installs also need correction |
 
 ### Example
 
@@ -374,6 +384,12 @@ managed_paths:
     category: doc
     sync_mode: replace
     required: true
+
+  - path: .helix/context-providers.yml
+    source: templates/context-providers.yml.template
+    category: manifest
+    sync_mode: seed-once
+    required: true
 ```
 
 ### Validation Rules
@@ -381,6 +397,7 @@ managed_paths:
 - `managed_paths[].path` must be unique
 - `sync_mode` must be explicit
 - instance-owned files such as `repos.yml` and `workspaces/*` must not appear here
+- `seed-once` entries should be treated as template-backed defaults, not as replace-managed runtime files
 
 ## Deferred Schemas
 

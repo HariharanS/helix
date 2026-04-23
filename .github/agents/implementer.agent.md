@@ -2,7 +2,7 @@
 name: implementer
 managed-by: helix-core
 description: Implements tasks using TDD — in fleet mode runs full red-green-refactor cycle, in interactive mode handles green+refactor after tdd-red writes failing tests
-tools: [vscode/runCommand, execute, read, agent, edit, search/codebase, web, todo]
+tools: [vscode/runCommand, execute, read, agent, read_agent, write_agent, edit, search/codebase, web, todo]
 agents: ['explorer']
 user-invocable: true
 disable-model-invocation: false
@@ -120,8 +120,8 @@ blocker: Only if blocked — describe the issue
 - Keep implementations minimal — the simplest thing that satisfies the AC
 - Read context bundle from disk rather than expecting it inline
 - Treat the context bundle as compact guidance, not as a full code dump
-- If `.helix/context-providers.yml` sets `code_review_graph.mode` to `full` and the MCP tools are available, you may use graph queries to relocate symbols or inspect impact before broad repo search
-- If `code_review_graph.mode` is `review-only` or `off`, do not depend on graph retrieval for implementation; use the bundle and spawn @explorer when you need more evidence
-- If you need more context than what was provided, spawn @explorer with a specific question
+- If `code_review_graph.mode` is `mcp` and tools are available, use graph queries to relocate symbols or inspect impact before broad repo search
+- If `code_review_graph.mode` is `off`, use the bundle and spawn @explorer when you need more evidence
+- If you need more context than what was provided, spawn @explorer with a specific question; read the written bundle path after it completes
 - Treat `done_when` as the definition of done — if it is not met, the task is not complete
 - When an optional second-opinion critique capability is available, request a critique after a complex implementation or when progress stalls; focus on cross-file regressions, hidden assumptions, missing edge cases, and whether to continue or escalate

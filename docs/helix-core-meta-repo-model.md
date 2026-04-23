@@ -209,6 +209,59 @@ Local or instance-owned:
 
 Track managed installs in `.helix/install-state.yml`.
 
+## Upstreaming Changes From An Installed Meta Repo
+
+When a useful Helix change is first discovered inside an installed meta repo, do not blindly copy the edited file back to `helix-core`. First classify the change by ownership:
+
+| If the local change is in... | It usually means... | Upstream in `helix-core` by changing... | Typical rollout |
+|---|---|---|---|
+| `.github/agents/*`, `.github/skills/*`, `.github/copilot-instructions.md`, `helix/docs/*` | a managed runtime or documentation source file changed | the same source file path in `helix-core` | fresh installs + `sync-helix` |
+| `helix/templates/*` | the default shape for new installs should change | the template file | fresh installs only unless a migration is added |
+| `.helix/*` | instance state or instance config changed | usually **not** the same file; instead update a template or script if the behavior should become a default | depends on migration strategy |
+| behavior emitted during install, sync, or workspace setup | the generator/runtime logic is wrong or incomplete | `helix/scripts/*` plus any affected docs/templates | fresh installs, and existing installs after rerunning the script |
+
+Use this rule of thumb:
+
+1. **Managed source file** -> upstream the same path in `helix-core`
+2. **Default for new installs** -> upstream the template
+3. **Automatic emission or regeneration** -> upstream the script/generator
+4. **Instance-only state** -> keep local unless you intentionally add a migration path
+
+### Worked Example: CRG Review Skills
+
+Suppose an installed meta repo adds:
+
+- `.github/skills/build-graph/SKILL.md`
+- `.github/skills/review-delta/SKILL.md`
+- `.github/skills/review-pr/SKILL.md`
+
+and updates:
+
+- `.github/agents/helix.agent.md`
+- `.github/agents/reviewer.agent.md`
+- `helix/docs/helix-process.md`
+- `helix/docs/cli-workflow.md`
+
+Those are all **managed source** edits. The upstream move is to add or update the same files in `helix-core`, then rely on the installer/sync path to materialize them into meta repos.
+
+If the same CRG work also changes `.helix/context-providers.yml` to explain valid modes better, that file should **not** be copied back as-is. The upstream change belongs in `helix/templates/context-providers.yml.template`, because the instance file is seeded from a template and then becomes instance-owned.
+
+If later we decide existing installs should also be corrected automatically, that becomes a **script** change: update the relevant installer or sync logic in `helix/scripts/*` to migrate old instances.
+
+### Recommended Upstream Order
+
+When a change spans more than one ownership bucket, upstream in this order:
+
+1. **Source files** - agents, skills, docs, instructions
+2. **Templates** - default config or starter artifact shape
+3. **Scripts/generators** - only when installs, sync, or setup should emit or migrate behavior automatically
+
+Before merging, decide the rollout policy explicitly:
+
+- **fresh installs only**
+- **fresh installs + `sync-helix`**
+- **explicit migration for existing instances**
+
 ## Plugin Relationship
 
 Using GitHub Copilot CLI `plugin.json` for `helix-core` package metadata is still a good idea.

@@ -1,6 +1,9 @@
 schema_version: 1
 providers:
   code_review_graph:
+    # mcp  — MCP server running; use MCP tool calls (get_minimal_context_tool, query_graph_tool, etc.)
+    # off  — no CRG; all agents fall back to manual repo scanning
+    # After workspace setup, the setup agent sets this automatically based on graph build results.
     mode: off
     detail_level: minimal
     max_tool_calls_per_task: 5

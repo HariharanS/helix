@@ -2,7 +2,7 @@
 name: planner
 managed-by: helix-core
 description: Takes a refined intent and produces a detailed Product Requirements Document (PRD) by exploring domain context and structuring requirements
-tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
+tools: [vscode/runCommand, vscode/askQuestions, execute, read, agent, read_agent, write_agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
 user-invocable: true
 model: Claude Opus 4.6 (copilot)

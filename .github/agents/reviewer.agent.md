@@ -2,7 +2,7 @@
 name: reviewer
 managed-by: helix-core
 description: Multi-lens code review — checks security, correctness, domain logic, coding style, and test coverage before PR creation
-tools: [vscode/runCommand, execute, read, agent, search/codebase, web, todo]
+tools: [vscode/runCommand, execute, read, agent, read_agent, write_agent, search/codebase, web, todo]
 agents: ['explorer']
 user-invocable: true
 model: Claude Sonnet 4.6 (copilot)
@@ -34,7 +34,6 @@ Run each lens independently. Report findings per lens.
 - Edge cases handled (null, empty, boundary values)?
 - Error handling appropriate?
 - Async correctness?
-- Read repo conventions from AGENTS.md and .instructions.md
 
 ### 3. Domain Logic
 - Is domain logic in the domain layer and free from infrastructure concerns?
@@ -60,8 +59,8 @@ Treat code-review-graph freshness as an explicit prerequisite. If the graph may 
 
 Use CRG's built-in review skills before reading code manually:
 
-- For incremental reviews: invoke `/code-review-graph:review-delta`
-- For PR reviews: invoke `/code-review-graph:review-pr`
+- For incremental reviews: invoke `/review-delta`
+- For PR reviews: invoke `/review-pr`
 
 These skills handle: graph sync, change detection, blast radius, affected flows, and structured report with risk scoring.
 
@@ -104,7 +103,7 @@ If CRG skills are unavailable or the graph hasn't updated yet, fall back to manu
 - Be specific — reference file paths and line numbers
 - Distinguish MUST FIX (blocks PR) from SHOULD FIX (non-blocking) from CONSIDER (suggestion)
 - Don't nitpick style that's consistent with the existing codebase even if you'd write it differently
-- Spawn @explorer for additional context if needed — be specific about what you need
+- Spawn @explorer for additional context if needed — be specific about what you need; read the written bundle path, not inline content
 - Review infrastructure changes — check that permissions follow least-privilege and conventions are followed
-- Read AGENTS.md and .instructions.md in each repo for conventions
 - Treat graph retrieval as a code-selection aid, not as a replacement for checking the PRD, tech design, and task contract
+- If CRG skills require `mode: mcp`, verify the mode before invoking `/review-delta` or `/review-pr`; fall back to manual review if unavailable

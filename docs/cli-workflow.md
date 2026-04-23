@@ -215,6 +215,41 @@ Back-and-forth dialogue in a long JAM or PRD session fills the context window qu
 
 ---
 
+## CLI Agent Communication & Handoff
+
+`read_agent` and `write_agent` are available in the CLI host agent (confirmed in v1.0.28). All Helix agents that spawn sub-agents have these in their `tools` list.
+
+### Patterns
+
+| Pattern | When to use |
+|---------|-------------|
+| `task(mode="background")` + `read_agent` | Long-running analysis; host reads result after completion notification |
+| `task(mode="sync")` | Fast, focused prompts expected to finish quickly |
+| **File-based handoff** (agent writes bundle to disk; caller reads file path) | Preferred for large context — files persist, are re-usable, and don't bloat host context |
+| Direct invocation (`@planner`, `@jam`, `@architect`) | Interactive phases — only pattern that gives sub-agent `ask_user` capability |
+
+### File-Based Handoff (preferred for large context)
+
+For **analysis, review, and context-gathering tasks**, prefer file-based handoff even when `read_agent` is available:
+
+```
+task(agent_type="general-purpose", prompt="""
+  Review XYZ and write findings to:
+  workspaces/{workspace}/reviews/prd-review-{date}.md
+  ...
+""")
+# Then read the file
+view("workspaces/{workspace}/reviews/prd-review-{date}.md")
+```
+
+**Rules:**
+1. Use `general-purpose` (not `rubber-duck`) for thorough reviews — it has file-write tools
+2. Include the **explicit output file path** in the prompt
+3. Use `mode="background"` — read the file after completion notification
+4. Always include full context in the prompt (agent is stateless)
+
+---
+
 ## Token Economy Tips
 
 - **Don't route interactive phases through `@helix` in CLI** — the relay pattern wastes 2+ premium requests per question.
@@ -231,29 +266,28 @@ CRG is installed and configured. The graph must be built before `curate-context`
 **Initial setup (run from meta-repo root):**
 ```powershell
 # Register repos (one-time) — use a path, not just an alias
-python -m code_review_graph register .\Rapid.Api.PaymentRequest --alias PaymentRequest
-python -m code_review_graph register .\Rapid.Api.SecurePanel --alias SecurePanel
-# ... etc for each repo
+python -m code_review_graph register .\path\to\product-repo --alias RepoAlias
+# ... repeat for each repo in the workspace
 
 # Build graph per repo — MUST use a path, NOT the alias name alone (alias-only silently builds 0 nodes)
-python -m code_review_graph build --repo .\Rapid.Api.PaymentRequest --skip-flows
+python -m code_review_graph build --repo .\path\to\product-repo --skip-flows
 # If relative path fails, use absolute path:
-# python -m code_review_graph build --repo "C:\Users\...\SAPI\Rapid.Api.PaymentRequest"
+# python -m code_review_graph build --repo "C:\Users\...\path\to\product-repo"
 ```
 
 **Validate build succeeded** (non-empty graph > 50 KB):
 ```powershell
-(Get-Item ".\Rapid.Api.PaymentRequest\.code-review-graph\graph.db").Length / 1KB
+(Get-Item ".\path\to\product-repo\.code-review-graph\graph.db").Length / 1KB
 ```
 
 **Generate wiki pages** (needed for agent navigation):
 ```powershell
-python -m code_review_graph wiki --repo .\Rapid.Api.PaymentRequest
+python -m code_review_graph wiki --repo .\path\to\product-repo
 ```
 
 **After code changes:**
 ```powershell
-python -m code_review_graph update --repo .\Rapid.Api.PaymentRequest
+python -m code_review_graph update --repo .\path\to\product-repo
 ```
 
 **Serve (started automatically by MCP when needed):**
@@ -289,11 +323,11 @@ task("Gather context for hpp", agent_type="explore", model="claude-haiku-4.5", .
 
 ```
 New feature:    "Jam on [idea]"
-Next phase:     "Run [prd|tech design|task breakdown] for hpp"
-Implement:      "Start ralph loop for hpp"
-One task:       "Run TDD red for TASK-XXX in hpp"
-Review:         "Review hpp changes"
-Distill:        "Distill the hpp session"
-Resume:         "Resume work on hpp"
-Status:         "What's the current state of workspace hpp?"
+Next phase:     "Run [prd|tech design|task breakdown] for {workspace}"
+Implement:      "Start ralph loop for {workspace}"
+One task:       "Run TDD red for TASK-XXX in {workspace}"
+Review:         "Review {workspace} changes"
+Distill:        "Distill the {workspace} session"
+Resume:         "Resume work on {workspace}"
+Status:         "What's the current state of workspace {workspace}?"
 ```

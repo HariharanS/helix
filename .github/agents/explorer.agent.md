@@ -2,7 +2,7 @@
 name: explorer
 managed-by: helix-core
 description: Workspace-aware context gatherer — searches across repos in the active workspace, spawns sub-explorers, produces file-based context bundles
-tools: ['read', 'search/codebase', 'search/usages', 'agent']
+tools: ['read', 'search/codebase', 'search/usages', 'agent', 'read_agent', 'write_agent']
 agents: ['explorer']
 user-invocable: false
 disable-model-invocation: false
@@ -34,8 +34,8 @@ You are **read-only** — never modify any files.
    - What decision will the downstream agent make from this bundle?
    - Which repo owns the change?
    - Which contracts or dependencies cross repo boundaries?
-4. **Invoke `/curate-context` skill** with the task description. This produces a tiered context bundle using code-review-graph as the primary retrieval engine, classifying files into primary (full content), secondary (signatures), and tertiary (path only) tiers.
-   - If the workspace has 3+ repos, spawn a sub-explorer per repo via `agent` (passing: repo path, task description, what to look for). Each sub-explorer also invokes `/curate-context`.
+4. **Invoke `/curate-context` skill** with the task description and any seed files. Trust its tiered output (primary/secondary/tertiary) for code discovery — do not re-implement tier classification here.
+   - If the workspace has 3+ repos, spawn a sub-explorer per repo via `agent` (passing: repo path, task description, what to look for). Each sub-explorer invokes `/curate-context` scoped to its repo.
 5. **Enrich the bundle with domain context** that code-review-graph cannot provide:
    - Read root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files for conventions
    - Identify domain concepts, actors, invariants, and state transitions from code comments, domain layer, and tests
@@ -79,6 +79,6 @@ If the supporting evidence is too large, create `workspaces/{workspace-name}/con
 - Use `anchor_text` that is stable enough to relocate the code if the file shifts
 - Include only the 1-3 most relevant patterns; avoid pattern catalogs
 - If you find anti-patterns or common mistakes in the codebase, call them out
-- Reference conventions from AGENTS.md and .instructions.md in each repo
 - Report when the codebase lacks patterns for the requested task — that lowers confidence and should shape implementation conservatively
 - Keep the top-level bundle scannable; move detail into annex files instead of inflating the main bundle
+- **Sub-agent output is file-based.** After a sub-explorer completes, read `workspaces/{name}/context-bundle-{task-id}.md`. Do not expect inline results.

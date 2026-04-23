@@ -1,7 +1,9 @@
 schema_version: 1
 providers:
   code_review_graph:
-    mode: full
+    # mcp  — MCP server running; use MCP tool calls (get_minimal_context_tool, query_graph_tool, etc.)
+    # off  — no CRG; all agents fall back to manual repo scanning
+    mode: mcp
     detail_level: standard
     max_tool_calls_per_task: 15
     max_context_tokens_per_task: 4000

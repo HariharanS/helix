@@ -2,7 +2,7 @@
 name: jam
 managed-by: helix-core
 description: Interactive intent refinement — takes a raw feature idea and produces a clear, shared understanding through back-and-forth dialogue
-tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
+tools: [vscode/runCommand, vscode/askQuestions, execute, read, agent, read_agent, write_agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
 user-invocable: true
 model: Claude Opus 4.6 (copilot)

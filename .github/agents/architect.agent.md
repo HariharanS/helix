@@ -2,7 +2,7 @@
 name: architect
 managed-by: helix-core
 description: Takes a PRD and produces a technical design using pseudo code, mermaid diagrams, and interface contracts — separating domain logic from infrastructure
-tools: [vscode/runCommand, vscode/askQuestions, read, agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
+tools: [vscode/runCommand, vscode/askQuestions, execute, read, agent, read_agent, write_agent, edit, search/codebase, web, vscode.mermaid-chat-features/renderMermaidDiagram, mermaidchart.vscode-mermaid-chart/get_syntax_docs, mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator, mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview, todo]
 agents: ['explorer']
 user-invocable: true
 model: Claude Opus 4.6 (copilot)

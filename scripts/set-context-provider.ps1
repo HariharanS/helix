@@ -2,7 +2,7 @@
 param(
     [ValidateSet('code-review-graph')][string]$Provider = 'code-review-graph',
     [Parameter(ParameterSetName = 'Set', Mandatory = $true)]
-    [ValidateSet('off', 'review-only', 'full')][string]$Mode,
+    [ValidateSet('off', 'mcp')][string]$Mode,
     [Parameter(ParameterSetName = 'Status')]
     [switch]$Status,
     [string]$TargetRoot = (Get-Location).Path
@@ -190,4 +190,4 @@ if (-not $runtimeAvailable) {
 
 Write-Host "Next steps:"
 Write-Host "1. Build the graph in each repo you want to query."
-Write-Host "2. Keep the provider in 'review-only' mode until the signal quality is proven."
+Write-Host "2. Use 'mcp' only when the graph is built and the signal quality is worth the extra tool calls and tokens."

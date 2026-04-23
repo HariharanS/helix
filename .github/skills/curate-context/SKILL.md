@@ -18,9 +18,21 @@ Produces a tiered context bundle for a task using code-review-graph as the prima
 - Read `.helix/active-workspace.yml` for the active workspace name
 - Read `workspaces/{name}/workspace.yml` for the repo list
 - Read `.helix/context-providers.yml` for CRG mode and budgets
-- If `code_review_graph.mode` is `off` or CRG is not installed, skip to step 5 (fallback)
+- If `code_review_graph.mode` is `off`, skip to Step 6 (manual fallback)
+- If `code_review_graph.mode` is `mcp`, continue to Step 2 (probe before MCP calls)
 
-### 2. Graph-First Retrieval
+### 2. Readiness Probe (mode: mcp only)
+
+Before invoking any MCP tools, verify the graph is built:
+
+```powershell
+python -m code_review_graph status --repo {primary-repo-path}
+```
+
+- Exit 0 and `nodes > 0` → proceed with MCP tool calls below
+- Exit non-zero or `nodes = 0` → skip to Step 6 (manual fallback)
+
+### 2a. Graph-First Retrieval (MCP)
 
 a. Call `get_minimal_context_tool(task="<task description>")` to get ~100 tokens with risk assessment, communities, flows, and suggested next tools
 
@@ -30,6 +42,8 @@ b. Follow CRG's suggested tools to expand context:
    - `semantic_search_nodes_tool` for fuzzy entity matching when symbol names are uncertain
    - `get_affected_flows_tool` for execution flow context (HTTP handlers, event handlers, Lambda entry points)
    - `list_communities_tool` / `get_community_tool` for architectural groupings
+   - `get_architecture_overview_tool` for high-level structure (useful in tech-design tasks)
+   - `get_review_context_tool` for token-optimised change review context (useful in reviewer tasks)
 
 c. Use the configured `detail_level` from `.helix/context-providers.yml` on all calls. The config file is the control point — do not hardcode a level here.
 
@@ -71,9 +85,9 @@ Populate:
 - Read Order: Primary files first, then secondary if needed
 - Source attribution: mark each entry as `crg:tool_name` or `manual`
 
-### 6. Fallback (CRG Unavailable)
+### 6. Manual Fallback (mode: off or all CRG retrieval failed)
 
-If CRG is not available (mode: off, graph not built, or tools not responding):
+When mode is `off`, or MCP probe failed (exit non-zero or 0 nodes):
 
 1. Fall back to manual multi-pass repo scanning:
    - Directory scan for structure
@@ -81,7 +95,7 @@ If CRG is not available (mode: off, graph not built, or tools not responding):
    - Test pattern discovery
 2. Still write a tiered context bundle, but mark `source: manual` on all entries
 3. Set `confidence: low` in the frontmatter
-4. Add to Open Questions: "CRG graph not available — context may be incomplete. Run `/code-review-graph:build-graph` and re-curate."
+4. Add to Open Questions: "CRG unavailable — context may be incomplete. Check `context-providers.yml` mode and run `/workspace-sync` to rebuild the graph."
 
 ## Guidelines
 

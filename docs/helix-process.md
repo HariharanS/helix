@@ -87,7 +87,7 @@ Scheduler loops:
 
 ### `REVIEW`
 
-- invoke `/code-review-graph:review-delta` or `/code-review-graph:review-pr` for structural analysis (blast radius, affected flows, risk scoring)
+- invoke `/review-delta` or `/review-pr` for structural analysis (blast radius, affected flows, risk scoring)
 - test correctness
 - security and safety checks
 - domain logic checks

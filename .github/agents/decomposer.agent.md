@@ -2,7 +2,7 @@
 name: decomposer
 managed-by: helix-core
 description: Takes a technical design entry document and breaks it into small, independent, testable tasks with clear acceptance criteria and dependency mapping
-tools: ['read', 'search/codebase', 'edit', 'agent']
+tools: ['read', 'search/codebase', 'agent', 'read_agent', 'write_agent', 'edit']
 agents: ['explorer']
 user-invocable: true
 model: Claude Sonnet 4.6 (copilot)

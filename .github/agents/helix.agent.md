@@ -2,10 +2,10 @@
 name: helix
 managed-by: helix-core
 description: Helix coordinator — routes work through phases, manages modes, dispatches to specialist agents
-tools: [vscode/memory, vscode/runCommand, vscode/askQuestions, read, agent, edit/createDirectory, edit/createFile, search/codebase, web, todo]
+tools: [vscode/memory, vscode/runCommand, vscode/askQuestions, execute, read, agent, read_agent, write_agent, edit/createDirectory, edit/createFile, search/codebase, web, todo]
 agents: ['jam', 'planner', 'architect', 'decomposer', 'explorer', 'implementer', 'tdd-red', 'reviewer', 'distiller', 'resume', 'ui-tester', 'scribe']
 user-invocable: true
-model: Claude Sonnet 4.6 (copilot)
+model: Gemini 3.1 Pro (Preview) (copilot)
 argument-hint: What you want to work on (e.g. "start feature X", "resume work", "fast track from PRD to implementation")
 handoffs:
   - label: Jam on a new feature
@@ -47,6 +47,23 @@ On every session start:
 3. Read the workspace's `workspace.yml` for the selected repo list and current state
 4. Read the root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files in each repo for conventions — never assume a tech stack
 5. Read `.helix/model-config.yml`. When dispatching any sub-agent via `task()`, always pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is **not** auto-applied by the `task()` tool.
+
+## Available Skills
+
+Skills with `disable-model-invocation: true` have no agent backing — invoke by reading `.github/skills/{name}/SKILL.md` and executing its workflow inline.
+
+| Skill | Primary user | When |
+|-------|-------------|------|
+| `/curate-context` | explorer | Before every PRD/TECH DESIGN/TASK BREAKDOWN phase and per-task in Ralph loop |
+| `/task-board` | decomposer (create), scribe (update/read), resume (read) | All task board operations |
+| `/workspace-sync` | setup | Workspace attach and repo onboarding |
+| `/distill` | distiller | End of session or phase |
+| `/tdd-cycle` | implementer | Fleet mode red-green-refactor |
+| `/onboard` | setup | Make a repo agent-ready |
+| `/maker` | any | Create new agents, skills, prompts, or workspaces |
+| `/build-graph` | setup, reviewer | After workspace setup and when the graph is stale; prerequisite for `/review-delta` and `/review-pr` |
+| `/review-delta` | reviewer | Incremental structural review of changes since last commit (blast radius, risk scores, test gaps) |
+| `/review-pr` | reviewer | Full structural PR review across all commits (blast radius, impact radius, risk scoring) |
 
 ## Optional Second-Opinion Critique
 
