@@ -94,7 +94,7 @@ workspaces/{name}/
 
 **Guidelines:**
 - Ask for participating repo ids and workspace-specific roles
-- Do not duplicate repo registry details from `repos.yml` (instance-owned — created during installation from `helix/templates/repos.yml.template`)
+- Do not duplicate repo registry details from `helix-repos.yml` (instance-owned — created during installation from `helix/templates/helix-repos.yml.template`; `repos.yml` remains the legacy compatibility alias)
 - Set status to "draft" or "active" as appropriate
 - Suggest running workspace-sync after creation
 

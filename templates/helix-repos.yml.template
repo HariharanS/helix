@@ -1,0 +1,24 @@
+# Helix repo registry
+schema_version: 1
+
+defaults:
+  default_branch: main
+
+repos:
+  - id: service-a
+    description: Primary backend service
+    remote: https://github.com/your-org/service-a
+    local_path: ../service-a
+    default_role: primary
+    tags:
+      - backend
+      - api
+
+  - id: web-app
+    description: Primary web frontend
+    remote: https://github.com/your-org/web-app
+    local_path: ../web-app
+    default_role: primary
+    tags:
+      - frontend
+      - web

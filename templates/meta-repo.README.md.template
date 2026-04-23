@@ -5,7 +5,7 @@ This is a Helix coordination meta repo.
 
 It owns:
 
-- repo registry in `repos.yml`
+- repo registry in `helix-repos.yml`
 - workspace or feature-space artifacts in `workspaces/`
 - Helix runtime state in `.helix/`
 - Helix-managed docs, scripts, and templates in `helix/`
@@ -15,11 +15,25 @@ It does not own product code. Product repos are attached from the registry only 
 
 ## Start Here
 
-1. Update `repos.yml` with the repos Helix can use
+1. Update `helix-repos.yml` with the repos Helix can use
 2. Create or edit `workspaces/<workspace-id>/workspace.yml` using `helix/templates/workspace.yml.template` as the starter shape when needed
-3. Run `./helix/scripts/setup-workspace.ps1 -Workspace <workspace-id>`
+3. Run workspace setup: `helix workspace setup` (current script: `./helix/scripts/workspace-setup.ps1 -Workspace <workspace-id>`)
 4. Optional: run `./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode review-only`
 5. Start Helix from the active meta repo workspace
+
+## CLI Commands
+
+Future `helix` CLI commands and their current script equivalents:
+
+| Future command | Current script |
+|---|---|
+| `helix init` | `./helix/scripts/init.ps1` |
+| `helix sync` | `./helix/scripts/sync.ps1` |
+| `helix upgrade` | `./helix/scripts/upgrade.ps1` |
+| `helix workspace setup` | `./helix/scripts/workspace-setup.ps1` |
+| `helix doctor` | `./helix/scripts/doctor.ps1` |
+
+Until the `helix` CLI is available, invoke the scripts directly.
 
 ## Helix Docs
 
@@ -34,7 +48,9 @@ It does not own product code. Product repos are attached from the registry only 
 - `.helix/` — install state, active workspace pointer, repo-state, generated state
 - `.helix/context-providers.yml` — optional graph retrieval switches and budgets
 - `workspaces/` — feature-space artifacts, including task boards and decisions
-- `repos.yml` — repo registry
+- `helix-repos.yml` — canonical repo registry
+
+> **Legacy:** `repos.yml` at the meta-repo root is a compatibility alias kept for older instances. New instances should use `helix-repos.yml`.
 
 Legacy root `decisions/` and `task-boards/` directories are deprecated. Keep those artifacts under `workspaces/<workspace-id>/...`.
 <!-- HELIX:END overview -->

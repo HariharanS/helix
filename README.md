@@ -151,19 +151,23 @@ Helix is moving toward:
 
 - `helix-core` as the reusable source of truth
 - a meta repo as the installed coordination instance
-- attached product repos selected through `repos.yml`
+- attached product repos selected through `helix-repos.yml`
+
+> **Legacy:** installed meta repos may still carry `repos.yml` as a compatibility alias. New installs should treat `helix-repos.yml` as canonical.
 
 The target packaging and installation model is defined in [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md).
 The target meta-repo manifest shapes are defined in [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md).
 
-Current runtime tooling in this repo:
+Current script entry points in this repo:
 
-- `scripts/init-meta-repo.ps1` — bootstrap Helix into a new meta repo and verify the baseline install state
+- `scripts/init.ps1` — wrapper for future `helix init` (delegates to `init-meta-repo.ps1`)
+- `scripts/sync.ps1` — wrapper for future `helix sync` (delegates to `sync-helix.ps1`)
+- `scripts/upgrade.ps1` — wrapper for future `helix upgrade` (delegates to `sync-helix.ps1`)
+- `scripts/workspace-setup.ps1` — wrapper for future `helix workspace setup` (delegates to `setup-workspace.ps1`)
+- `scripts/doctor.ps1` — validate manifests, workspace layout, user-level agent collisions, and repo readiness
 - `scripts/install-helix.ps1` — install or sync managed Helix files into a meta repo
 - `scripts/set-context-provider.ps1` — enable or disable optional context providers such as code-review-graph
-- `scripts/setup-workspace.ps1` — attach selected repos and activate a workspace
-- `scripts/doctor.ps1` — validate manifests and refresh repo-state
-- `scripts/sync-helix.ps1` — re-sync an installed meta repo from its recorded Helix core source
+- `scripts/init-meta-repo.ps1`, `scripts/sync-helix.ps1`, and `scripts/setup-workspace.ps1` — underlying implementation scripts kept for compatibility and internal wiring
 
 ## Optional Structural Retrieval
 
@@ -176,7 +180,7 @@ Helix can optionally layer in `code-review-graph` for code-centric retrieval.
 
 ## Where To Start
 
-- Bootstrap a new meta repo: run `scripts/init-meta-repo.ps1`, then update `repos.yml`, create `workspaces/{name}/workspace.yml`, and use the `setup` agent or `workspace-sync` skill to attach the selected repos
+- Bootstrap a new meta repo: run `scripts/init.ps1`, then update `helix-repos.yml`, create `workspaces/{name}/workspace.yml`, and use `scripts/workspace-setup.ps1`, the `setup` agent, or the `workspace-sync` skill to attach the selected repos
 - New to Helix: [`docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
 - Canonical lifecycle and loops: [`docs/helix-process.md`](./docs/helix-process.md)
 - Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)

@@ -88,18 +88,18 @@ After bootstrap, the installed Helix-managed docs, scripts, and templates live u
 
 After bootstrap:
 
-- update `repos.yml` with the real repo registry for your environment
+- update `helix-repos.yml` with the real repo registry for your environment
 - create or update `workspaces/{name}/workspace.yml` for the subset of repos this feature-space needs
 
-Keep `repos.yml` declarative. Defining the registry should not clone every repo. Cloning or attaching happens only when the workspace is set up.
+Keep `helix-repos.yml` declarative. Defining the registry should not clone every repo. Cloning or attaching happens only when the workspace is set up.
 
 The target meta-repo model uses:
 
-- `repos.yml` for the full repo registry
+- `helix-repos.yml` for the full repo registry
 - `workspaces/{name}/workspace.yml` for the subset of repos this feature-space needs
 - `.helix/repo-state/*.yml` for generated readiness status
 
-Example registry file: `repos.yml`
+Example registry file: `helix-repos.yml`
 
 ```yaml
 schema_version: 1
@@ -117,6 +117,8 @@ repos:
     local_path: ../customer-profile-adapter
     default_branch: main
 ```
+
+> **Legacy compatibility:** `repos.yml` is still accepted as an alias, and existing `local_path` values can stay as-is. Current workspace setup materializes the active working copies under `workspaces/{workspace}/repos/{repo-id}/`.
 
 Example workspace file: `workspaces/order-history/workspace.yml`
 
@@ -148,12 +150,12 @@ artifacts:
 
 Keep task boards and decisions inside each workspace. Root `decisions/` and `task-boards/` directories are deprecated legacy placeholders, not the active model.
 
-Then use the `setup` agent, the `workspace-sync` skill, or the installed `helix/scripts/setup-workspace.ps1` command to:
+Then use the `setup` agent, the `workspace-sync` skill, or the installed `helix workspace setup` command (current script: `./helix/scripts/workspace-setup.ps1 -Workspace <id>`) to:
 
-- clone or attach only the selected repos
+- clone or attach only the selected repos under `workspaces/{name}/repos/{repo-id}/`
 - generate or refresh `.helix/repo-state/*.yml`
-- generate the workspace file
-- update additional directories
+- generate `{name}.code-workspace` at the meta-repo root
+- generate `.github/instructions/*.instructions.md`
 - set `.helix/active-workspace.yml`
 
 Use the legacy Bash helper only for the old combined layout. The PowerShell script is the target entry point for the meta-repo model.

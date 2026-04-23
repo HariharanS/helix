@@ -124,6 +124,8 @@ $SourceRoot = [System.IO.Path]::GetFullPath($SourceRoot)
 $TargetRoot = [System.IO.Path]::GetFullPath($TargetRoot)
 $metaRepoName = Split-Path $TargetRoot -Leaf
 $existingInstallStatePath = Join-Path $TargetRoot '.helix/install-state.yml'
+$canonicalRegistryPath = Join-Path $TargetRoot 'helix-repos.yml'
+$legacyRegistryPath = Join-Path $TargetRoot 'repos.yml'
 $previousManagedPaths = @()
 
 if (Test-Path $existingInstallStatePath) {
@@ -141,6 +143,11 @@ New-HelixDirectory -Path (Join-Path $TargetRoot '.helix')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/repo-state')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/generated')
 New-HelixDirectory -Path (Join-Path $TargetRoot 'workspaces')
+
+if (-not (Test-Path $canonicalRegistryPath) -and (Test-Path $legacyRegistryPath)) {
+    Copy-Item -LiteralPath $legacyRegistryPath -Destination $canonicalRegistryPath -Force
+    Write-Warning "Migrated legacy registry manifest 'repos.yml' to canonical 'helix-repos.yml'."
+}
 
 $managedAssetRoot = 'helix'
 
@@ -172,11 +179,15 @@ Add-ManagedFile -Items $items -SourceRelative 'scripts/set-context-provider.ps1'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/sync-helix.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/sync-helix.ps1') -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/setup-workspace.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/setup-workspace.ps1') -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/doctor.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/doctor.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/init.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/init.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/sync.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/sync.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/upgrade.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/upgrade.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/workspace-setup.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/workspace-setup.ps1') -Category 'script' -SyncMode 'replace'
 
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.README.md.template' -TargetRelative 'README.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.AGENTS.md.template' -TargetRelative 'AGENTS.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/mcp.json.template' -TargetRelative '.mcp.json' -Category 'config' -SyncMode 'seed-once'
-Add-ManagedFile -Items $items -SourceRelative 'templates/repos.yml.template' -TargetRelative 'repos.yml' -Category 'manifest' -SyncMode 'seed-once'
+Add-ManagedFile -Items $items -SourceRelative 'templates/helix-repos.yml.template' -TargetRelative 'helix-repos.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/active-workspace.yml.template' -TargetRelative '.helix/active-workspace.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/context-providers.yml.template' -TargetRelative '.helix/context-providers.yml' -Category 'manifest' -SyncMode 'seed-once'
 

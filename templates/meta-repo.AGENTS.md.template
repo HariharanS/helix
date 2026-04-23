@@ -12,7 +12,7 @@ Use this file to discover where relevant context lives in the installed Helix me
 
 ## Core Invariants
 
-- `repos.yml` is the registry of known repos, not runtime state
+- `helix-repos.yml` is the canonical registry of known repos, not runtime state (`repos.yml` is kept as a legacy compatibility alias)
 - `.helix/repo-state/` contains generated readiness and scan results
 - `.helix/context-providers.yml` controls whether optional retrieval layers such as code-review-graph are enabled
 - `workspaces/<id>/workspace.yml` declares participating repos for a feature-space
@@ -42,3 +42,13 @@ Use this file to discover where relevant context lives in the installed Helix me
 ## Local Overrides
 
 Add org- or project-specific retrieval rules here. Helix sync preserves content outside managed sections.
+
+## CLI Workflow
+
+This meta repo is primarily operated from **Copilot CLI**. Read `helix/docs/cli-workflow.md` for the phase-by-phase CLI playbook before routing work or guiding a user through phases.
+
+Key rules for CLI operation:
+- Interactive phases (JAM, PRD, TECH DESIGN, SETUP) must run at the top-level host agent — sub-agents cannot use `ask_user`
+- Autonomous phases (DECOMPOSER, IMPLEMENTER, REVIEWER, SCRIBE, DISTILLER) dispatch as background sub-agents
+- `@helix` orchestrator is only worth invoking in CLI for the IMPLEMENTATION ralph loop
+- Workspace artifact files are the handoff between phases — always pass explicit artifact paths when routing

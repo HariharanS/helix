@@ -9,30 +9,30 @@ disable-model-invocation: true
 
 # Workspace Sync Skill
 
-Uses the script-owned workspace setup path once Helix is installed and the user has updated `repos.yml` plus `workspaces/{name}/workspace.yml`.
+Uses the script-owned workspace setup path once Helix is installed and the user has updated `helix-repos.yml` plus `workspaces/{name}/workspace.yml`.
 
 ## Workflow
 
 ### 1. Confirm Helix Is Installed
 
-- Check for `.helix/install-state.yml`, `repos.yml`, and `helix/scripts/setup-workspace.ps1`
-- If bootstrap is missing, stop and tell the user to run `init-meta-repo.ps1` from the Helix source repo first
+- Check for `.helix/install-state.yml`, `helix-repos.yml` (or legacy `repos.yml`), and `helix/scripts/workspace-setup.ps1`
+- If bootstrap is missing, stop and tell the user to run `init.ps1` from the Helix source repo first
 - Do not try to install Helix from this skill
 
 ### 2. Validate The Registry And Workspace
 
-`repos.yml` is an instance-owned file created during installation from `helix/templates/repos.yml.template`. The workspace manifest lives at `workspaces/{name}/workspace.yml`.
+`helix-repos.yml` is the canonical instance-owned registry file created during installation from `helix/templates/helix-repos.yml.template`. `repos.yml` remains the legacy compatibility alias. The workspace manifest lives at `workspaces/{name}/workspace.yml`.
 
 ```
-repos.yml
+helix-repos.yml
 workspaces/{name}/workspace.yml
 ```
 
 Before setup:
 
-- ensure `repos.yml` contains real repo definitions rather than sample placeholder values
+- ensure `helix-repos.yml` (or legacy `repos.yml`) contains real repo definitions rather than sample placeholder values
 - ensure every `workspace.repos[*].repo_id` resolves to a registry entry
-- ensure the workspace manifest is complete enough for `helix/scripts/setup-workspace.ps1`
+- ensure the workspace manifest is complete enough for `helix/scripts/workspace-setup.ps1`
 - if either manifest is missing or still needs edits, pause and ask the user to update it before continuing
 
 Registry example:
@@ -62,21 +62,22 @@ repos:
 
 ### 3. Run The Authoritative Setup Script
 
-Run `helix/scripts/setup-workspace.ps1` with the requested workspace name or manifest path.
+Run `helix/scripts/workspace-setup.ps1` with the requested workspace name or manifest path.
 
 - Pass `-CloneMissing` only when the user wants missing workspace repos cloned locally
 - Pass `-FetchExisting` only when the user wants already-present repos refreshed
 - Pass `-IncludeClaudeSettings` only when Claude Desktop configuration is explicitly requested
-- Do not mutate `repos.yml` from this skill
+- Do not mutate `helix-repos.yml` or `repos.yml` from this skill
 - Do not implement clone logic here; the script is the source of truth
 
 ### 4. Verify Definitive Outcomes
 
-After `helix/scripts/setup-workspace.ps1` succeeds, verify:
+After `helix/scripts/workspace-setup.ps1` succeeds, verify:
 
-- `workspaces/{name}/{name}.code-workspace` exists
+- `{name}.code-workspace` exists at the meta-repo root
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every repo in the workspace manifest
+- `.github/instructions/{name}.workspace.instructions.md` exists, along with any generated repo instruction summaries
 - the status table from the script reflects the expected presence and readiness values
 
 Report status using the generated repo-state files as the source of truth.
@@ -91,7 +92,7 @@ Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in 
 
 #### 5b. Refresh Repo-State
 
-After all onboarding completes, re-run `helix/scripts/setup-workspace.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
+After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
 
 #### 5c. Review Cross-Cutting Promotion Candidates
 
@@ -129,7 +130,8 @@ Enable or verify `code-review-graph` only when the user explicitly wants structu
 ## Output
 
 - Updated `.helix/active-workspace.yml`
-- Generated `workspaces/{name}/{name}.code-workspace`
+- Generated `{name}.code-workspace` at the meta-repo root
+- Generated `.github/instructions/*.instructions.md` summaries for the workspace and participating repos
 - Refreshed `.helix/repo-state/*.yml` for the workspace repos (via script, not manual edits)
 - A setup report that separates baseline attach results from optional onboarding and graph work
 
@@ -140,24 +142,24 @@ Enable or verify `code-review-graph` only when the user explicitly wants structu
 
 | Repo | Path | Present | Readiness | Branch | Next Step |
 |------|------|---------|-----------|--------|-----------|
-| service-a | ../service-a | yes | ready | main | none |
-| service-b | ../service-b | cloned | partial | main | onboard |
+| service-a | workspaces/order-history/repos/service-a | yes | ready | main | none |
+| service-b | workspaces/order-history/repos/service-b | cloned | partial | main | onboard |
 
-Generated: {name}.code-workspace, .helix/repo-state/*.yml
+Generated: {name}.code-workspace, .github/instructions/*.instructions.md, .helix/repo-state/*.yml
 Updated: .helix/active-workspace.yml
 Optional: .claude/settings.local.json when Claude Desktop integration is explicitly requested
 ```
 
-- Helix not installed → stop and point to `init-meta-repo.ps1` from the Helix source repo
-- `repos.yml` or `workspace.yml` missing or still using placeholder values → stop and ask the user to repair the manifests
-- `setup-workspace.ps1` fails → surface the script output and do not continue to onboarding or graph setup
+- Helix not installed → stop and point to `init.ps1` from the Helix source repo
+- `helix-repos.yml` (or legacy `repos.yml`) or `workspace.yml` missing or still using placeholder values → stop and ask the user to repair the manifests
+- `workspace-setup.ps1` fails → surface the script output and do not continue to onboarding or graph setup
 - Onboard fails → report error and leave repo-state at `partial` or `needs-onboarding`
 - Graph setup fails → report it separately from baseline workspace attach
 
 ## Prerequisites
 
-- Helix bootstrap already completed via `init-meta-repo.ps1` from the Helix source repo or the equivalent installer flow
-- `repos.yml` has been updated with the real repo registry
+- Helix bootstrap already completed via `init.ps1` from the Helix source repo or the equivalent installer flow
+- `helix-repos.yml` has been updated with the real repo registry (`repos.yml` is accepted only as a legacy alias)
 - `workspaces/{name}/workspace.yml` has been created or updated with the participating repos
 - `git` available
-- Prefer `helix/scripts/setup-workspace.ps1` for the target meta-repo model; the old Bash helper is legacy
+- Prefer `helix/scripts/workspace-setup.ps1` for the target meta-repo model; the old Bash helper is legacy

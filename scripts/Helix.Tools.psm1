@@ -322,8 +322,9 @@ function Get-HelixRoot {
 
     while ($current) {
         $hasHelixDir = Test-Path (Join-Path $current '.helix')
-        $hasRepos = Test-Path (Join-Path $current 'repos.yml')
-        if ($hasHelixDir -or $hasRepos) {
+        $hasCanonicalRegistry = Test-Path (Join-Path $current 'helix-repos.yml')
+        $hasLegacyRegistry = Test-Path (Join-Path $current 'repos.yml')
+        if ($hasHelixDir -or $hasCanonicalRegistry -or $hasLegacyRegistry) {
             return $current
         }
 
@@ -335,6 +336,48 @@ function Get-HelixRoot {
     }
 
     throw "Could not resolve a Helix meta-repo root from '$StartPath'."
+}
+
+function Resolve-HelixRegistryPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$HelixRoot,
+        [switch]$AllowMissing
+    )
+
+    $canonicalPath = Join-Path $HelixRoot 'helix-repos.yml'
+    $legacyPath = Join-Path $HelixRoot 'repos.yml'
+
+    if (Test-Path $canonicalPath) {
+        return [ordered]@{
+            path = $canonicalPath
+            source = 'canonical'
+            display_name = 'helix-repos.yml'
+            canonical_path = $canonicalPath
+            legacy_path = $legacyPath
+        }
+    }
+
+    if (Test-Path $legacyPath) {
+        return [ordered]@{
+            path = $legacyPath
+            source = 'legacy'
+            display_name = 'repos.yml'
+            canonical_path = $canonicalPath
+            legacy_path = $legacyPath
+        }
+    }
+
+    if ($AllowMissing) {
+        return [ordered]@{
+            path = $canonicalPath
+            source = 'missing'
+            display_name = 'helix-repos.yml'
+            canonical_path = $canonicalPath
+            legacy_path = $legacyPath
+        }
+    }
+
+    throw "No helix-repos.yml found in '$HelixRoot'. Legacy fallback 'repos.yml' was also not found."
 }
 
 function Get-HelixActiveWorkspacePath {
@@ -493,6 +536,7 @@ Export-ModuleMember -Function @(
     'Get-HelixRelativePath',
     'Get-HelixRepoReadiness',
     'Get-HelixRoot',
+    'Resolve-HelixRegistryPath',
     'Get-HelixWorkspaceManifestPath',
     'Import-HelixYamlFile',
     'Merge-HelixMarkedSections',

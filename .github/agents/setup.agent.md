@@ -22,8 +22,8 @@ You own the SETUP phase after Helix has already been bootstrapped into the curre
 ## Scope
 
 - Validate that the current repo is already bootstrapped with Helix
-- Wait for the user to update `repos.yml` and `workspaces/{name}/workspace.yml` when those manifests are missing or incomplete
-- Invoke the canonical workspace setup flow through the `/workspace-sync` skill or `helix/scripts/setup-workspace.ps1`
+- Wait for the user to update `helix-repos.yml` (or legacy `repos.yml`) and `workspaces/{name}/workspace.yml` when those manifests are missing or incomplete
+- Invoke the canonical workspace setup flow through the `/workspace-sync` skill or `helix/scripts/workspace-setup.ps1`
 - Report definitive setup outcomes and any follow-on setup items
 
 ## Workflow
@@ -33,10 +33,10 @@ You own the SETUP phase after Helix has already been bootstrapped into the curre
 Check for:
 
 - `.helix/install-state.yml`
-- `repos.yml`
-- `helix/scripts/setup-workspace.ps1`
+- `helix-repos.yml` (or legacy `repos.yml`)
+- `helix/scripts/workspace-setup.ps1`
 
-If bootstrap is missing, stop and tell the user to run `init-meta-repo.ps1` from the Helix source repo first.
+If bootstrap is missing, stop and tell the user to run `init.ps1` from the Helix source repo first.
 
 ### 2. Gather Or Confirm The Workspace Target
 
@@ -46,7 +46,7 @@ If bootstrap is missing, stop and tell the user to run `init-meta-repo.ps1` from
 
 ### 3. Validate Manifests Before Running Setup
 
-Read `repos.yml` and the selected workspace manifest.
+Read `helix-repos.yml` (or legacy `repos.yml`) and the selected workspace manifest.
 
 Before continuing:
 
@@ -60,7 +60,7 @@ If the manifests need edits, pause and wait for the user to update them instead 
 
 Use the `/workspace-sync` skill as the canonical setup playbook.
 
-When the runtime path is needed, prefer `helix/scripts/setup-workspace.ps1` and pass only the flags the user actually requested:
+When the runtime path is needed, prefer `helix/scripts/workspace-setup.ps1` and pass only the flags the user actually requested:
 
 - `-CloneMissing`
 - `-FetchExisting`
@@ -72,9 +72,10 @@ Do not implement separate clone or repo-state logic inside this agent.
 
 After setup succeeds, confirm:
 
-- `workspaces/{name}/{name}.code-workspace` exists
+- `{name}.code-workspace` exists at the meta-repo root
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every workspace repo
+- `.github/instructions/{name}.workspace.instructions.md` exists, along with any generated repo instruction summaries
 
 Then report:
 
@@ -92,7 +93,7 @@ Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in 
 
 #### 6b. Refresh Repo-State
 
-After all onboarding completes, re-run `helix/scripts/setup-workspace.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every repo-state signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
+After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every repo-state signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
 
 #### 6c. Review Cross-Cutting Promotion Candidates
 
@@ -171,8 +172,8 @@ Setup validation questions (missing manifests, unclear repo paths, confirmation 
 ## Rules
 
 1. Do not modify product code.
-2. Do not rewrite `repos.yml` or `workspace.yml` unless the user explicitly asks you to edit them.
-3. Do not bypass `helix/scripts/setup-workspace.ps1` with custom clone logic.
+2. Do not rewrite `helix-repos.yml`, `repos.yml`, or `workspace.yml` unless the user explicitly asks you to edit them.
+3. Do not bypass `helix/scripts/workspace-setup.ps1` with custom clone logic.
 4. Do not continue to onboarding or graph setup if baseline workspace attach failed.
 5. Hand off to `helix` only after SETUP is complete.
-6. After onboarding, always refresh repo-state by re-running `setup-workspace.ps1`, never by manually editing `.helix/repo-state/*.yml` files.
+6. After onboarding, always refresh repo-state by re-running `workspace-setup.ps1`, never by manually editing `.helix/repo-state/*.yml` files.

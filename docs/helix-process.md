@@ -115,7 +115,7 @@ The process should prefer progressive disclosure over giant blobs.
 
 A workspace or feature-space should declare the subset of repos it actually needs.
 
-- `repos.yml` is the registry of repos Helix knows how to use
+- `helix-repos.yml` is the canonical registry of repos Helix knows how to use (`repos.yml` remains the legacy compatibility alias)
 - workspace manifest selects the repos participating in a feature
 - repo readiness state is generated separately under `.helix/repo-state/`
 

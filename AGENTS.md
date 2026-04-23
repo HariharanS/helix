@@ -24,6 +24,8 @@ Do **not** read the entire repo by default.
 - `context-bundle-*.md` is task-scoped evidence, not general documentation.
 - Memory in `.helix/memory/` is distilled and indexed; it is not a raw session log.
 - Root `AGENTS.md` should stay navigation-first. Human narrative belongs in `README.md` or `docs/`.
+- Installed meta repos use `helix-repos.yml` as the canonical registry name; `repos.yml` survives only as a compatibility alias.
+- User-facing script entry points are `scripts/init.ps1`, `scripts/sync.ps1`, `scripts/upgrade.ps1`, and `scripts/workspace-setup.ps1`; the older implementation script names remain for compatibility and internal wiring.
 
 ## Directory Map
 
@@ -52,6 +54,7 @@ Do **not** read the entire repo by default.
   - [`./templates/AGENTS.md`](./templates/AGENTS.md)
 - Understand the system as a human:
   - [`README.md`](./README.md)
+  - [`./docs/cli-workflow.md`](./docs/cli-workflow.md)
   - [`./docs/helix-process.md`](./docs/helix-process.md)
   - [`./docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
   - [`./docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md)

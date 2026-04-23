@@ -21,22 +21,27 @@ Each phase writes an artifact. The next phase reads it. The artifact files are t
 ## Phase-by-Phase CLI Playbook
 
 ### SETUP
-**Who runs it:** Host agent (me) OR `setup` sub-agent for automated parts.  
-**Interactive?** Partially — manifest validation questions need `ask_user`.  
+**Who runs it:** Host agent (me) OR `setup` sub-agent for automated parts.
+**Interactive?** Partially — manifest validation questions need `ask_user`.
 **How:**
 ```
 "Set up workspace hpp"
 ```
-The host agent validates `repos.yml` + `workspace.yml`, runs setup-workspace.ps1, and confirms repo-state.  
+The host agent validates `helix-repos.yml` + `workspace.yml`, runs workspace-setup.ps1, and confirms repo-state.
 For manifest questions it uses `ask_user` directly. Purely mechanical steps (clone, fetch) can be dispatched to the `setup` sub-agent.
 
-**Output:** `.helix/repo-state/{repo-id}.yml` for each repo, `workspaces/hpp/hpp.code-workspace`
+**One active workspace per session:** Exactly one workspace is active at a time, tracked in `.helix/active-workspace.yml`. Switch it explicitly before working on a different feature space.
+
+**Output:**
+- `.helix/repo-state/{repo-id}.yml` for each participating repo
+- `{workspace}.code-workspace` at the **meta-repo root** (gitignored)
+- `.github/instructions/*.instructions.md` — gitignored workspace and repo instruction summaries generated during setup/onboarding
 
 ---
 
 ### JAM — Intent Refinement
-**Who runs it:** Host agent directly (do NOT dispatch as sub-agent).  
-**Interactive?** Yes — requires back-and-forth clarification via `ask_user`.  
+**Who runs it:** Host agent directly (do NOT dispatch as sub-agent).
+**Interactive?** Yes — requires back-and-forth clarification via `ask_user`.
 **How:**
 ```
 "Run the JAM phase for workspace hpp"
@@ -49,8 +54,8 @@ The host agent conducts the jam session, uses `ask_user` for structured question
 ---
 
 ### PRD — Product Requirements
-**Who runs it:** Host agent directly, or `planner` sub-agent if intent is clear and Q&A is minimal.  
-**Interactive?** Partially — needs a few clarification rounds at most.  
+**Who runs it:** Host agent directly, or `planner` sub-agent if intent is clear and Q&A is minimal.
+**Interactive?** Partially — needs a few clarification rounds at most.
 **How:**
 ```
 "Run the PRD phase for hpp using workspaces/hpp/refined-intent.md"
@@ -64,8 +69,8 @@ Host agent reads refined-intent, explores repos via explorer sub-agent, asks any
 ---
 
 ### TECH DESIGN — Technical Design
-**Who runs it:** Host agent directly, or `architect` sub-agent for the research+drafting part.  
-**Interactive?** Partially — design trade-offs need `ask_user`; codebase research is autonomous.  
+**Who runs it:** Host agent directly, or `architect` sub-agent for the research+drafting part.
+**Interactive?** Partially — design trade-offs need `ask_user`; codebase research is autonomous.
 **How:**
 ```
 "Run the tech design phase for hpp using workspaces/hpp/prd/index.md"
@@ -79,8 +84,8 @@ Host agent (or architect sub-agent) explores codebase patterns, drafts the desig
 ---
 
 ### TASK BREAKDOWN — Decomposition
-**Who runs it:** `decomposer` sub-agent — fully autonomous.  
-**Interactive?** No.  
+**Who runs it:** `decomposer` sub-agent — fully autonomous.
+**Interactive?** No.
 **How:**
 ```
 "Run task breakdown for hpp using workspaces/hpp/tech-design/index.md"
@@ -94,8 +99,8 @@ Dispatches `decomposer` as a background sub-agent. Returns task board + executio
 ---
 
 ### IMPLEMENTATION — Ralph Loop (recommended)
-**Who runs it:** `@helix` in CLI — this is where it earns its keep as an orchestrator.  
-**Interactive?** No — fully autonomous.  
+**Who runs it:** `@helix` in CLI — this is where it earns its keep as an orchestrator.
+**Interactive?** No — fully autonomous.
 **How:**
 ```
 "Start the ralph loop for workspace hpp"
@@ -110,7 +115,7 @@ Helix reads the execution plan, picks the highest-priority unblocked task, dispa
 ---
 
 ### IMPLEMENTATION — Interactive TDD (alternative)
-**Who runs it:** `tdd-red` then `implementer` sub-agents, one task at a time.  
+**Who runs it:** `tdd-red` then `implementer` sub-agents, one task at a time.
 **How:**
 ```
 "Run TDD red phase for TASK-003 in hpp"
@@ -121,8 +126,8 @@ Use this when you want to stay close to each task — inspect failing tests befo
 ---
 
 ### REVIEW
-**Who runs it:** `reviewer` sub-agent — fully autonomous.  
-**Interactive?** No — produces a structured report; blockers are surfaced in output.  
+**Who runs it:** `reviewer` sub-agent — fully autonomous.
+**Interactive?** No — produces a structured report; blockers are surfaced in output.
 **How:**
 ```
 "Review HPP changes on branch feature/hpp"
@@ -134,8 +139,8 @@ Use this when you want to stay close to each task — inspect failing tests befo
 ---
 
 ### DISTILL — Session Learnings
-**Who runs it:** `distiller` sub-agent — fully autonomous.  
-**When:** At the end of a session, or when a phase completes and learnings should be captured.  
+**Who runs it:** `distiller` sub-agent — fully autonomous.
+**When:** At the end of a session, or when a phase completes and learnings should be captured.
 **How:**
 ```
 "Distill the HPP session"
@@ -147,7 +152,7 @@ Use this when you want to stay close to each task — inspect failing tests befo
 ---
 
 ### RESUME — Return to In-Progress Work
-**Who runs it:** `resume` sub-agent.  
+**Who runs it:** `resume` sub-agent.
 **How:**
 ```
 "Resume work on hpp"
@@ -208,7 +213,7 @@ Back-and-forth dialogue in a long JAM or PRD session fills the context window qu
 **Rules for top-level interactive agents:**
 
 1. **Never read large files inline** — delegate to a sub-agent; read only the written bundle path
-2. **Batch ask_user calls** — one structured form per topic, not one question per message  
+2. **Batch ask_user calls** — one structured form per topic, not one question per message
 3. **Write artifacts to disk; don't echo them back** — confirm with path only (`"PRD written to workspaces/hpp/prd/index.md"`)
 4. **Scope explorer sub-agents tightly** — pass the specific question to answer, not "explore everything"
 5. **Use `mode: background` for all research sub-agents** — they run in isolation; main context only gets the result summary
@@ -331,3 +336,17 @@ Distill:        "Distill the {workspace} session"
 Resume:         "Resume work on {workspace}"
 Status:         "What's the current state of workspace {workspace}?"
 ```
+
+---
+
+## CLI Commands Reference
+
+Future `helix` CLI commands and their current script equivalents. Until the unified CLI is available, invoke the scripts directly from the meta-repo root.
+
+| Future command | Current script | Purpose |
+|---|---|---|
+| `helix init` | `./helix/scripts/init.ps1` | Bootstrap a new meta repo from helix-core |
+| `helix sync` | `./helix/scripts/sync.ps1` | Sync managed files from helix-core into the meta repo |
+| `helix upgrade` | `./helix/scripts/upgrade.ps1` | Upgrade the installed Helix version |
+| `helix workspace setup` | `./helix/scripts/workspace-setup.ps1` | Clone/attach repos, scan readiness, set active workspace |
+| `helix doctor` | `./helix/scripts/doctor.ps1` | Validate install state, manifest schemas, and repo readiness |

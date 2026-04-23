@@ -15,8 +15,12 @@ function Assert-HelixSourceRoot {
     $required = @(
         'scripts/install-helix.ps1',
         'scripts/doctor.ps1',
-        'templates/repos.yml.template',
         'templates/active-workspace.yml.template'
+    )
+
+    $registryTemplateCandidates = @(
+        'templates/helix-repos.yml.template',
+        'templates/repos.yml.template'
     )
 
     $missing = @(
@@ -27,6 +31,18 @@ function Assert-HelixSourceRoot {
 
     if ($missing.Count -gt 0) {
         throw "SourceRoot '$Root' does not look like a Helix core repo. Missing: $($missing -join ', ')"
+    }
+
+    $hasRegistryTemplate = $false
+    foreach ($candidate in $registryTemplateCandidates) {
+        if (Test-Path (Join-Path $Root $candidate)) {
+            $hasRegistryTemplate = $true
+            break
+        }
+    }
+
+    if (-not $hasRegistryTemplate) {
+        throw "SourceRoot '$Root' does not look like a Helix core repo. Missing one of: $($registryTemplateCandidates -join ', ')"
     }
 }
 
@@ -41,6 +57,7 @@ function Assert-TargetRootShape {
         '.helix/install-state.yml',
         '.helix',
         '.github/agents',
+        'helix-repos.yml',
         'repos.yml',
         'README.md',
         'AGENTS.md'
@@ -75,7 +92,7 @@ function Assert-BaselineFiles {
         '.github/prompts',
         '.github/skills',
         '.github/copilot-instructions.md',
-        'repos.yml',
+        'helix-repos.yml',
         'README.md',
         'AGENTS.md',
         'helix/docs/helix-core-meta-repo-model.md',
