@@ -90,9 +90,24 @@ Only after baseline workspace attach succeeds:
 
 Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in repo-state. Run repos in parallel where possible. Each onboard run produces a **Cross-Cutting Patterns table** — collect these outputs.
 
-#### 5b. Refresh Repo-State
+#### 5b. Refresh Repo-State and Capability Files
 
 After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
+
+After the script completes:
+- verify `.helix/repo-capabilities/{repo-id}.yml` exists for each workspace repo
+- treat those files as the generated source of truth for **abstract** capability hints:
+  - language/build markers
+  - discovered verification layers
+  - whether a layer looks local-runnable, hybrid, or environment-backed
+- do **not** manually patch `.helix/repo-capabilities/*.yml`; re-run setup if discovery needs refreshing
+
+If onboarding surfaced richer repo-specific verification commands or environment notes, use those findings to refine:
+- repo `AGENTS.md` / `.github/instructions/*`
+- `workspaces/{name}/verification-policy.yml`
+- future execution-plan `verification` blocks
+
+Capability files inform @decomposer and @reviewer, but they do not replace execution-plan commands. Do NOT hardcode commands — discover them from actual scripts, CI config (`*.yml` in `.github/workflows/`), Makefile, or package.json scripts.
 
 #### 5c. Review Cross-Cutting Promotion Candidates
 
@@ -127,12 +142,19 @@ Add this retrieval note at the top:
 
 Enable or verify `code-review-graph` only when the user explicitly wants structural retrieval during setup. Keep this step separate from baseline attach and onboarding success.
 
+If the user wants CRG enabled, normalize the MCP entry and ensure a usable runtime first:
+
+```powershell
+./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap
+```
+
 ## Output
 
 - Updated `.helix/active-workspace.yml`
 - Generated `{name}.code-workspace` at the meta-repo root
 - Generated `.github/instructions/*.instructions.md` summaries for the workspace and participating repos
 - Refreshed `.helix/repo-state/*.yml` for the workspace repos (via script, not manual edits)
+- Refreshed `.helix/repo-capabilities/*.yml` capability hints for the workspace repos
 - A setup report that separates baseline attach results from optional onboarding and graph work
 
 ## Error Handling

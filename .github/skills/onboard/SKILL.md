@@ -60,10 +60,12 @@ Read and analyze the repo structure. Detect everything dynamically — never ass
    - Dependency injection patterns
    - Error handling patterns (exceptions, Result types, error codes)
    - Logging patterns
-6. **Test analysis:** Scan test directories
+6. **Test and verification analysis:** Scan test directories and CI configuration
    - Test framework (discover from config/imports, don't assume)
    - Test patterns (naming, structure, fixtures, factories)
    - Test infrastructure (local emulators, mocks, fakes, containers)
+   - Available verification commands: focused test filter, full suite, integration/e2e, linting — read from `Makefile`, `package.json scripts`, `.github/workflows/*.yml`, or equivalent CI config
+   - Flag commands that require a special environment (CI-only, cloud deploy, emulator) as `environment-gated`
 7. **Git history:** Recent activity, active contributors, commit conventions
 
 ## Phase 2: Discover Patterns
@@ -171,6 +173,21 @@ Notes on frontmatter:
 - Do not add `disable-model-invocation` — that key is reserved for meta-level Helix skills only
 - All five keys are required; do not omit any
 
+### 3f. Verification Notes
+
+Summarise discovered verification conventions in the root AGENTS.md under a **Verification** section and emit a short operator note for workspace-level follow-up.
+
+Capture:
+- likely focused-test and full-suite entry points when they are discoverable from the repo
+- higher layers such as harness, sandbox, integration, UI, or release qualification when the repo clearly participates in them
+- environment constraints (local emulator, cloud credentials, deployed env, CI-only runner)
+
+Rules:
+- Every command or hint must be discoverable from the actual repo (Makefile, CI config, package.json scripts, project file)
+- Do NOT invent or guess commands — if a command cannot be verified, mark it as unknown or note the layer without a command
+- Flag any command that requires a local emulator, cloud credentials, or specific CI runner as environment-gated with an explicit reason
+- Runtime capability files are generated later by `workspace-sync` / `setup-workspace.ps1`; do not claim this skill writes `.helix/repo-state` or `.helix/repo-capabilities` directly
+
 ### 3e. Cross-Cutting Promotion Table
 
 At the end of your output, append this section listing all `meta-repo-candidate` patterns.
@@ -200,6 +217,8 @@ Checklist:
 - [ ] Every SKILL.md has correct YAML frontmatter (name, managed-by: helix-runtime, description, argument-hint, user-invocable)
 - [ ] Cross-cutting patterns are in the promotion table, not duplicated as repo-level skills
 - [ ] Discovered skills are useful (not too trivial)
+- [ ] Verification policy commands are discovered from actual repo config, not invented
+- [ ] Environment-gated commands are flagged with explicit reason
 - [ ] No sensitive information in generated docs
 
 After approval, commit all artifacts.

@@ -18,6 +18,58 @@ function Add-WarningLine([string]$Message) {
     $script:warnings += $Message
 }
 
+function Test-CodeReviewGraphPythonModule {
+    param(
+        [Parameter(Mandatory = $true)][string]$Command,
+        [string[]]$Arguments = @()
+    )
+
+    try {
+        & $Command @Arguments 1>$null 2>$null
+        return $LASTEXITCODE -eq 0
+    } catch {
+        return $false
+    }
+}
+
+function Test-CodeReviewGraphRuntimeAvailable {
+    if (Get-Command uvx -ErrorAction SilentlyContinue) {
+        return $true
+    }
+
+    if (Get-Command code-review-graph -ErrorAction SilentlyContinue) {
+        return $true
+    }
+
+    if ((Get-Command python -ErrorAction SilentlyContinue) -and
+        (Test-CodeReviewGraphPythonModule -Command 'python' -Arguments @('-c', 'import code_review_graph'))) {
+        return $true
+    }
+
+    if ((Get-Command py -ErrorAction SilentlyContinue) -and
+        (Test-CodeReviewGraphPythonModule -Command 'py' -Arguments @('-3', '-c', 'import code_review_graph'))) {
+        return $true
+    }
+
+    return $false
+}
+
+function Test-CodeReviewGraphServerConfig {
+    param(
+        [Parameter(Mandatory = $true)][string]$LocationLabel,
+        [string]$Command
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($Command) -and [System.IO.Path]::IsPathRooted($Command)) {
+        Add-WarningLine "$LocationLabel pins 'code-review-graph' to the absolute path '$Command'. This is instance-specific and can break on clean installs. Re-run 'helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap' to normalize it."
+    }
+
+    $runtimeAvailable = Test-CodeReviewGraphRuntimeAvailable
+    if (-not $runtimeAvailable) {
+        Add-WarningLine "$LocationLabel enables 'code-review-graph', but no verified runtime was found (uvx, code-review-graph, python -m code_review_graph, or py -3 -m code_review_graph). Copilot will fall back to manual context when the MCP server cannot start."
+    }
+}
+
 function Resolve-WorkspaceArtifactPath {
     param(
         [Parameter(Mandatory = $true)][string]$WorkspaceRoot,
@@ -92,19 +144,49 @@ if (Test-Path $agentTemplatePath) {
     }
 }
 
-$mcpPath = Join-Path $TargetRoot '.mcp.json'
-if (Test-Path $mcpPath) {
+$legacyProjectMcpPath = Join-Path $TargetRoot '.mcp.json'
+if (Test-Path $legacyProjectMcpPath) {
     try {
-        $mcpConfig = Get-Content -LiteralPath $mcpPath -Raw | ConvertFrom-Json
+        $mcpConfig = Get-Content -LiteralPath $legacyProjectMcpPath -Raw | ConvertFrom-Json
         $hasCodeReviewGraph = $null -ne $mcpConfig.mcpServers -and ($mcpConfig.mcpServers.PSObject.Properties.Name -contains 'code-review-graph')
         if ($hasCodeReviewGraph) {
-            $runtimeAvailable = (Get-Command uvx -ErrorAction SilentlyContinue) -or (Get-Command code-review-graph -ErrorAction SilentlyContinue)
-            if (-not $runtimeAvailable) {
-                Add-WarningLine "'.mcp.json' enables 'code-review-graph', but no 'uvx' or 'code-review-graph' executable was found in PATH. Copilot will fall back to manual context when the MCP server cannot start."
-            }
+            $server = $mcpConfig.mcpServers.'code-review-graph'
+            $command = if ($null -ne $server) { [string]$server.command } else { '' }
+            Add-WarningLine "Legacy root '.mcp.json' contains 'code-review-graph'. Helix now prefers '.vscode/mcp.json' for VS Code and '~/.copilot/mcp-config.json' for Copilot CLI."
+            Test-CodeReviewGraphServerConfig -LocationLabel "Legacy root '.mcp.json'" -Command $command
         }
     } catch {
         Add-Issue "Invalid JSON in '.mcp.json'."
+    }
+}
+
+$vscodeMcpPath = Join-Path $TargetRoot '.vscode/mcp.json'
+if (Test-Path $vscodeMcpPath) {
+    try {
+        $vscodeConfig = Get-Content -LiteralPath $vscodeMcpPath -Raw | ConvertFrom-Json
+        $hasCodeReviewGraph = $null -ne $vscodeConfig.servers -and ($vscodeConfig.servers.PSObject.Properties.Name -contains 'code-review-graph')
+        if ($hasCodeReviewGraph) {
+            $server = $vscodeConfig.servers.'code-review-graph'
+            $command = if ($null -ne $server) { [string]$server.command } else { '' }
+            Test-CodeReviewGraphServerConfig -LocationLabel "'.vscode/mcp.json'" -Command $command
+        }
+    } catch {
+        Add-Issue "Invalid JSON in '.vscode/mcp.json'."
+    }
+}
+
+$userCliMcpPath = Join-Path ([Environment]::GetFolderPath('UserProfile')) '.copilot/mcp-config.json'
+if (Test-Path $userCliMcpPath) {
+    try {
+        $userCliMcpConfig = Get-Content -LiteralPath $userCliMcpPath -Raw | ConvertFrom-Json
+        $hasCodeReviewGraph = $null -ne $userCliMcpConfig.mcpServers -and ($userCliMcpConfig.mcpServers.PSObject.Properties.Name -contains 'code-review-graph')
+        if ($hasCodeReviewGraph) {
+            $server = $userCliMcpConfig.mcpServers.'code-review-graph'
+            $command = if ($null -ne $server) { [string]$server.command } else { '' }
+            Test-CodeReviewGraphServerConfig -LocationLabel "'~/.copilot/mcp-config.json'" -Command $command
+        }
+    } catch {
+        Add-Issue "Invalid JSON in '~/.copilot/mcp-config.json'."
     }
 }
 
@@ -311,6 +393,37 @@ if (-not [string]::IsNullOrWhiteSpace($activeWorkspaceId)) {
     $workspaceInstructionsPath = Join-Path $TargetRoot ".github/instructions/$activeWorkspaceId.workspace.instructions.md"
     if (-not (Test-Path $workspaceInstructionsPath)) {
         Add-WarningLine "Missing generated instruction summary '.github/instructions/$activeWorkspaceId.workspace.instructions.md'. Re-run setup-workspace.ps1."
+    }
+
+    $verificationPolicyDeclared = $false
+    if ($null -ne $activeWorkspace.artifacts -and $activeWorkspace.artifacts.Contains('verification_policy') -and $activeWorkspace.artifacts['verification_policy']) {
+        $verificationPolicyDeclared = $true
+    }
+
+    $verificationPolicyPath = if ($verificationPolicyDeclared) {
+        Resolve-WorkspaceArtifactPath -WorkspaceRoot $activeWorkspaceRoot -ArtifactValue ([string]$activeWorkspace.artifacts['verification_policy'])
+    } else {
+        Join-Path $activeWorkspaceRoot 'verification-policy.yml'
+    }
+
+    $verificationBetaEnabled = $verificationPolicyDeclared
+    if ($verificationPolicyDeclared -and -not (Test-Path $verificationPolicyPath)) {
+        Add-WarningLine "Active workspace '$activeWorkspaceId' declares 'verification_policy' but the file is missing at '$verificationPolicyPath'. Re-run setup-workspace.ps1 to seed policy scaffolding or fix the artifact path."
+    }
+
+    if ($verificationBetaEnabled -and $null -ne $activeWorkspace -and $activeWorkspace.repos) {
+        $capabilityRoot = Join-Path $TargetRoot '.helix/repo-capabilities'
+        foreach ($workspaceRepo in $activeWorkspace.repos) {
+            $repoId = [string]$workspaceRepo.repo_id
+            if ([string]::IsNullOrWhiteSpace($repoId)) {
+                continue
+            }
+
+            $repoCapabilityPath = Join-Path $capabilityRoot "$repoId.yml"
+            if (-not (Test-Path $repoCapabilityPath)) {
+                Add-WarningLine "Active workspace repo '$repoId' is missing '.helix/repo-capabilities/$repoId.yml'. Re-run setup-workspace.ps1 to refresh capability discovery."
+            }
+        }
     }
 }
 

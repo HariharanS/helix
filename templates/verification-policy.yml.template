@@ -1,0 +1,23 @@
+schema_version: 1
+workspace_id: null
+last_seeded_at: null
+
+policy:
+  mode: advisory
+  trust_model: beta-heuristic
+  default_requirements:
+    - build
+    - unit
+  optional_layers:
+    - harness_component
+    - contract_sandbox
+    - integration_acceptance
+    - ui_e2e
+    - release_qualification
+  slice_gates:
+    default_gate: run-verify
+    on_degraded_confidence: defer-and-record
+  backpressure:
+    max_consecutive_unverified_slices: 2
+
+overrides: []

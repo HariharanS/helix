@@ -17,14 +17,15 @@ Build or incrementally update the code-review-graph for every repo in the active
 
 - Read `.helix/context-providers.yml` — if `mode: off`, report CRG is disabled and stop. The user must set `mode: mcp` before a build is meaningful.
 - Read `.helix/active-workspace.yml` for the workspace name.
-- Read `workspaces/{name}/workspace.yml` for the `repos` list and their `local_path` values.
+- Read `workspaces/{name}/workspace.yml` for the `repos` list.
+- Read `.helix/repo-state/{repo-id}.yml` for each workspace repo and use `local_path` as the authoritative checkout root.
 
 ### 2. Check Graph Status Per Repo
 
-For each repo in `workspace.repos`:
+For each repo in `workspace.repos`, using `.helix/repo-state/{repo-id}.yml.local_path`:
 
 ```powershell
-python -m code_review_graph status --repo "{repo.local_path}"
+python -m code_review_graph status --repo "{repo-state.local_path}"
 ```
 
 Classify result:
@@ -38,13 +39,13 @@ Run for each repo. If the relative path produces 0 nodes or errors, retry with t
 #### 3a. Full Build
 
 ```powershell
-python -m code_review_graph build --repo "{repo.local_path}"
+python -m code_review_graph build --repo "{repo-state.local_path}"
 ```
 
 #### 3b. Incremental Update
 
 ```powershell
-python -m code_review_graph update --repo "{repo.local_path}"
+python -m code_review_graph update --repo "{repo-state.local_path}"
 ```
 
 ### 4. Register Repos for Cross-Repo Search
@@ -52,7 +53,7 @@ python -m code_review_graph update --repo "{repo.local_path}"
 `cross_repo_search_tool` requires repos to be registered. After a successful build (nodes > 0), register each repo:
 
 ```powershell
-python -m code_review_graph register "{repo.local_path}"
+python -m code_review_graph register "{repo-state.local_path}"
 ```
 
 If the repo is already registered, this is a no-op.
@@ -62,7 +63,7 @@ If the repo is already registered, this is a no-op.
 After a successful build or update, generate wiki pages for agent navigation:
 
 ```powershell
-python -m code_review_graph wiki --repo "{repo.local_path}"
+python -m code_review_graph wiki --repo "{repo-state.local_path}"
 ```
 
 ### 6. Update `context-providers.yml` Mode

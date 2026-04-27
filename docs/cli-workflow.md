@@ -108,7 +108,11 @@ Dispatches `decomposer` as a background sub-agent. Returns task board + executio
 ```
 Helix reads the execution plan, picks the highest-priority unblocked task, dispatches `implementer` sub-agent with the task contract + context bundle, then `scribe` marks state. Loops until no eligible tasks remain.
 
+The full implementation loop model (task TDD loop, slice verification loop, review gate) is defined in [`helix-process.md`](./helix-process.md#implementation).
+
 > **Note:** Use fleet mode only when execution plan explicitly marks tasks as parallel-safe with disjoint write paths.
+
+> **Manual mode:** Set `mode: manual` in `workspace.yml` or `execution.mode: manual` in the execution plan to disable autonomous scheduling. Helix will prompt before executing each task. Use this for high-risk changes or when you want to inspect each TDD step.
 
 **Output:** Code commits in product repos, updated task board.
 
@@ -146,6 +150,8 @@ Use this when you want to stay close to each task — inspect failing tests befo
 "Distill the HPP session"
 "Distill learnings from today's implementation"
 ```
+
+**`/chronicle` (optional, experimental):** If the host runtime provides a `/chronicle` session-event log, you may pass it to the distiller as supplementary context. It is advisory enrichment only — never the sole source of truth. Workspace artifacts and code changes remain the primary evidence. If `/chronicle` is unavailable or low-signal, omit it.
 
 **Output:** `.helix/memory/episodes/`, `.helix/memory/learnings/`
 
@@ -266,10 +272,13 @@ view("workspaces/{workspace}/reviews/prd-review-{date}.md")
 
 ## code-review-graph (CRG)
 
-CRG is installed and configured. The graph must be built before `curate-context` uses it (otherwise falls back to manual scanning with `confidence: low`).
+CRG is optional. Init seeds a clean `.vscode/mcp.json` for VS Code project config. Enable and bootstrap it with `set-context-provider.ps1 -Mode mcp -Bootstrap` when you want structural retrieval. That command reconciles both `.vscode/mcp.json` (VS Code) and `~/.copilot/mcp-config.json` (Copilot CLI). The graph must be built before `curate-context` uses it (otherwise falls back to manual scanning with `confidence: low`).
 
 **Initial setup (run from meta-repo root):**
 ```powershell
+# Normalize MCP config and ensure a usable runtime first
+./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap
+
 # Register repos (one-time) — use a path, not just an alias
 python -m code_review_graph register .\path\to\product-repo --alias RepoAlias
 # ... repeat for each repo in the workspace
@@ -300,9 +309,17 @@ python -m code_review_graph update --repo .\path\to\product-repo
 python -m code_review_graph serve
 ```
 
-**Config:** `.helix/context-providers.yml` — set `mode: off` to disable CRG and always use manual fallback.
+**Config:** `.helix/context-providers.yml` controls whether Helix should use CRG. Host-specific MCP files are `.vscode/mcp.json` for VS Code and `~/.copilot/mcp-config.json` for Copilot CLI.
 
 ---
+
+## LSP Servers
+
+Copilot CLI uses LSP automatically when configured, and the docs position it as **token-efficient** for symbol navigation, references, hover, and rename because it returns compact structured data instead of broad file reads.
+
+- Use LSP as a **language-accurate symbol tool**
+- Use CRG as a **structural retrieval and review tool**
+- Helix should document and detect LSP, but should not auto-install language servers by default because they are language-specific, environment-specific, and often better owned by the product repo or the operator
 
 ## Model Dispatch
 

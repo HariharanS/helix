@@ -29,9 +29,9 @@ Read `.helix/context-providers.yml`.
 Determine which product repo contains the changes:
 
 1. If the caller passed `repo-path` as the argument, use it directly.
-2. Otherwise read `workspaces/{name}/workspace.yml` and check each repo for recent changes:
+2. Otherwise read `workspaces/{name}/workspace.yml`, then resolve each repo's checkout root from `.helix/repo-state/{repo-id}.yml.local_path` and check each repo for recent changes:
    ```powershell
-   git -C "{repo.local_path}" diff --name-only HEAD~1
+   git -C "{repo-state.local_path}" diff --name-only HEAD~1
    ```
    Use the repo that returns changed files as the target. If multiple repos have changes, run Steps 3–5 once per repo.
 
@@ -81,7 +81,7 @@ get_affected_flows_tool(repo_root="{resolved-repo-path}")
 ### 6. Manual Fallback (mode: off or CRG unavailable)
 
 ```powershell
-git -C "{repo.local_path}" diff HEAD~1
+git -C "{resolved-repo-path}" diff HEAD~1
 ```
 
 Read the changed files directly. Manually trace callers and test coverage from code.

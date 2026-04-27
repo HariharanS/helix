@@ -132,7 +132,13 @@ After step 6d, build the code-review-graph for all repos in the workspace. This 
 
 > Skip this step only if the user explicitly defers it. Report that CRG is unbuilt in the setup summary so downstream phases know to expect low-confidence context.
 
-For each repo in `workspace.repos`, run from the **meta-repo root**:
+First normalize MCP config and ensure a usable CRG runtime:
+
+```powershell
+./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap
+```
+
+Then, for each repo in `workspace.repos`, resolve its actual checkout root from `.helix/repo-state/{repo-id}.yml.local_path` and run from the **meta-repo root**:
 
 ```powershell
 # IMPORTANT: --repo requires a path (full absolute or relative from meta-repo root).

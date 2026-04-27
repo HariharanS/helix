@@ -141,6 +141,7 @@ if (Test-Path $existingInstallStatePath) {
 
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/repo-state')
+New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/repo-capabilities')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/generated')
 New-HelixDirectory -Path (Join-Path $TargetRoot 'workspaces')
 
@@ -186,7 +187,7 @@ Add-ManagedFile -Items $items -SourceRelative 'scripts/workspace-setup.ps1' -Tar
 
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.README.md.template' -TargetRelative 'README.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.AGENTS.md.template' -TargetRelative 'AGENTS.md' -Category 'doc' -SyncMode 'merge-marked-sections'
-Add-ManagedFile -Items $items -SourceRelative 'templates/mcp.json.template' -TargetRelative '.mcp.json' -Category 'config' -SyncMode 'seed-once'
+Add-ManagedFile -Items $items -SourceRelative 'templates/vscode.mcp.json.template' -TargetRelative '.vscode/mcp.json' -Category 'config' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/helix-repos.yml.template' -TargetRelative 'helix-repos.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/active-workspace.yml.template' -TargetRelative '.helix/active-workspace.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/context-providers.yml.template' -TargetRelative '.helix/context-providers.yml' -Category 'manifest' -SyncMode 'seed-once'
@@ -197,6 +198,7 @@ foreach ($item in $items) {
 
 $gitKeepTargets = @(
     '.helix/repo-state/.gitkeep',
+    '.helix/repo-capabilities/.gitkeep',
     '.helix/generated/.gitkeep',
     'workspaces/.gitkeep'
 )
@@ -242,6 +244,11 @@ if ($legacyManagedUpgradePaths.Count -gt 0) {
 }
 
 foreach ($previousPath in $staleManagedPaths) {
+    if ([string]::Equals([string]$previousPath, '.mcp.json', [System.StringComparison]::OrdinalIgnoreCase)) {
+        Write-Warning "Leaving legacy '.mcp.json' in place. MCP config is now host-specific: use '.vscode/mcp.json' for VS Code and '~/.copilot/mcp-config.json' for Copilot CLI."
+        continue
+    }
+
     Remove-StaleManagedPath -RelativePath $previousPath
 }
 

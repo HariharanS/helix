@@ -23,7 +23,7 @@ Read `.helix/context-providers.yml`.
 ### 2. Resolve Repo Root and Base Ref
 
 #### Repo Root
-Same as `/review-delta`: if the caller passed a `repo-path`, use it. Otherwise resolve from workspace.yml by finding the repo with changes against the PR base.
+Same as `/review-delta`: if the caller passed a `repo-path`, use it. Otherwise resolve from `workspace.yml` repo ids plus `.helix/repo-state/{repo-id}.yml.local_path` by finding the repo with changes against the PR base.
 
 #### Base Ref
 Derive from actual git state — do NOT hardcode `main`:
@@ -31,9 +31,9 @@ Derive from actual git state — do NOT hardcode `main`:
 ```powershell
 # Prefer the PR's recorded base branch if available
 # Otherwise compute the merge-base
-$base = git -C "{repo.local_path}" merge-base HEAD origin/HEAD 2>$null
+$base = git -C "{resolved-repo-path}" merge-base HEAD origin/HEAD 2>$null
 if (-not $base) {
-    $base = git -C "{repo.local_path}" rev-parse origin/HEAD
+    $base = git -C "{resolved-repo-path}" rev-parse origin/HEAD
 }
 ```
 
@@ -99,7 +99,7 @@ get_affected_flows_tool(base="{base-sha}", repo_root="{resolved-repo-path}")
 ### 7. Manual Fallback (mode: off or CRG unavailable)
 
 ```powershell
-git -C "{repo.local_path}" diff "{base-sha}"...HEAD
+git -C "{resolved-repo-path}" diff "{base-sha}"...HEAD
 ```
 
 Read the changed files directly. Manually identify callers and test coverage from code.

@@ -53,6 +53,8 @@ Move to Ralph loop or fleet only after:
 - the contract between repos is locked
 - the execution plan has repo-scoped tasks with verified commands and ownership
 
+Use **manual mode** (`mode: manual` in `workspace.yml`) when you want step-by-step control over each task without autonomous scheduling — for example, during the first run on a new codebase or when changes are especially sensitive.
+
 ## Optional Second-Opinion Checkpoints
 
 If your Copilot runtime provides an optional second-opinion critique capability, you can ask for a critique at the stage boundaries where a second opinion has the highest return.
@@ -162,13 +164,13 @@ Use the legacy Bash helper only for the old combined layout. The PowerShell scri
 
 ### Optional: Enable Graph Retrieval Conservatively
 
-If you want structural code retrieval without making it mandatory, enable `code-review-graph` in `mcp` mode only after the graph is built:
+If you want structural code retrieval without making it mandatory, bootstrap a clean CRG runtime first, then build the graph before relying on it:
 
 ```powershell
-./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp
+./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap
 ```
 
-That keeps Helix in charge of process and workspace artifacts while using the graph for targeted structural retrieval when it is actually available.
+That keeps Helix in charge of process and workspace artifacts while reconciling the documented host-specific MCP locations with portable commands instead of instance-specific absolute paths.
 
 If it is noisy, unhelpful, or too expensive, turn it back off:
 
@@ -381,6 +383,8 @@ The implementation phase is done per task only when:
 - the repo-level suite has been run
 - `done_when` is satisfied
 - blockers are reported instead of guessed around
+
+**Slice verification (beta):** If the execution plan defines `slices[]`, Helix runs a verification gate after completing all tasks in a slice before advancing. If the environment cannot run the gate commands, the task is recorded with `verification.confidence: degraded` and a follow-up item is added to the task board. See [`docs/helix-process.md`](./docs/helix-process.md) for the slice loop model.
 
 ### How To Apply TDD In Your Setup
 

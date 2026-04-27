@@ -81,6 +81,7 @@ The full lifecycle, loops, and artifact rules are defined in [`docs/helix-proces
 | Mode | Mechanism | Use Case |
 |------|-----------|----------|
 | `interactive` | Handoffs between phase owners | New features, risky work, human-in-the-loop delivery |
+| `manual` | Human triggers each task individually | Step-by-step review of every change; no autonomous scheduling |
 | `fast-track` | Auto-chain planning phases into Ralph loop | Trusted work where phase outputs are already solid |
 | `ralph-loop` | Highest-priority unblocked task, commit, repeat | Default autonomous implementation mode |
 | `fleet` | Parallel implementers on disjoint tasks | Independent tasks with locked contracts and non-overlapping ownership |
@@ -144,6 +145,7 @@ Principles:
 - Execution plans are the machine-readable source of truth for automation
 - Context bundles are task-scoped evidence, not general documentation
 - If an artifact grows too large, prefer an `index.md` plus annexes or subdocuments over a single blob
+- **Beta:** Execution plans support `slices[]` for logical task groupings with verification gates; `execution.mode` supersedes the old `scheduler.default_mode` field. See [`docs/helix-process.md`](./docs/helix-process.md) for the full loop model.
 
 ## Target Deployment Model
 
@@ -176,7 +178,20 @@ Helix can optionally layer in `code-review-graph` for code-centric retrieval.
 - Keep Helix workspace artifacts as the source of truth for intent, design, and task contracts
 - Use `code-review-graph` only as a code-selection engine for blast radius, changed-file scoping, and targeted dependency lookup
 - Keep the provider `off` by default, then switch to `mcp` only when the graph is built and the signal quality is worth the extra tool calls and tokens
-- Toggle it with `scripts/set-context-provider.ps1`; switching back to `off` removes the MCP server entry from `.mcp.json`
+- Init seeds a clean `.vscode/mcp.json` for VS Code project config
+- Enable and bootstrap CRG with `scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap`
+- That command reconciles both documented host locations without overwriting unrelated servers:
+  - `.vscode/mcp.json` for VS Code project-level MCP
+  - `~/.copilot/mcp-config.json` for Copilot CLI user-level MCP
+- Switching back to `off` removes only the Helix-managed `code-review-graph` entry from those host configs
+
+## Optional LSP Support
+
+Copilot CLI LSP support is useful, but Helix should treat it as **advisory context infrastructure**, not mandatory setup.
+
+- LSP reduces token use for symbol navigation, references, rename, and hover by returning compact structured results instead of broad file reads
+- LSP does **not** replace CRG: use LSP for language-accurate symbol work, CRG for blast radius, communities, flows, and cross-file review context
+- Helix should document and detect LSP, but not auto-install language servers by default because they are language-specific and environment-specific
 
 ## Where To Start
 

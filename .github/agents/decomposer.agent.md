@@ -30,6 +30,8 @@ You break technical designs into small, implementable tasks that fit cleanly int
 - **Interface-first.** Define contracts/interfaces as early tasks so dependent work can proceed in parallel.
 - **One repo per task.** A task targets exactly one repo. Cross-repo features are split into per-repo tasks with shared contracts.
 - **Machine-readable execution.** Human-readable task boards are not enough. Every implementation task must also be emitted as a deterministic execution contract.
+- **Slices.** Group tasks into logical slices with a shared verifiable boundary (e.g., Foundation, Domain Logic, Infrastructure, Integration). Each slice has a `verification.commands` gate. Slices enable the orchestrator to track verification debt and apply backpressure.
+- **Verification metadata.** Every task declares task-level verification state, and every slice declares slice-level verification commands. Task-level proof is required; slice-level proof is preferred but may be deferred when the environment is unavailable.
 
 ## Workflow
 
@@ -44,11 +46,12 @@ You break technical designs into small, implementable tasks that fit cleanly int
    - Handlers/endpoints (thin wiring layer)
    - Tests (often done WITH the implementation in TDD, not separately)
 4. Order tasks by dependency
-5. Determine execution mode eligibility:
-   - **Ralph loop eligible:** task has repo, clear AC, commands, and done definition
-   - **Fleet eligible:** same as above, plus disjoint write ownership from sibling tasks in the same parallel group
-   - **Not autopilot-safe:** missing commands, ambiguous ownership, unresolved contract, or broad scope
-6. Produce both the human task board and the machine-readable execution plan
+5. Determine execution mode eligibility per task:
+   - **ralph-loop eligible:** task has repo, clear AC, commands, and done definition
+   - **fleet eligible:** same as above, plus disjoint write ownership from sibling tasks in the same parallel group
+   - **manual:** missing commands, unresolvable environment, ambiguous ownership, or explicitly requested by human; task is emitted but not autopilot-safe
+6. Group tasks into slices with verification commands
+7. Produce both the human task board and the machine-readable execution plan
 
 Read AGENTS.md and .instructions.md in each repo for conventions on how to structure code and where files belong.
 
@@ -72,7 +75,7 @@ When creating, provide the skill with:
 
 ### Machine-Readable Execution Plan
 
-Produce `workspaces/{workspace-name}/execution-plans/{feature-name}.yaml`:
+Produce `workspaces/{workspace-name}/execution-plans/{feature-name}.yaml` using `helix/templates/execution-plan.yaml.template` as the canonical shape:
 
 ```yaml
 feature: feature-name
@@ -82,12 +85,26 @@ source:
   prd: workspaces/{workspace-name}/prd.md or workspaces/{workspace-name}/prd/index.md
   tech_design: workspaces/{workspace-name}/tech-design.md or workspaces/{workspace-name}/tech-design/index.md
 
-scheduler:
-  default_mode: ralph-loop
-  fleet_groups:
-    - id: G1
-      rationale: Contract tasks with disjoint ownership
-      tasks: [TASK-001, TASK-002]
+execution:
+  mode: ralph-loop
+
+slices:
+  - id: S1
+    title: Foundation
+    task_ids: [TASK-001]
+    verification:
+      commands:
+        - dotnet test tests/Domain.Tests
+      confidence: normal
+      on_degraded: defer-and-record
+  - id: S2
+    title: Implementation
+    task_ids: [TASK-002]
+    verification:
+      commands:
+        - dotnet test
+      confidence: normal
+      on_degraded: defer-and-record
 
 tasks:
   - id: TASK-001
@@ -95,6 +112,9 @@ tasks:
     repo: ../path-to-repo
     goal: What outcome this task must produce
     priority: P0
+    slice_id: S1
+    execution:
+      mode: ralph-loop   # ralph-loop | fleet | manual
     depends_on: []
     can_run_in_parallel: false
     design_refs:
@@ -118,6 +138,8 @@ tasks:
         - dotnet test tests/Domain.Tests --filter FullyQualifiedName~ThingRepository
       full_suite:
         - dotnet test
+    verification:
+      confidence: normal   # normal | degraded | deferred
     acceptance_criteria:
       - Interface defined following repo conventions
       - Return types defined
@@ -157,7 +179,10 @@ A task is TOO BIG if:
 - Keep the markdown board concise; put operational detail in the execution plan instead of repeating it twice
 - Context bundles should stay task-scoped and compact; point to annex files when deeper evidence is needed
 - Do NOT mark a task as autopilot-safe unless `context_bundle`, `commands`, `ownership.write_paths`, and `done_when` are all populated
+- Tasks where commands cannot be verified from the repo must be marked `execution.mode: manual` — never guess commands
 - Parallel groups are allowed only when write paths are disjoint and shared contracts are already locked
-- If a command cannot be verified from the repo, leave the task out of fleet mode and mark it for human review instead of guessing
+- If a command cannot be verified from the repo, mark `execution.mode: manual` instead of guessing
+- Every slice must have at least one `verification.commands` entry discovered from actual repo scripts, CI config, or Makefile — do not invent verification commands
+- Slice verification may be deferred only when the outer verification genuinely requires an environment the agent cannot access (e.g., live integration, cloud deploy); document the reason in the task or slice notes
 - If the PRD or design is packaged, do not force downstream agents to read the whole package; extract the exact subdocument references they need
 - When an optional second-opinion critique capability is available, request a critique before marking an execution plan autopilot-safe; focus on missing commands, overlapping ownership, unsafe parallelism, and weak `done_when` criteria

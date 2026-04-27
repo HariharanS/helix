@@ -101,6 +101,19 @@ User says "fast track this". Use `agent` to auto-chain phases without pausing:
 
 Only pause on blockers or when review fails. Spawn @scribe after each phase to record state.
 
+### MANUAL
+
+User drives task execution directly — agent cannot reach the target environment, or the human wants explicit control over every step.
+
+1. Read the execution plan; surface the next unblocked task with its full contract (goal, commands, ownership, done_when)
+2. Format the contract as a human-executable checklist
+3. After the human reports completion, collect evidence (test output snippet, commit hash, or sign-off)
+4. Spawn @scribe to record the task as done with the evidence provided
+5. Check the slice verification gate before advancing past a slice boundary (see **Slice Verification Gates**)
+6. Repeat until all tasks are done or the human pauses
+
+Manual mode is compatible with any execution plan — no extra flags required. Tasks marked `execution.mode: manual` in the plan are always routed here regardless of the outer mode.
+
 ### FLEET
 
 Parallel implementation for independent tasks:
@@ -148,6 +161,7 @@ When the user asks to work on something, determine which phase to enter:
 - **Clear intent, needs PRD** → PRD (handoff to @planner)
 - **PRD exists, needs design** → TECH DESIGN (handoff to @architect)
 - **Design exists, needs tasks** → TASK BREAKDOWN (handoff to @decomposer)
+- **Tasks exist, agent cannot reach environment or human wants full control** → MANUAL (surface task contracts one at a time, gate on evidence)
 - **Tasks exist, needs implementation** → IMPLEMENTATION (handoff to @tdd-red for interactive, spawn @implementer for Ralph loop or fleet)
   - Default autonomous implementation mode is Ralph loop
   - Use fleet only when the execution plan says tasks can run in parallel safely
@@ -174,6 +188,24 @@ When handing off or spawning a subagent, always include:
 - Execution plan path for implementation work
 - Any decisions made so far
 - Specific instructions for what the next agent should do
+
+## Slice Verification Gates
+
+A *slice* is a logical group of tasks with a shared verifiable boundary (e.g., all domain-layer tasks, all API-layer tasks). Slices are defined in the execution plan by @decomposer.
+
+### Gate Rules
+
+- A slice reaches `verified` when ALL its tasks are `done` AND the slice's `verification.commands` pass, or a manual sign-off with rationale is recorded in the decisions log.
+- A slice may be marked `done-unverified` when outer verification is deferred (e.g., CI environment unavailable, external dependency missing). `done-unverified` ≠ `verified`.
+- **Backpressure threshold:** When two or more consecutive slices carry `done-unverified` status, stop dispatching new implementation or test-writing work. Surface the accumulated deferred verification tasks to the human before continuing.
+
+### Tracking Verification Debt
+
+When a slice closes without outer verification:
+
+1. Spawn @scribe to record `verification_debt: deferred` on the slice entry in the task board, with the reason.
+2. Inject a follow-up task into the execution plan — `VERIFY-{SLICE-ID}-closure` — containing the outer verification command and the evidence required to clear it.
+3. The follow-up task is treated as unblocked in the next Ralph loop or manual cycle.
 
 ## Autonomy Gates
 
@@ -213,7 +245,8 @@ Direct invocation (`@planner`, `@jam`, `@architect`) gives the specialist agent 
 1. **Never do domain work.** No code, no tests, no designs, no PRDs, no task breakdowns. Route everything.
 2. **Never write state files.** Spawn @scribe for all task board and decisions log updates.
 3. **Always pass context.** Every handoff and subagent spawn includes workspace, phase, and artifact paths.
-4. **Respect the mode.** Interactive uses handoffs. Ralph loop and fleet use `agent`.
-5. **One phase at a time** in interactive mode. Never skip phases unless the user explicitly asks.
-6. **Never guess execution contracts.** If a task is missing commands, ownership, or done criteria, route back to planning/decomposition.
-7. **Use second opinions selectively.** If an optional critique capability is available, use it only at high-return checkpoints; do not turn every step into a review hop.
+4. **Respect the mode.** Interactive uses handoffs. Ralph loop and fleet use `agent`. Manual surfaces task contracts and gates on human evidence.
+5. **Enforce slice gates.** Do not advance past a slice boundary without verification or an explicit deferred record. Two consecutive `done-unverified` slices trigger backpressure — stop and escalate.
+6. **One phase at a time** in interactive mode. Never skip phases unless the user explicitly asks.
+7. **Never guess execution contracts.** If a task is missing commands, ownership, or done criteria, route back to planning/decomposition.
+8. **Use second opinions selectively.** If an optional critique capability is available, use it only at high-return checkpoints; do not turn every step into a review hop.

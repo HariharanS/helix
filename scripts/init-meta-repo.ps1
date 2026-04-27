@@ -15,7 +15,9 @@ function Assert-HelixSourceRoot {
     $required = @(
         'scripts/install-helix.ps1',
         'scripts/doctor.ps1',
-        'templates/active-workspace.yml.template'
+        'templates/active-workspace.yml.template',
+        'templates/repo-capabilities.yml.template',
+        'templates/verification-policy.yml.template'
     )
 
     $registryTemplateCandidates = @(
@@ -100,7 +102,9 @@ function Assert-BaselineFiles {
         'helix/docs/helix-instance-schemas.md',
         'helix/scripts/install-helix.ps1',
         'helix/scripts/setup-workspace.ps1',
-        'helix/scripts/doctor.ps1'
+        'helix/scripts/doctor.ps1',
+        'helix/templates/repo-capabilities.yml.template',
+        'helix/templates/verification-policy.yml.template'
     )
 
     $missing = @(
@@ -161,4 +165,5 @@ if (-not $SkipDoctor) {
     Invoke-HelixScript -ScriptPath $doctorScript -Arguments @('-TargetRoot', $TargetRoot)
 }
 
+Write-Host "Optional dependency: if you want graph-based retrieval, enable it during workspace setup with './helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap' (reconciles '.vscode/mcp.json' and '~/.copilot/mcp-config.json')."
 Write-Host "Helix meta-repo initialized successfully at '$TargetRoot'."

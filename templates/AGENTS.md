@@ -12,6 +12,8 @@ This directory contains templates for generated Helix artifacts.
 - Template examples
 - Instruction and skill templates
 
+`execution-plan.yaml.template` includes **beta** fields (`slices[]`, `execution.mode`, `verification`) which are optional and advisory. Keep them commented out or omit entirely for minimal plans.
+
 ## Read Order
 
 1. Read [`../AGENTS.md`](../AGENTS.md) for repo-level rules

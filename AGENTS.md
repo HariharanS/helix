@@ -26,6 +26,8 @@ Do **not** read the entire repo by default.
 - Root `AGENTS.md` should stay navigation-first. Human narrative belongs in `README.md` or `docs/`.
 - Installed meta repos use `helix-repos.yml` as the canonical registry name; `repos.yml` survives only as a compatibility alias.
 - User-facing script entry points are `scripts/init.ps1`, `scripts/sync.ps1`, `scripts/upgrade.ps1`, and `scripts/workspace-setup.ps1`; the older implementation script names remain for compatibility and internal wiring.
+- **Beta:** `.helix/repo-capabilities/{repo-id}.yml` holds generated per-repo capability hints; read when present, skip gracefully when absent.
+- **Beta:** `workspaces/{id}/verification-policy.yml` is an operator-authored slice verification gate policy; opt in by declaring `artifacts.verification_policy` in `workspace.yml`, then read it when present and fall back to task-level `commands.verify` when absent.
 
 ## Directory Map
 

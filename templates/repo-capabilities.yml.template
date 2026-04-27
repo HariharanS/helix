@@ -1,0 +1,25 @@
+schema_version: 1
+repo_id: example-repo
+local_path: workspaces/example-workspace/repos/example-repo
+last_scanned_at: 2026-04-10T09:15:00Z
+present: false
+
+language_hints:
+  primary: null
+  detected: []
+  confidence: none
+  notes: []
+
+build_hints:
+  systems: []
+  package_managers: []
+  notes: []
+
+verification_layers:
+  - layer: build
+    execution_scope: local-runnable
+    confidence: high
+    evidence:
+      - dotnet
+    trust_notes:
+      - Manifest-driven detection. Actual build commands are configured per repo.

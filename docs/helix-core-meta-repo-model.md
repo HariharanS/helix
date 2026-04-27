@@ -88,6 +88,7 @@ meta-repo/
 │   ├── install-state.yml
 │   ├── active-workspace.yml
 │   ├── repo-state/
+│   ├── repo-capabilities/          ← beta: generated per-repo capability cache
 │   └── generated/
 ├── helix/
 │   ├── docs/
@@ -99,6 +100,7 @@ meta-repo/
 ├── workspaces/
 │   └── <workspace-id>/
 │       ├── workspace.yml
+│       ├── verification-policy.yml ← beta: operator-authored verification gate policy
 │       ├── repos/
 │       │   └── <repo-id>/      ← active workspace checkouts
 │       ├── task-boards/
@@ -227,8 +229,10 @@ Local or instance-owned:
 
 - `helix-repos.yml` — canonical repo registry (`repos.yml` kept as legacy compatibility alias)
 - `.helix/repo-state/*`
+- `.helix/repo-capabilities/*` — beta: generated per-repo capability cache (gitignored or committed per preference)
 - `.helix/generated/*`
 - `workspaces/*`
+- `workspaces/<id>/verification-policy.yml` — beta: operator-authored slice verification policy (optional)
 - `workspaces/<id>/repos/<repo-id>/` — active workspace product repo checkouts (gitignored)
 - `<workspace-id>.code-workspace` — generated VS Code workspace file at the meta-repo root (gitignored)
 - `.github/instructions/` — generated workspace and repo instruction summaries (gitignored)

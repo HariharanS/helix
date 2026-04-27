@@ -5,14 +5,29 @@ source:
   prd: workspaces/{workspace-name}/prd.md                # or prd/index.md for package-first
   tech_design: workspaces/{workspace-name}/tech-design.md  # or tech-design/index.md for package-first
 
-scheduler:
-  default_mode: ralph-loop
-  fleet_groups: []
+execution:
+  mode: ralph-loop            # interactive | ralph-loop | fleet | manual | fast-track
+  # manual: human triggers each task individually; no autonomous scheduling
+
+# --- Beta fields (advisory; omit for minimal plans) ---
+slices:                        # beta: logical groupings of tasks; verified as a unit
+  - id: slice-1
+    title: Short slice description
+    task_ids: [TASK-001, TASK-002]
+    verification:              # beta: gate that must pass before advancing to next slice
+      commands:
+        - npm test -- --runInBand path/to/slice-tests
+      confidence: normal       # normal | degraded | deferred
+      on_degraded: defer-and-record   # defer-and-record | block | skip
+# --- End beta fields ---
 
 tasks:
   - id: TASK-001
     title: Short task title
     repo: ../path-to-repo
+    slice_id: slice-1          # beta: which slice this task belongs to (omit if no slices)
+    execution:                 # optional per-task override; required when this task must not inherit root execution.mode
+      mode: ralph-loop         # ralph-loop | fleet | manual
     goal: Outcome this task must produce
     priority: P0
     depends_on: []
@@ -37,6 +52,10 @@ tasks:
         - npm test -- path/to/test
       full_suite:
         - npm test
+    verification:              # beta: task-level verification metadata
+      confidence: normal       # normal | degraded | deferred
+      # degraded: environment could not run commands; follow-up required
+      # deferred: verification intentionally skipped; must be resolved before review gate
     acceptance_criteria:
       - Clear, testable acceptance criterion
     done_when:

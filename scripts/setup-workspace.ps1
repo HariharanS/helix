@@ -95,6 +95,26 @@ function Get-WorkspaceRepoRelativePath {
     return "workspaces/$WorkspaceName/repos/$RepoId"
 }
 
+function Resolve-HelixTemplatePath {
+    param(
+        [Parameter(Mandatory = $true)][string]$HelixRoot,
+        [Parameter(Mandatory = $true)][string]$TemplateFileName
+    )
+
+    $candidates = @(
+        (Join-Path $HelixRoot "helix/templates/$TemplateFileName"),
+        (Join-Path $HelixRoot "templates/$TemplateFileName")
+    )
+
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    throw "Could not resolve template '$TemplateFileName'. Checked: $($candidates -join ', ')"
+}
+
 function New-GeneratedInstructionSummaryFile {
     param(
         [Parameter(Mandatory = $true)][string]$OutputPath,
@@ -209,6 +229,10 @@ foreach ($workspaceRepo in $workspaceManifest.repos) {
         $repoState.git.remote = [string]$repoDef.remote
     }
     $repoStates += $repoState
+
+    $capabilityState = Get-HelixRepoCapabilities -RepoId $repoId -RepoPath $repoPath
+    $capabilityState.local_path = $repoRelativePath
+
     $workspaceRepos += [ordered]@{
         repo_id = $repoId
         repo_path = $repoPath
@@ -217,6 +241,41 @@ foreach ($workspaceRepo in $workspaceManifest.repos) {
 
     $repoStatePath = Join-Path $TargetRoot ".helix/repo-state/$repoId.yml"
     Write-HelixYamlFile -Path $repoStatePath -Value $repoState
+
+    $repoCapabilityPath = Join-Path $TargetRoot ".helix/repo-capabilities/$repoId.yml"
+    Write-HelixYamlFile -Path $repoCapabilityPath -Value $capabilityState
+}
+
+$verificationPolicyDeclared = $false
+$verificationPolicyPath = $null
+if ($null -ne $workspaceManifest.artifacts -and $workspaceManifest.artifacts.Contains('verification_policy')) {
+    $verificationPolicyArtifact = [string]$workspaceManifest.artifacts['verification_policy']
+    if (-not [string]::IsNullOrWhiteSpace($verificationPolicyArtifact)) {
+        $verificationPolicyDeclared = $true
+        $verificationPolicyPath = if ([System.IO.Path]::IsPathRooted($verificationPolicyArtifact)) {
+            [System.IO.Path]::GetFullPath($verificationPolicyArtifact)
+        } else {
+            [System.IO.Path]::GetFullPath((Join-Path $workspaceDir $verificationPolicyArtifact))
+        }
+    }
+}
+
+if ($verificationPolicyDeclared -and -not (Test-Path $verificationPolicyPath)) {
+    $verificationPolicyTemplatePath = Resolve-HelixTemplatePath -HelixRoot $TargetRoot -TemplateFileName 'verification-policy.yml.template'
+    $verificationPolicyDir = Split-Path -Parent $verificationPolicyPath
+    if ($verificationPolicyDir) {
+        New-HelixDirectory -Path $verificationPolicyDir
+    }
+
+    Copy-Item -LiteralPath $verificationPolicyTemplatePath -Destination $verificationPolicyPath -Force
+    try {
+        $verificationPolicy = Import-HelixYamlFile -Path $verificationPolicyPath
+        $verificationPolicy.workspace_id = $workspaceName
+        $verificationPolicy.last_seeded_at = (Get-Date).ToUniversalTime().ToString('o')
+        Write-HelixYamlFile -Path $verificationPolicyPath -Value $verificationPolicy
+    } catch {
+        Write-Warning "Seeded verification policy at '$verificationPolicyPath' from template, but could not apply workspace metadata."
+    }
 }
 
 $workspaceConfig = [ordered]@{

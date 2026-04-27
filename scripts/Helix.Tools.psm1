@@ -497,6 +497,257 @@ function Get-HelixRepoReadiness {
     return $state
 }
 
+function Get-HelixRepoCapabilities {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepoId,
+        [Parameter(Mandatory = $true)][string]$RepoPath
+    )
+
+    function Test-RepoMarker {
+        param(
+            [Parameter(Mandatory = $true)][string]$Path,
+            [Parameter(Mandatory = $true)][string[]]$Candidates
+        )
+
+        foreach ($candidate in $Candidates) {
+            if (Test-Path (Join-Path $Path $candidate)) {
+                return $true
+            }
+        }
+
+        return $false
+    }
+
+    function Find-RepoFile {
+        param(
+            [Parameter(Mandatory = $true)][string]$Path,
+            [Parameter(Mandatory = $true)][string[]]$Patterns
+        )
+
+        foreach ($pattern in $Patterns) {
+            $match = Get-ChildItem -Path $Path -Recurse -File -Filter $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($match) {
+                return $match.FullName
+            }
+        }
+
+        return $null
+    }
+
+    function Find-RepoDirectoryByName {
+        param(
+            [Parameter(Mandatory = $true)][string]$Path,
+            [Parameter(Mandatory = $true)][string[]]$Names
+        )
+
+        $set = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($name in $Names) {
+            $null = $set.Add($name)
+        }
+
+        $match = Get-ChildItem -Path $Path -Recurse -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $set.Contains($_.Name) } |
+            Select-Object -First 1
+
+        if ($match) {
+            return $match.FullName
+        }
+
+        return $null
+    }
+
+    function Add-Layer {
+        param(
+            [Parameter(Mandatory = $true)][System.Collections.Generic.List[object]]$Layers,
+            [Parameter(Mandatory = $true)][string]$LayerId,
+            [Parameter(Mandatory = $true)][string]$ExecutionScope,
+            [Parameter(Mandatory = $true)][string]$Confidence,
+            [string[]]$Evidence = @(),
+            [string[]]$TrustNotes = @()
+        )
+
+        $Layers.Add([ordered]@{
+            layer = $LayerId
+            execution_scope = $ExecutionScope
+            confidence = $Confidence
+            evidence = @($Evidence | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+            trust_notes = @($TrustNotes | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+        }) | Out-Null
+    }
+
+    $present = Test-Path $RepoPath
+    $capabilities = [ordered]@{
+        schema_version = 1
+        repo_id = $RepoId
+        local_path = $RepoPath
+        last_scanned_at = (Get-Date).ToUniversalTime().ToString('o')
+        present = $present
+        language_hints = [ordered]@{
+            primary = $null
+            detected = @()
+            confidence = 'none'
+            notes = @()
+        }
+        build_hints = [ordered]@{
+            systems = @()
+            package_managers = @()
+            notes = @()
+        }
+        verification_layers = @()
+    }
+
+    if (-not $present) {
+        return $capabilities
+    }
+
+    $detectedLanguages = [System.Collections.Generic.List[string]]::new()
+    $detectedBuildSystems = [System.Collections.Generic.List[string]]::new()
+    $detectedPackageManagers = [System.Collections.Generic.List[string]]::new()
+    $layers = [System.Collections.Generic.List[object]]::new()
+
+    $dotnetManifest = Find-RepoFile -Path $RepoPath -Patterns @('*.sln', '*.csproj')
+    if ($dotnetManifest) {
+        $detectedLanguages.Add('csharp') | Out-Null
+        $detectedBuildSystems.Add('dotnet') | Out-Null
+        $detectedPackageManagers.Add('nuget') | Out-Null
+    }
+
+    $nodeManifest = Find-RepoFile -Path $RepoPath -Patterns @('package.json')
+    if ($nodeManifest) {
+        $detectedBuildSystems.Add('node') | Out-Null
+        $detectedPackageManagers.Add('npm') | Out-Null
+        if (Find-RepoFile -Path $RepoPath -Patterns @('tsconfig.json')) {
+            $detectedLanguages.Add('typescript') | Out-Null
+        } else {
+            $detectedLanguages.Add('javascript') | Out-Null
+        }
+    }
+
+    $pythonManifest = Find-RepoFile -Path $RepoPath -Patterns @('pyproject.toml', 'requirements.txt', 'setup.py')
+    if ($pythonManifest) {
+        $detectedLanguages.Add('python') | Out-Null
+        $detectedBuildSystems.Add('python') | Out-Null
+        $detectedPackageManagers.Add('pip') | Out-Null
+    }
+
+    $goManifest = Find-RepoFile -Path $RepoPath -Patterns @('go.mod')
+    if ($goManifest) {
+        $detectedLanguages.Add('go') | Out-Null
+        $detectedBuildSystems.Add('go') | Out-Null
+    }
+
+    $javaManifest = Find-RepoFile -Path $RepoPath -Patterns @('pom.xml', 'build.gradle', 'build.gradle.kts')
+    if ($javaManifest) {
+        $detectedLanguages.Add('java') | Out-Null
+        $detectedBuildSystems.Add('jvm') | Out-Null
+        if ($javaManifest.EndsWith('pom.xml', [System.StringComparison]::OrdinalIgnoreCase)) {
+            $detectedPackageManagers.Add('maven') | Out-Null
+        } else {
+            $detectedPackageManagers.Add('gradle') | Out-Null
+        }
+    }
+
+    $rustManifest = Find-RepoFile -Path $RepoPath -Patterns @('Cargo.toml')
+    if ($rustManifest) {
+        $detectedLanguages.Add('rust') | Out-Null
+        $detectedBuildSystems.Add('rust') | Out-Null
+        $detectedPackageManagers.Add('cargo') | Out-Null
+    }
+
+    $buildSystems = @($detectedBuildSystems | Select-Object -Unique)
+    $packageManagers = @($detectedPackageManagers | Select-Object -Unique)
+    $languages = @($detectedLanguages | Select-Object -Unique)
+
+    $capabilities.language_hints.detected = $languages
+    $capabilities.language_hints.primary = if ($languages.Count -gt 0) { $languages[0] } else { $null }
+    $capabilities.language_hints.confidence = if ($languages.Count -gt 0) { 'medium' } else { 'none' }
+    if ($languages.Count -gt 1) {
+        $capabilities.language_hints.notes = @('Multiple language markers found. Treat as polyglot repository.')
+    }
+
+    $capabilities.build_hints.systems = $buildSystems
+    $capabilities.build_hints.package_managers = $packageManagers
+    if ($buildSystems.Count -gt 0) {
+        $capabilities.build_hints.notes = @('Build hints come from manifest file presence, not command validation.')
+    }
+
+    if ($buildSystems.Count -gt 0) {
+        Add-Layer -Layers $layers -LayerId 'build' -ExecutionScope 'local-runnable' -Confidence 'high' `
+            -Evidence @($buildSystems) `
+            -TrustNotes @('Manifest-driven detection. Actual build commands are configured per repo.')
+    }
+
+    $unitEvidence = @()
+    $unitDir = Find-RepoDirectoryByName -Path $RepoPath -Names @('test', 'tests', 'spec', 'specs', '__tests__')
+    if ($unitDir) { $unitEvidence += "directory:$([System.IO.Path]::GetFileName($unitDir))" }
+    $unitFile = Find-RepoFile -Path $RepoPath -Patterns @('*Test*.cs', '*Tests*.csproj', 'test_*.py', '*_test.py', '*.spec.ts', '*.spec.js')
+    if ($unitFile) { $unitEvidence += "file:$([System.IO.Path]::GetFileName($unitFile))" }
+    if ($unitEvidence.Count -gt 0) {
+        Add-Layer -Layers $layers -LayerId 'unit' -ExecutionScope 'local-runnable' -Confidence 'medium' `
+            -Evidence $unitEvidence `
+            -TrustNotes @('Heuristic detection based on test naming conventions.')
+    }
+
+    $harnessEvidence = @()
+    $harnessDir = Find-RepoDirectoryByName -Path $RepoPath -Names @('harness', 'component-tests', 'component', 'fixtures')
+    if ($harnessDir) { $harnessEvidence += "directory:$([System.IO.Path]::GetFileName($harnessDir))" }
+    $harnessFile = Find-RepoFile -Path $RepoPath -Patterns @('*harness*', '*component*test*')
+    if ($harnessFile) { $harnessEvidence += "file:$([System.IO.Path]::GetFileName($harnessFile))" }
+    if ($harnessEvidence.Count -gt 0) {
+        Add-Layer -Layers $layers -LayerId 'harness_component' -ExecutionScope 'local-runnable' -Confidence 'low' `
+            -Evidence $harnessEvidence `
+            -TrustNotes @('Name-based heuristic; may include non-verification harness assets.')
+    }
+
+    $contractEvidence = @()
+    $contractDir = Find-RepoDirectoryByName -Path $RepoPath -Names @('contracts', 'contract', 'openapi', 'swagger', 'pacts')
+    if ($contractDir) { $contractEvidence += "directory:$([System.IO.Path]::GetFileName($contractDir))" }
+    $contractFile = Find-RepoFile -Path $RepoPath -Patterns @('*.postman_collection.json', '*pact*.json', 'openapi*.yml', 'openapi*.yaml', 'swagger*.json')
+    if ($contractFile) { $contractEvidence += "file:$([System.IO.Path]::GetFileName($contractFile))" }
+    if ($contractEvidence.Count -gt 0) {
+        Add-Layer -Layers $layers -LayerId 'contract_sandbox' -ExecutionScope 'hybrid' -Confidence 'low' `
+            -Evidence $contractEvidence `
+            -TrustNotes @('Contract artifacts detected; execution may require shared services or sandbox credentials.')
+    }
+
+    $integrationEvidence = @()
+    $integrationDir = Find-RepoDirectoryByName -Path $RepoPath -Names @('integration', 'integration-tests', 'acceptance', 'acceptance-tests', 'smoke')
+    if ($integrationDir) { $integrationEvidence += "directory:$([System.IO.Path]::GetFileName($integrationDir))" }
+    $integrationFile = Find-RepoFile -Path $RepoPath -Patterns @('*IntegrationTest*', '*AcceptanceTest*', 'docker-compose*.yml', 'docker-compose*.yaml')
+    if ($integrationFile) { $integrationEvidence += "file:$([System.IO.Path]::GetFileName($integrationFile))" }
+    if ($integrationEvidence.Count -gt 0) {
+        Add-Layer -Layers $layers -LayerId 'integration_acceptance' -ExecutionScope 'hybrid' -Confidence 'medium' `
+            -Evidence $integrationEvidence `
+            -TrustNotes @('Integration-like assets found. Some runs may require containerized or remote dependencies.')
+    }
+
+    $uiEvidence = @()
+    $uiConfig = Find-RepoFile -Path $RepoPath -Patterns @('playwright.config.*', 'cypress.config.*', 'wdio.conf.*')
+    if ($uiConfig) { $uiEvidence += "file:$([System.IO.Path]::GetFileName($uiConfig))" }
+    $uiDir = Find-RepoDirectoryByName -Path $RepoPath -Names @('e2e', 'ui-tests', 'playwright', 'cypress')
+    if ($uiDir) { $uiEvidence += "directory:$([System.IO.Path]::GetFileName($uiDir))" }
+    if ($uiEvidence.Count -gt 0) {
+        Add-Layer -Layers $layers -LayerId 'ui_e2e' -ExecutionScope 'local-runnable' -Confidence 'medium' `
+            -Evidence $uiEvidence `
+            -TrustNotes @('UI automation markers found. Browser/runtime dependencies are assumed external to this scan.')
+    }
+
+    $releaseEvidence = @()
+    if (Test-RepoMarker -Path $RepoPath -Candidates @('.github/workflows', '.azuredevops', '.circleci')) {
+        $releaseEvidence += 'directory:ci-pipeline-config'
+    }
+    $releaseFile = Find-RepoFile -Path $RepoPath -Patterns @('azure-pipelines.yml', 'Jenkinsfile', 'Dockerfile', '*.helm.yaml', '*.helm.yml')
+    if ($releaseFile) { $releaseEvidence += "file:$([System.IO.Path]::GetFileName($releaseFile))" }
+    if ($releaseEvidence.Count -gt 0) {
+        Add-Layer -Layers $layers -LayerId 'release_qualification' -ExecutionScope 'env-backed' -Confidence 'low' `
+            -Evidence $releaseEvidence `
+            -TrustNotes @('Release qualification usually depends on CI/CD infra and promoted environments.')
+    }
+
+    $capabilities.verification_layers = @($layers.ToArray())
+    return $capabilities
+}
+
 function Merge-HelixMarkedSections {
     param(
         [Parameter(Mandatory = $true)][string]$SourceContent,
@@ -533,6 +784,7 @@ Export-ModuleMember -Function @(
     'ConvertFrom-HelixYaml',
     'ConvertTo-HelixYamlLines',
     'Get-HelixActiveWorkspacePath',
+    'Get-HelixRepoCapabilities',
     'Get-HelixRelativePath',
     'Get-HelixRepoReadiness',
     'Get-HelixRoot',

@@ -5,7 +5,7 @@ id: example-feature
 display_name: Example Feature
 description: Short description of the feature-space
 status: draft
-mode: interactive
+mode: interactive             # interactive | ralph-loop | fleet | manual | fast-track
 objective: One-sentence desired outcome
 created_at: 2026-04-10
 
@@ -34,3 +34,4 @@ artifacts:
   task_board_dir: task-boards/
   execution_plan_dir: execution-plans/
   decisions_dir: decisions/
+  # verification_policy: verification-policy.yml   # beta: uncomment to enable slice verification policy
