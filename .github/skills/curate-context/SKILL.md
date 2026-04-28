@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # Curate Context Skill
 
-Produces a tiered context bundle for a task using code-review-graph as the primary retrieval engine. Falls back to manual scanning if CRG is unavailable.
+Produces a tiered context bundle for a task using code-review-graph as the primary retrieval engine. Manual fallback only when the operator explicitly sets `mode: off` — a missing or stale graph in `mode: mcp` is a hard error.
 
 ## Workflow
 
@@ -18,7 +18,7 @@ Produces a tiered context bundle for a task using code-review-graph as the prima
 - Read `.helix/active-workspace.yml` for the active workspace name
 - Read `workspaces/{name}/workspace.yml` for the repo list
 - Read `.helix/context-providers.yml` for CRG mode and budgets
-- If `code_review_graph.mode` is `off`, skip to Step 6 (manual fallback)
+- If `code_review_graph.mode` is `off`, skip to Step 6 (manual fallback — operator opted out)
 - If `code_review_graph.mode` is `mcp`, continue to Step 2 (probe before MCP calls)
 
 ### 2. Readiness Probe (mode: mcp only)
@@ -30,7 +30,11 @@ python -m code_review_graph status --repo {primary-repo-path}
 ```
 
 - Exit 0 and `nodes > 0` → proceed with MCP tool calls below
-- Exit non-zero or `nodes = 0` → skip to Step 6 (manual fallback)
+- Exit non-zero or `nodes = 0` → **HARD ERROR** (do not silently fall back). Stop and surface the failure to the user with the exact remediation:
+
+  > CRG is configured as `mode: mcp` in `.helix/context-providers.yml` but the graph for `{primary-repo-path}` reports {0 nodes | exit code N}. Run `/build-graph` (or `python -m code_review_graph build --repo {primary-repo-path}`) to build it, then re-run this skill. To explicitly opt out of graph-based retrieval, set `mode: off` in `.helix/context-providers.yml` — manual fallback is reserved for that case.
+
+  Do NOT proceed to Step 6. Manual fallback in `mode: mcp` masks the misconfiguration and produces low-confidence bundles that downstream agents trust as if they were graph-derived.
 
 ### 2a. Graph-First Retrieval (MCP)
 
@@ -85,9 +89,9 @@ Populate:
 - Read Order: Primary files first, then secondary if needed
 - Source attribution: mark each entry as `crg:tool_name` or `manual`
 
-### 6. Manual Fallback (mode: off or all CRG retrieval failed)
+### 6. Manual Fallback (mode: off ONLY)
 
-When mode is `off`, or MCP probe failed (exit non-zero or 0 nodes):
+This step runs **only** when `code_review_graph.mode` is explicitly `off` in `.helix/context-providers.yml`. A missing graph in `mode: mcp` is a hard error in Step 2 — do not route here from a probe failure.
 
 1. Fall back to manual multi-pass repo scanning:
    - Directory scan for structure
@@ -95,7 +99,7 @@ When mode is `off`, or MCP probe failed (exit non-zero or 0 nodes):
    - Test pattern discovery
 2. Still write a tiered context bundle, but mark `source: manual` on all entries
 3. Set `confidence: low` in the frontmatter
-4. Add to Open Questions: "CRG unavailable — context may be incomplete. Check `context-providers.yml` mode and run `/workspace-sync` to rebuild the graph."
+4. Add to Open Questions: "CRG mode is 'off' — context derived from manual scanning only. Set `mode: mcp` and run `/build-graph` for graph-assisted curation."
 
 ## Guidelines
 

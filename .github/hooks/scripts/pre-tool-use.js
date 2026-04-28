@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
-const { logEvent, parseToolArgs, readHookInput } = require('./helix-runtime');
+// Gates dangerous shell commands. Logging removed — Copilot CLI's events.jsonl
+// already records every tool.execution_start with toolName + arguments.
+
+const { parseToolArgs, readHookInput } = require('./helix-runtime');
 
 const DANGEROUS_COMMANDS = [
   {
@@ -34,35 +37,16 @@ const DANGEROUS_COMMANDS = [
 ];
 
 function extractCommand(toolArgs) {
-  if (!toolArgs || typeof toolArgs !== 'object') {
-    return '';
-  }
-
-  if (typeof toolArgs.command === 'string') {
-    return toolArgs.command;
-  }
-
-  if (typeof toolArgs.input === 'string') {
-    return toolArgs.input;
-  }
-
+  if (!toolArgs || typeof toolArgs !== 'object') return '';
+  if (typeof toolArgs.command === 'string') return toolArgs.command;
+  if (typeof toolArgs.input === 'string') return toolArgs.input;
   return '';
 }
 
 function main() {
   const input = readHookInput();
-  const toolArgs = parseToolArgs(input.toolArgs);
-  const command = extractCommand(toolArgs);
-
-  logEvent('preToolUse', input, {
-    toolName: input.toolName || null,
-    toolArgs: input.toolArgs || null,
-    command,
-  });
-
-  if (!command) {
-    return;
-  }
+  const command = extractCommand(parseToolArgs(input.toolArgs));
+  if (!command) return;
 
   for (const rule of DANGEROUS_COMMANDS) {
     if (rule.pattern.test(command)) {

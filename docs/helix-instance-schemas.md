@@ -133,6 +133,7 @@ Do not use it for:
 | `description` | yes | string | Short summary of the feature-space |
 | `status` | yes | string | `draft`, `active`, `blocked`, `done`, or `archived` |
 | `mode` | no | string | `interactive`, `fast-track`, `ralph-loop`, `fleet`, or `manual` |
+| `workflow` | no | string | Opaque workflow identifier; defaults to `full-rpi`. Schema-ready for future workflows (e.g. test-only, review-only) — do not enum-constrain. |
 | `objective` | no | string | One-sentence desired outcome |
 | `created_at` | no | string | ISO date |
 | `phase` | no | map | Current lifecycle position |
@@ -162,6 +163,7 @@ display_name: Order History
 description: Order history feature spanning API, web, and downstream adapter repos
 status: active
 mode: interactive
+workflow: full-rpi
 objective: Let customers view historical orders with summary and detail flows
 created_at: 2026-04-10
 

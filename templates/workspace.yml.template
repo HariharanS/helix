@@ -6,6 +6,7 @@ display_name: Example Feature
 description: Short description of the feature-space
 status: draft
 mode: interactive             # interactive | ralph-loop | fleet | manual | fast-track
+workflow: full-rpi            # opaque string; today only full-rpi is implemented
 objective: One-sentence desired outcome
 created_at: 2026-04-10
 

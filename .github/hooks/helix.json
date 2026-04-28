@@ -10,15 +10,6 @@
         "timeoutSec": 10
       }
     ],
-    "userPromptSubmitted": [
-      {
-        "type": "command",
-        "bash": "node ./scripts/user-prompt-submitted.js",
-        "powershell": "node ./scripts/user-prompt-submitted.js",
-        "cwd": ".github/hooks",
-        "timeoutSec": 10
-      }
-    ],
     "preToolUse": [
       {
         "type": "command",
@@ -28,20 +19,11 @@
         "timeoutSec": 10
       }
     ],
-    "postToolUse": [
-      {
-        "type": "command",
-        "bash": "node ./scripts/post-tool-use.js",
-        "powershell": "node ./scripts/post-tool-use.js",
-        "cwd": ".github/hooks",
-        "timeoutSec": 10
-      }
-    ],
     "agentStop": [
       {
         "type": "command",
-        "bash": "node ./scripts/agent-stop.js",
-        "powershell": "node ./scripts/agent-stop.js",
+        "bash": "node ./scripts/crg-sweep.js",
+        "powershell": "node ./scripts/crg-sweep.js",
         "cwd": ".github/hooks",
         "timeoutSec": 10
       }
@@ -49,8 +31,8 @@
     "subagentStop": [
       {
         "type": "command",
-        "bash": "node ./scripts/subagent-stop.js",
-        "powershell": "node ./scripts/subagent-stop.js",
+        "bash": "node ./scripts/crg-sweep.js",
+        "powershell": "node ./scripts/crg-sweep.js",
         "cwd": ".github/hooks",
         "timeoutSec": 10
       }
@@ -58,17 +40,15 @@
     "sessionEnd": [
       {
         "type": "command",
-        "bash": "node ./scripts/session-end.js",
-        "powershell": "node ./scripts/session-end.js",
+        "bash": "node ./scripts/derive-trace.js",
+        "powershell": "node ./scripts/derive-trace.js",
         "cwd": ".github/hooks",
-        "timeoutSec": 10
-      }
-    ],
-    "errorOccurred": [
+        "timeoutSec": 30
+      },
       {
         "type": "command",
-        "bash": "node ./scripts/error-occurred.js",
-        "powershell": "node ./scripts/error-occurred.js",
+        "bash": "node ./scripts/crg-sweep.js",
+        "powershell": "node ./scripts/crg-sweep.js",
         "cwd": ".github/hooks",
         "timeoutSec": 10
       }
