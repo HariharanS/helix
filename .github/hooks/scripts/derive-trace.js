@@ -23,6 +23,7 @@ const {
   readHookInput,
   readYamlFile,
   redactText,
+  sanitizeForLog,
   truncateText,
 } = require('./helix-runtime');
 
@@ -93,97 +94,49 @@ function makeContextResolver(deltas) {
   };
 }
 
-// Build a map of toolCallId -> open subagent.started event so tool/turn events
-// inside a subagent span can be attributed to that agent.
-function indexSubagents(events) {
-  const open = new Map();
-  const closed = new Map();
+// Index every subagent.started by toolCallId so subagent.completed handlers and
+// nested-attribution lookups are O(1) instead of linear scans of the events list.
+function indexSubagentStarts(events) {
+  const byId = new Map();
   for (const e of events) {
-    if (e.type === 'subagent.started') {
-      open.set(e.data?.toolCallId, { started: e, ended: null });
-    } else if (e.type === 'subagent.completed') {
-      const id = e.data?.toolCallId;
-      const span = open.get(id);
-      if (span) {
-        span.ended = e;
-        closed.set(id, span);
-        open.delete(id);
-      }
+    if (e.type === 'subagent.started' && e.data?.toolCallId) {
+      byId.set(e.data.toolCallId, e);
     }
   }
-  return { open, closed };
-}
-
-// Build a stack-aware lookup: for any timestamp, which subagent is innermost?
-// Walks events once, tracks (start, end) intervals for each subagent.
-function makeSubagentResolver(events) {
-  const intervals = []; // { start, end, agent, model, toolCallId, parentTurnId }
-  const turnByCallId = new Map();
-  let currentTurn = null;
-  for (const e of events) {
-    if (e.type === 'assistant.turn_start') currentTurn = e.data?.turnId || null;
-    if (e.type === 'assistant.turn_end') currentTurn = null;
-    if (e.type === 'subagent.started') {
-      turnByCallId.set(e.data?.toolCallId, currentTurn);
-    }
-  }
-  const open = new Map();
-  for (const e of events) {
-    if (e.type === 'subagent.started') {
-      open.set(e.data?.toolCallId, e);
-    } else if (e.type === 'subagent.completed') {
-      const id = e.data?.toolCallId;
-      const start = open.get(id);
-      if (start) {
-        intervals.push({
-          start: Date.parse(start.timestamp),
-          end: Date.parse(e.timestamp),
-          agent: start.data?.agentName || start.data?.agentDisplayName || null,
-          model: e.data?.model || null,
-          totalTokens: e.data?.totalTokens ?? null,
-          totalToolCalls: e.data?.totalToolCalls ?? null,
-          toolCallId: id,
-          parentTurnId: turnByCallId.get(id) || null,
-        });
-        open.delete(id);
-      }
-    }
-  }
-  return function resolveAt(ts) {
-    const t = Date.parse(ts);
-    let best = null;
-    for (const iv of intervals) {
-      if (iv.start <= t && t <= iv.end) {
-        if (!best || iv.start > best.start) best = iv;
-      }
-    }
-    return best;
-  };
+  return byId;
 }
 
 function sanitizeToolArgs(args) {
   if (!args || typeof args !== 'object') return null;
-  const out = {};
-  for (const [k, v] of Object.entries(args)) {
-    if (typeof v === 'string') {
-      out[k] = truncateText(redactText(v));
-    } else {
-      out[k] = v;
-    }
-  }
-  return out;
+  return sanitizeForLog(args);
 }
 
+// Walks events in append-order (time-ordered by Copilot) and emits trace records.
+// Maintains an active-subagent stack inline so each non-subagent event is attributed
+// to the innermost open subagent without per-event interval scans.
 function deriveTraceRecords(events, deltas) {
   const resolveCtx = makeContextResolver(deltas);
-  const resolveSubagent = makeSubagentResolver(events);
+  const startById = indexSubagentStarts(events);
+  const activeStack = []; // [{ toolCallId, agent }]
   const records = [];
 
   for (const e of events) {
     const ts = e.timestamp;
     if (!ts) continue;
+
+    if (e.type === 'subagent.started') {
+      if (e.data?.toolCallId) {
+        activeStack.push({
+          toolCallId: e.data.toolCallId,
+          agent: e.data?.agentName || e.data?.agentDisplayName || null,
+        });
+      }
+      continue;
+    }
+
     const ctx = resolveCtx(ts);
-    const subagent = resolveSubagent(ts);
+    const innermost = activeStack[activeStack.length - 1];
+    const agentForChild = innermost?.agent || 'top-level';
 
     switch (e.type) {
       case 'user.message':
@@ -191,7 +144,7 @@ function deriveTraceRecords(events, deltas) {
           ts,
           kind: 'prompt',
           ...ctx,
-          agent: subagent?.agent || 'top-level',
+          agent: agentForChild,
           content: truncateText(redactText(e.data?.content || '')),
         });
         break;
@@ -202,7 +155,7 @@ function deriveTraceRecords(events, deltas) {
           ts,
           kind: 'assistant',
           ...ctx,
-          agent: subagent?.agent || 'top-level',
+          agent: agentForChild,
           tool_requests: reqs,
           content_preview: truncateText(redactText(e.data?.content || ''), 200),
         });
@@ -215,7 +168,7 @@ function deriveTraceRecords(events, deltas) {
           ts,
           kind: 'tool',
           ...ctx,
-          agent: subagent?.agent || 'top-level',
+          agent: agentForChild,
           tool_name: e.data?.toolName || null,
           tool_call_id: e.data?.toolCallId || null,
           args,
@@ -225,9 +178,8 @@ function deriveTraceRecords(events, deltas) {
       }
 
       case 'subagent.completed': {
-        const startTs = events.find(
-          x => x.type === 'subagent.started' && x.data?.toolCallId === e.data?.toolCallId
-        )?.timestamp;
+        const id = e.data?.toolCallId;
+        const startTs = id ? startById.get(id)?.timestamp : null;
         records.push({
           ts,
           kind: 'subagent',
@@ -239,6 +191,8 @@ function deriveTraceRecords(events, deltas) {
           latency_ms: startTs ? Date.parse(ts) - Date.parse(startTs) : null,
           outcome: e.data?.outcome || 'success',
         });
+        const idx = activeStack.findIndex(f => f.toolCallId === id);
+        if (idx !== -1) activeStack.splice(idx, 1);
         break;
       }
 
@@ -299,4 +253,11 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = {
+  deriveTraceRecords,
+  indexSubagentStarts,
+  makeContextResolver,
+  sanitizeToolArgs,
+};
