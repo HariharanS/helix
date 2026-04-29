@@ -36,16 +36,3 @@ assignments:
   distiller: fast
   resume: fast
   ui-tester: visual
-  helix: analysis
-  scribe: fast
-  jam: reasoning
-  planner: reasoning
-  architect: reasoning
-  decomposer: analysis
-  explorer: fast
-  implementer: coding
-  tdd-red: coding
-  reviewer: analysis
-  distiller: fast
-  resume: fast
-  ui-tester: visual

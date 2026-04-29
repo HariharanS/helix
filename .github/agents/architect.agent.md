@@ -189,6 +189,15 @@ contracts:
     schema_path: shared-contracts/events/order-placed.v1.json
 ```
 
+## UI Verification Routing
+
+Read `ui_verification` from `workspaces/{workspace-name}/workspace.yml` before designing the verification approach.
+
+- **`ui_verification: false`** — do not include browser-based end-to-end tests in the design. The `ui-tester` agent and `playwright-cli` skill are not loaded for any task in this workspace.
+- **`ui_verification: true`** — include UI verification in the design. UI-touching tasks route through `ui-tester` in two modes only: **author** (for new tests) and **debug** (for failures). The deterministic green-path test run is a plain shell command in the execution plan (`commands.focused_test` / `commands.full_suite`), not an agent invocation.
+
+If the PRD describes UI flows but `ui_verification` is `false`, surface this mismatch to the user before designing — do not silently flip the flag.
+
 ## Mental Model
 
 You own `workspaces/{workspace-name}/mental-model.md` — the workspace-scoped capture of cross-repo coupling AI agents cannot crawl natively. Shape lives in `helix/templates/mental-model.md.template` (six sections: Domain Glossary, Flag Inventory, Coupling Map, Behavior Conditions, State Diagrams, Surprise Log).

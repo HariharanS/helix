@@ -1,39 +1,71 @@
-# Running Playwright Tests
+# Running and Debugging Playwright Tests
 
-To run Playwright tests, use the `npx playwright test` command, or a package manager script. To avoid opening the interactive html report, use `PLAYWRIGHT_HTML_OPEN=never` environment variable.
+## Always run via the task-contract command
+
+Test runner commands are language- and repo-specific. **Read them from the task contract** (`commands.focused_test`, `commands.full_suite`) — never hardcode `npx playwright test`. The contract knows whether the repo uses npm scripts, `dotnet test`, `pytest`, Maven, or a custom wrapper.
+
+Examples of what the contract may resolve to (illustrative, not prescriptive):
 
 ```bash
-# Run all tests
+# TypeScript repos
 PLAYWRIGHT_HTML_OPEN=never npx playwright test
+PLAYWRIGHT_HTML_OPEN=never npm run e2e
 
-# Run all tests through a custom npm script
-PLAYWRIGHT_HTML_OPEN=never npm run special-test-command
+# C# / .NET repos
+dotnet test tests/E2E.Tests
+dotnet test --filter "FullyQualifiedName~LoginTests"
+
+# Python repos
+pytest tests/e2e
+pytest tests/e2e/test_login.py
+
+# Java / Maven
+mvn test -Dtest=LoginTest
 ```
 
-# Debugging Playwright Tests
+To suppress the auto-opening HTML report in TS/JS, set `PLAYWRIGHT_HTML_OPEN=never`. Other bindings produce reports differently (xUnit/JUnit XML, pytest output) — match the repo's convention.
 
-To debug a failing Playwright test, run it with `--debug=cli` option. This command will pause the test at the start and print the debugging instructions.
+## Green-path runs are not driven by an agent
 
-**IMPORTANT**: run the command in the background and check the output until "Debugging Instructions" is printed.
+In Helix, the deterministic test pass is run as a plain command from the execution plan — no `ui-tester` agent in the loop. The agent is only invoked when:
 
-Once instructions containing a session name are printed, use `playwright-cli` to attach the session and explore the page.
+1. **Authoring** new tests, or
+2. **Debugging** a failure that survived Playwright's auto-retry.
+
+This keeps the green path zero-cost in agent tokens.
+
+## Recommended Playwright config for the failure path
+
+For the failure-driven debug flow to work, the target repo's Playwright config should set:
+
+- `retries: 1` — auto-retry once before surfacing as a real failure (flake guard)
+- `trace: 'on-first-retry'` — capture a full trace on the retry so the agent can inspect what went wrong
+- `screenshot: 'only-on-failure'` — Playwright's default; the agent reads these from the HTML report
+
+If these are missing, the debug-mode agent should propose adding them as part of its fix.
+
+## Debugging a failing test
+
+When invoked in debug mode, the agent has the failing test name, the path to `playwright-report/index.html`, and any captured trace files. Most failures can be diagnosed from the trace alone — open the HTML report and read the timeline.
+
+If trace inspection is insufficient, run the focused test with `--debug=cli` (or the binding's equivalent) in the background. This pauses the test at the start and prints debugging instructions including a session name.
 
 ```bash
-# Run the test
+# TypeScript example
 PLAYWRIGHT_HTML_OPEN=never npx playwright test --debug=cli
-# ...
-# ... debugging instructions for "tw-abcdef" session ...
-# ...
+# ... waits, prints session name like "tw-abcdef" ...
 
-# Attach to the test
 playwright-cli attach tw-abcdef
 ```
 
-Keep the test running in the background while you explore and look for a fix.
-The test is paused at the start, so you should step over or pause at a particular location
-where the problem is most likely to be.
+**IMPORTANT**: run the test command in the background and wait for the "Debugging Instructions" output before attaching.
 
-Every action you perform with `playwright-cli` generates corresponding Playwright TypeScript code.
-This code appears in the output and can be copied directly into the test. Most of the time, a specific locator or an expectation should be updated, but it could also be a bug in the app. Use your judgement.
+Once attached, use `playwright-cli` to inspect the page, snapshot the DOM, evaluate expressions, etc. Each action emits codegen which can be transcribed into the test (in the target language) when the fix involves a locator or expectation change.
 
-After fixing the test, stop the background test run. Rerun to check that test passes.
+## Default assumption when debugging
+
+Read this every time you enter debug mode:
+
+> The test is correct. The code under test is wrong. Investigate the code first. Modifying the test to make it pass requires recording the justification (what about the test was wrong, and why) in the task log before the change is made. Do not delete or weaken assertions to achieve green.
+
+After fixing, stop the background test run and rerun the focused test to confirm green.

@@ -7,6 +7,23 @@ allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(npm:*)
 
 # Browser Automation with playwright-cli
 
+## Before authoring tests: detect the target language
+
+Target repos are tech-agnostic — they may use Playwright for **TypeScript / JavaScript**, **C# / .NET**, **Python**, or **Java**. Before writing or modifying test files, detect the binding in use and match it.
+
+| Marker | Binding | Codegen target |
+|--------|---------|----------------|
+| `package.json` declares `@playwright/test` | TypeScript | `--target=javascript` |
+| `*.csproj` / `*.sln` references `Microsoft.Playwright` | C# / .NET | `--target=csharp` |
+| `pyproject.toml` / `requirements.txt` declares `playwright` | Python | `--target=python` |
+| `pom.xml` / `build.gradle` references `playwright-java` | Java | `--target=java` |
+
+The `playwright-cli` interactive commands themselves (`open`, `click`, `fill`, etc.) are language-agnostic — only the **emitted test code** differs. Use the matching binding in the test files you write. Never mix bindings within a repo.
+
+If no Playwright binding is installed yet, stop and report it as a setup-required failure rather than guessing a language. Test runner commands always come from the task contract (`commands.focused_test` / `commands.full_suite`) — do not hardcode `npx playwright test`.
+
+See [references/test-generation.md](references/test-generation.md) for codegen examples in each language.
+
 ## Quick start
 
 ```bash

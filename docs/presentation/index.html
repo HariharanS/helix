@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Helix — How it Works</title>
+<style>
+  :root {
+    --bg: #0c0e13;
+    --panel: #141821;
+    --panel-2: #1b212d;
+    --ink: #e6e9ef;
+    --ink-dim: #9aa3b2;
+    --accent: #7aa2f7;
+    --accent-2: #9ece6a;
+    --warn: #e0af68;
+    --line: #2a3142;
+    --code: #c0caf5;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    height: 100%;
+    overflow: hidden;
+  }
+  .deck {
+    width: 100vw; height: 100vh;
+    position: relative;
+  }
+  .slide {
+    position: absolute; inset: 0;
+    padding: 56px 80px 80px;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .slide.active { display: flex; }
+  h1 {
+    font-size: 44px;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 32px;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  h2 .num {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    margin-right: 14px;
+    font-weight: 600;
+  }
+  .lede {
+    color: var(--ink-dim);
+    font-size: 18px;
+    margin: 0 0 22px;
+    max-width: 880px;
+    line-height: 1.5;
+  }
+  .grid {
+    display: grid;
+    gap: 18px;
+  }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .card p, .card li {
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .card ul { margin: 0; padding-left: 18px; }
+  code, .mono {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--code);
+    background: rgba(122, 162, 247, 0.10);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+  pre {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    color: var(--code);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .pill {
+    display: inline-block;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    margin-right: 6px;
+  }
+  .pill.green { color: var(--accent-2); border-color: rgba(158, 206, 106, 0.4); }
+  .pill.amber { color: var(--warn); border-color: rgba(224, 175, 104, 0.4); }
+  .pill.blue  { color: var(--accent); border-color: rgba(122, 162, 247, 0.4); }
+  .nav {
+    position: fixed;
+    bottom: 16px; right: 24px;
+    color: var(--ink-dim);
+    font-size: 13px;
+    display: flex; gap: 14px; align-items: center;
+    user-select: none;
+  }
+  .nav button {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .nav button:hover { background: var(--panel-2); }
+  .footnote {
+    color: var(--ink-dim);
+    font-size: 12.5px;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .footnote code { font-size: 12px; }
+  .lifecycle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 16px 0 12px;
+  }
+  .lifecycle .step {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    min-width: 110px;
+    text-align: center;
+  }
+  .lifecycle .step .ph {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .lifecycle .arrow {
+    color: var(--ink-dim);
+    font-size: 18px;
+  }
+  .title-slide {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .title-slide h1 {
+    font-size: 88px;
+    background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 16px;
+  }
+  .title-slide .sub {
+    color: var(--ink-dim);
+    font-size: 22px;
+    max-width: 720px;
+  }
+  .title-slide .meta {
+    margin-top: 40px;
+    color: var(--ink-dim);
+    font-size: 14px;
+  }
+  .ladder {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .ladder .rung {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .ladder .rung h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    color: var(--accent);
+  }
+  .ladder .rung p {
+    margin: 0;
+    color: var(--ink-dim);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .ladder .rung .scope {
+    display: block;
+    font-size: 11px;
+    color: var(--accent-2);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th { color: var(--ink-dim); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  td.mono-cell { font-family: ui-monospace, Consolas, monospace; color: var(--code); font-size: 13px; }
+  .arrow-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .arrow-row .big-arrow {
+    font-size: 32px;
+    color: var(--ink-dim);
+  }
+  .install-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .install-step .n {
+    background: var(--accent);
+    color: var(--bg);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .install-step .body { flex: 1; }
+  .install-step h3 { margin: 0 0 4px; font-size: 16px; color: var(--ink); }
+  .install-step p { margin: 0 0 6px; color: var(--ink-dim); font-size: 14px; line-height: 1.5; }
+  .install-step pre { margin: 4px 0 0; }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--accent);
+    transition: width 200ms ease;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- Slide 0: title -->
+<section class="slide title-slide active">
+  <h1>Helix</h1>
+  <div class="sub">A multi-agent orchestration system that drives a feature from intent to production across multiple repositories.</div>
+  <div class="meta">Built on GitHub Copilot CLI &middot; tech-agnostic by design</div>
+</section>
+
+<!-- Slide 1: What Helix is -->
+<section class="slide">
+  <h2><span class="num">01</span>What Helix is</h2>
+  <p class="lede">A workspace hub of agents, skills, prompts, hooks, and traces that turn a fuzzy idea into a merged change &mdash; without you driving each step yourself.</p>
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>Orchestrator</h3>
+      <p>One <code>helix</code> agent routes work to specialised sub-agents (jam, architect, decomposer, implementer, reviewer, distiller, ui-tester) based on the active workflow and phase.</p>
+    </div>
+    <div class="card">
+      <h3>Workspace-scoped</h3>
+      <p>Each feature lives in <code>workspaces/{id}/</code> with its own PRD, tech-design, slices, mental model, and trace history. Multiple workspaces coexist in one meta-repo.</p>
+    </div>
+    <div class="card">
+      <h3>Native Copilot files</h3>
+      <p>Uses <code>.github/agents/</code>, <code>.github/skills/</code>, <code>.github/prompts/</code>, <code>.github/hooks/</code>. No bespoke runtime &mdash; everything is markdown plus small Node scripts.</p>
+    </div>
+    <div class="card">
+      <h3>Cross-repo aware</h3>
+      <p>A single workspace can span N sub-repos. Slices declare <code>repos</code>, <code>cross_repo_contracts</code>, and topological ordering over the contract graph.</p>
+    </div>
+    <div class="card">
+      <h3>Captures every session</h3>
+      <p>Each session emits a derived trace at <code>sessionEnd</code>. Traces feed eval, distillation, and the operator's labelled corpus.</p>
+    </div>
+    <div class="card">
+      <h3>Tech-agnostic core</h3>
+      <p>No language, framework, or transport baked in. Verification commands are operator-supplied opaque strings; example stacks (.NET on AWS) are illustrative only.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 2: Install flow -->
+<section class="slide">
+  <h2><span class="num">02</span>Install flow</h2>
+  <p class="lede">Two scripts. The first turns a directory into a Helix meta-repo; the second wires up a feature workspace and pulls the participating sub-repos.</p>
+
+  <div class="install-step">
+    <div class="n">1</div>
+    <div class="body">
+      <h3>Initialise the meta-repo</h3>
+      <p>Lays down agents, skills, prompts, hooks, templates, and the registry stub. By default also bootstraps a CRG (code-review-graph) MCP context provider.</p>
+      <pre>pwsh helix/scripts/init-meta-repo.ps1
+  # flags: -SkipCRG, -SkipDoctor, -Force</pre>
+    </div>
+  </div>
+
+  <div class="install-step">
+    <div class="n">2</div>
+    <div class="body">
+      <h3>Edit <span class="mono">helix-repos.yml</span></h3>
+      <p>Declare the registry of sub-repos (id, remote, local_path) the meta-repo can pull from. Placeholders block setup until replaced.</p>
+    </div>
+  </div>
+
+  <div class="install-step">
+    <div class="n">3</div>
+    <div class="body">
+      <h3>Set up a workspace</h3>
+      <p>Per-workspace: clones or fetches the participating sub-repos under <code>workspaces/{ws}/repos/*</code>, seeds an empty <code>mental-model.md</code>, builds the CRG graph for each repo when <code>mode: mcp</code>, and seeds verification policy.</p>
+      <pre>pwsh helix/scripts/setup-workspace.ps1 -Workspace feature-orders-events
+  # flags: -CloneMissing, -FetchExisting, -SkipGraphBuild</pre>
+    </div>
+  </div>
+
+  <div class="footnote">
+    Sub-repos are separate git repos. Helix does not install per-repo git hooks &mdash; everything reactive lives in Copilot CLI lifecycle hooks under <code>helix/.github/hooks/</code>.
+  </div>
+</section>
+
+<!-- Slide 3: Lifecycle -->
+<section class="slide">
+  <h2><span class="num">03</span>Lifecycle &mdash; intent to distilled memory</h2>
+  <p class="lede">The default <span class="mono">full-rpi</span> workflow runs seven phases. Each phase routes to one agent and produces one named artifact. <span class="mono">workflow:</span> is opaque in the schema, so future workflows (review-only, test-only) can plug in without migration.</p>
+
+  <div class="lifecycle">
+    <div class="step"><div class="ph">/jam</div>intent</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><div class="ph">@jam</div>PRD</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><div class="ph">/tech-design</div>tech design</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><div class="ph">/task-breakdown</div>tasks &amp; slices</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><div class="ph">@implementer</div>implement</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><div class="ph">@reviewer</div>review</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><div class="ph">/distill</div>distill</div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top: 18px;">
+    <div class="card">
+      <h3>Artifacts produced</h3>
+      <ul>
+        <li><code>prd.md</code> &mdash; problem framing + acceptance criteria</li>
+        <li><code>tech-design/</code> &mdash; design doc plus structured <code>contracts.yaml</code> for cross-repo features</li>
+        <li><code>execution-plan.yaml</code> &mdash; tasks, slices, write-ownership, contract tests</li>
+        <li><code>.helix/traces/&lt;session-id&gt;.jsonl</code> &mdash; emitted at every <code>sessionEnd</code></li>
+        <li><code>.helix/skills/candidates/{id}.md</code> &mdash; distiller appends evidence</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Phase transitions</h3>
+      <p>The active workspace's <code>phase.current</code> + <code>phase.last_completed</code> drive routing and trigger heuristics. <code>distill-trigger.js</code> at <code>sessionEnd</code> emits a reminder when phase is <code>distill</code> or last-completed is <code>review</code>.</p>
+      <p style="margin-top: 8px;"><span class="pill blue">Single-workflow today</span> Schema is multi-workflow ready; orchestrator stays single until a real second workflow surfaces.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 4: Skill discovery & promotion -->
+<section class="slide">
+  <h2><span class="num">04</span>Skill discovery &amp; promotion</h2>
+  <p class="lede">When Helix attaches to a repo, repo-local skills under <code>.github/skills/</code> become discoverable to that workspace. Skills used across teams promote upward through a four-rung destination taxonomy.</p>
+
+  <div class="ladder">
+    <div class="rung">
+      <span class="scope">rung 1</span>
+      <h4>repo</h4>
+      <p>Lives in the sub-repo's <code>.github/skills/</code>. Discoverable only when that repo is part of an active workspace. Owned by the repo team.</p>
+    </div>
+    <div class="rung">
+      <span class="scope">rung 2</span>
+      <h4>workspace / meta</h4>
+      <p>Lives in the meta-repo's <code>.github/skills/</code>. Available to every workspace under that meta-repo. Owned by the operator running Helix.</p>
+    </div>
+    <div class="rung">
+      <span class="scope">rung 3</span>
+      <h4>helix-core</h4>
+      <p>Promoted into Helix itself when a pattern shows up across multiple meta-repos / teams. Ships with Helix; benefits everyone who installs.</p>
+    </div>
+    <div class="rung">
+      <span class="scope">rung 4</span>
+      <h4>personal</h4>
+      <p>Operator's home directory &mdash; idiosyncratic preferences that should not bleed into team-shared rungs.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 18px;">
+    <h3>Promotion gate</h3>
+    <p>A candidate promotes only when <strong>all</strong> are true: <code>occurrences &ge; 3</code> &middot; <code>features &ge; 2</code> (distinct) &middot; <code>held_out_replay = PASS</code> &middot; <code>quarterly_promotions &lt; 5</code> (hard cap). Even when eligible, the distiller writes <code>Recommendation: CREATE SKILL</code> and stops &mdash; the operator runs <code>/maker</code>.</p>
+    <p style="margin-top: 6px;"><span class="pill green">Operator-signed-off</span> <span class="pill blue">Evidence accumulates across features, not per-session</span></p>
+  </div>
+
+  <div class="footnote">Source: <code>helix/docs/distillation-architecture.md</code> &middot; Persistence: <code>.helix/skills/{candidates,graveyard,audits}/</code></div>
+</section>
+
+<!-- Slide 5: Skill improvement -->
+<section class="slide">
+  <h2><span class="num">05</span>Skill improvement over time</h2>
+  <p class="lede">Skills are not static. Three operator-driven prompts manage the lifecycle. Helix never auto-promotes or auto-graveyards.</p>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>/distill</h3>
+      <p>Runs the distiller agent against the active session. Appends evidence to existing candidates instead of duplicating; checks the graveyard fingerprint before suggesting a candidate.</p>
+    </div>
+    <div class="card">
+      <h3>/skill-audit</h3>
+      <p>Quarterly roll-up. Reads <code>candidates/</code>, <code>graveyard/</code>, and <code>usage.jsonl</code>; writes <code>audits/{YYYY-Q#}.md</code> with promotions made, graveyards, and edit-distance trend.</p>
+    </div>
+    <div class="card">
+      <h3>/skill-graveyard &lt;id&gt;</h3>
+      <p>Operator rejects a candidate with reason + a fingerprint to suppress re-suggestion. Idempotent. The candidate file is deleted; full evidence remains in git history.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 18px; border-color: rgba(224, 175, 104, 0.4);">
+    <h3 style="color: var(--warn);">Honest gap &mdash; deferred</h3>
+    <p><strong>Edit-distance feedback writer is not built.</strong> The schema for <code>usage.jsonl</code> ships, including an <code>edit_distance</code> field, but no agent or hook writes it. Three approaches were considered (hook-based, skill-side append, operator command); all were rejected as either noisy (load &ne; use) or unreliable. The right time to ship a writer is when an operator first asks &ldquo;I keep editing skill X the same way &mdash; can we just demote it?&rdquo;</p>
+    <p style="margin-top: 6px;"><code>/skill-audit</code> already skips the edit-distance section gracefully when <code>usage.jsonl</code> is empty.</p>
+  </div>
+</section>
+
+<!-- Slide 6: Eval & quality -->
+<section class="slide">
+  <h2><span class="num">06</span>Eval &amp; quality</h2>
+  <p class="lede">The plan originally called for nine designed scenarios + a Week-6 baseline comparison. With one real (uncommittable) workspace and zero committed runs, that would have measured imagination, not Helix. So eval was reframed into two layers.</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Layer 1 &mdash; Regression</h3>
+      <p>Pure unit tests against hook scripts and runtime helpers. No Copilot CLI, no LLM, no network. Catches plumbing breakage with a single correct answer.</p>
+      <p style="margin-top: 8px;"><span class="pill green">86 tests, all green</span></p>
+      <ul style="margin-top: 8px; color: var(--ink-dim); font-size: 13px;">
+        <li><code>pre-tool-use</code> dangerous-command gate</li>
+        <li><code>helix-runtime</code> redact / truncate / sanitize / parseSimpleYaml</li>
+        <li><code>derive-trace</code> kind mapping, latency math, nested subagent attribution</li>
+        <li><code>distill-trigger</code>, label schema, skill-persistence, mental-model</li>
+      </ul>
+      <p style="margin-top: 8px;" class="footnote">Run with <code>node --test helix/evals/regression/*.test.js</code></p>
+    </div>
+    <div class="card">
+      <h3>Layer 2 &mdash; Quality baseline</h3>
+      <p>Every real Helix session emits a trace at <code>sessionEnd</code>. The operator labels each via <code>/label-session</code>, writing a sibling <code>.label.yml</code> with three required fields:</p>
+      <table>
+        <tr><td class="mono-cell">correctness</td><td>match | partial | wrong</td></tr>
+        <tr><td class="mono-cell">rework</td><td>none | minor | major</td></tr>
+        <tr><td class="mono-cell">notes</td><td>single-line free-form</td></tr>
+      </table>
+      <p style="margin-top: 10px;"><span class="pill amber">Corpus is empty today</span></p>
+      <p class="footnote" style="margin-top: 8px;">Promotion to &ldquo;golden scenarios&rdquo; in <code>helix/evals/golden/</code> waits for &ge;20 labelled traces across &ge;3 distinct workspaces, including &ge;1 cross-repo. Estimated Week 12+.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 7: Mental model & surprise log -->
+<section class="slide">
+  <h2><span class="num">07</span>Cross-repo mental model</h2>
+  <p class="lede">Some coupling between repos cannot be auto-derived &mdash; shared terms, feature-flag inventory, behavioural conditions, divergence between &ldquo;what we said&rdquo; and &ldquo;what shipped.&rdquo; <code>workspaces/{ws}/mental-model.md</code> captures it.</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Six fixed sections</h3>
+      <ol style="padding-left: 20px; margin: 0;">
+        <li>Domain Glossary</li>
+        <li>Flag Inventory</li>
+        <li>Coupling Map</li>
+        <li>Behavior Conditions</li>
+        <li>State Diagrams</li>
+        <li>Surprise Log <span class="pill" style="font-size: 10px;">append-only</span></li>
+      </ol>
+      <p class="footnote" style="margin-top: 10px;">Architect owns sections 1&ndash;5 and updates them during tech-design. Operator and implementer append to the Surprise Log via <code>/surprise</code>.</p>
+    </div>
+    <div class="card">
+      <h3>/surprise &mdash; divergence capture</h3>
+      <p>Asks for title, expected, actual, optional repos. Appends a dated <code>### YYYY-MM-DD &mdash; title</code> entry under <code>## Surprise Log</code>.</p>
+      <pre>### 2026-04-29 &mdash; orders-api emits
+       OrderPlaced.v1 but worker
+       subscribes to v0
+
+**Expected:** Coupling map said v1 both sides
+**Actual:**   worker hard-codes v0
+**Repos:**    orders-api, orders-worker</pre>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 18px; border-color: rgba(224, 175, 104, 0.4);">
+    <h3 style="color: var(--warn);">Path taken: defer auto-population</h3>
+    <p>Static analysis to auto-populate Flag Inventory and Coupling Map was the original plan. Useful detection requires stack-specific patterns (env-var conventions, framework-specific HTTP-route attributes, event-publish APIs) &mdash; that violates Helix's tech-agnostic constraint. Section names are forward-compatible with whichever later path lands. The right signal to revisit is &ldquo;the same kind of surprise has shown up three times in two workspaces.&rdquo;</p>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="previous slide">&larr;</button>
+  <span id="counter">1 / 8</span>
+  <button id="next" aria-label="next slide">&rarr;</button>
+</div>
+
+<script>
+  (function() {
+    var slides = document.querySelectorAll('.slide');
+    var counter = document.getElementById('counter');
+    var progress = document.getElementById('progress');
+    var i = 0;
+
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach(function(s, idx) {
+        s.classList.toggle('active', idx === i);
+      });
+      counter.textContent = (i + 1) + ' / ' + slides.length;
+      progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    }
+
+    document.getElementById('prev').addEventListener('click', function() { show(i - 1); });
+    document.getElementById('next').addEventListener('click', function() { show(i + 1); });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(i - 1); e.preventDefault(); }
+      else if (e.key === 'Home') { show(0); }
+      else if (e.key === 'End') { show(slides.length - 1); }
+    });
+
+    show(0);
+  })();
+</script>
+
+</body>
+</html>
