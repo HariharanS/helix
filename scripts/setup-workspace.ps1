@@ -174,16 +174,24 @@ function Test-HelixCrgImport {
 }
 
 function Get-HelixCrgRunner {
+    if (Get-Command uvx -ErrorAction SilentlyContinue) {
+        return [ordered]@{ command = 'uvx'; args = @('code-review-graph') }
+    }
+
+    if (Get-Command code-review-graph -ErrorAction SilentlyContinue) {
+        return [ordered]@{ command = 'code-review-graph'; args = @() }
+    }
+
     if ((Get-Command python -ErrorAction SilentlyContinue) -and (Test-HelixCrgImport -Command 'python')) {
-        return [ordered]@{ command = 'python'; args = @() }
+        return [ordered]@{ command = 'python'; args = @('-m', 'code_review_graph') }
     }
 
     if ((Get-Command py -ErrorAction SilentlyContinue) -and (Test-HelixCrgImport -Command 'py' -Arguments @('-3'))) {
-        return [ordered]@{ command = 'py'; args = @('-3') }
+        return [ordered]@{ command = 'py'; args = @('-3', '-m', 'code_review_graph') }
     }
 
     if ((Get-Command python3 -ErrorAction SilentlyContinue) -and (Test-HelixCrgImport -Command 'python3')) {
-        return [ordered]@{ command = 'python3'; args = @() }
+        return [ordered]@{ command = 'python3'; args = @('-m', 'code_review_graph') }
     }
 
     return $null
@@ -196,10 +204,10 @@ function Invoke-HelixCrgBuild {
     )
 
     $cmd = [string]$Runner['command']
-    $prefix = @($Runner['args']) + @('-m', 'code_review_graph')
+    $prefix = @($Runner['args'])
 
-    Write-Host "  CRG: build --repo $RepoPath (--skip-flows for speed; run /build-graph later for flows)"
-    & $cmd @prefix 'build' '--repo' $RepoPath '--skip-flows' 2>&1 | Write-Host
+    Write-Host "  CRG: build --repo $RepoPath"
+    & $cmd @prefix 'build' '--repo' $RepoPath 2>&1 | Write-Host
     $buildExit = $LASTEXITCODE
 
     if ($buildExit -ne 0) {
@@ -208,15 +216,36 @@ function Invoke-HelixCrgBuild {
 
     & $cmd @prefix 'register' $RepoPath 2>&1 | Write-Host
     $registerExit = $LASTEXITCODE
+    if ($registerExit -ne 0) {
+        return [ordered]@{ status = 'failed'; stage = 'register'; exit_code = $registerExit }
+    }
 
     & $cmd @prefix 'wiki' '--repo' $RepoPath 2>&1 | Write-Host
     $wikiExit = $LASTEXITCODE
+    if ($wikiExit -ne 0) {
+        return [ordered]@{ status = 'failed'; stage = 'wiki'; exit_code = $wikiExit }
+    }
+
+    $statusOutput = & $cmd @prefix 'status' '--repo' $RepoPath 2>&1
+    $statusExit = $LASTEXITCODE
+    $statusText = ($statusOutput | Out-String)
+    $nodes = $null
+    if ($statusText -match '(?i)(?:node_count|nodes?)["''\s:=]+(?<nodes>\d+)') {
+        $nodes = [int]$Matches['nodes']
+    }
+
+    if ($statusExit -ne 0) {
+        return [ordered]@{ status = 'failed'; stage = 'status'; exit_code = $statusExit }
+    }
+
+    if ($null -ne $nodes -and $nodes -le 0) {
+        return [ordered]@{ status = 'failed'; stage = 'status'; exit_code = 0; reason = '0 nodes' }
+    }
 
     return [ordered]@{
         status = 'built'
-        stage = 'wiki'
-        register_exit = $registerExit
-        wiki_exit = $wikiExit
+        stage = 'status'
+        nodes = $nodes
     }
 }
 
@@ -255,7 +284,7 @@ $workspaceRepos = @()
 $crgResults = @()
 
 $crgModePath = Join-Path $TargetRoot '.helix/context-providers.yml'
-$crgMode = 'off'
+$crgMode = 'mcp'
 if (Test-Path $crgModePath) {
     try {
         $crgConfig = Import-HelixYamlFile -Path $crgModePath
@@ -263,16 +292,22 @@ if (Test-Path $crgModePath) {
             $crgMode = [string]$crgConfig.providers.code_review_graph.mode
         }
     } catch {
-        Write-Warning "Could not parse '$crgModePath': $($_.Exception.Message). CRG build will be skipped."
+        throw "Could not parse '$crgModePath': $($_.Exception.Message). Fix context-providers.yml or set CRG mode to 'off' only as an emergency fallback."
     }
+}
+
+if ($crgMode -notin @('mcp', 'off')) {
+    throw "Unsupported code_review_graph.mode '$crgMode' in '$crgModePath'. Use 'mcp' for normal setup or 'off' only as an emergency fallback."
 }
 
 $crgRunner = $null
 if (-not $SkipGraphBuild -and $crgMode -eq 'mcp') {
     $crgRunner = Get-HelixCrgRunner
     if ($null -eq $crgRunner) {
-        Write-Warning "CRG mode is 'mcp' but no python runner with code_review_graph was found. Skipping graph build. Install via './helix/scripts/set-context-provider.ps1 -Mode mcp -Bootstrap' or pass -SkipGraphBuild to silence."
+        throw "CRG mode is 'mcp' but no verified CRG runner was found. Run './helix/scripts/set-context-provider.ps1 -Mode mcp -Bootstrap' or set CRG mode to 'off' only as an emergency fallback."
     }
+} elseif ($SkipGraphBuild -and $crgMode -eq 'mcp') {
+    throw "Cannot skip CRG graph build while mode is 'mcp'. Set CRG mode to 'off' only as an emergency fallback if you need default agent/search behavior."
 }
 
 foreach ($workspaceRepo in $workspaceManifest.repos) {
@@ -340,7 +375,11 @@ foreach ($workspaceRepo in $workspaceManifest.repos) {
             Repo = $repoId
             Status = $buildResult.status
             Stage = $buildResult.stage
-            Detail = if ($buildResult.Contains('reason')) { $buildResult.reason } elseif ($buildResult.Contains('exit_code')) { "exit:$($buildResult.exit_code)" } else { '' }
+            Detail = if ($buildResult.Contains('nodes') -and $null -ne $buildResult.nodes) { "nodes:$($buildResult.nodes)" } elseif ($buildResult.Contains('reason')) { $buildResult.reason } elseif ($buildResult.Contains('exit_code')) { "exit:$($buildResult.exit_code)" } else { '' }
+        }
+
+        if ($buildResult.status -ne 'built') {
+            throw "CRG graph build failed for '$repoId' at stage '$($buildResult.stage)'. Set CRG mode to 'off' only as an emergency fallback if you need plain agent/search behavior."
         }
     }
 }
@@ -496,13 +535,13 @@ Write-Host "Generated workspace file: $workspaceFile"
 
 if ($crgResults.Count -gt 0) {
     Write-Host ""
-    Write-Host "Code-review-graph build (--skip-flows):"
+    Write-Host "Code-review-graph build:"
     $crgResults | Format-Table -AutoSize
     Write-Host "Incremental updates fire automatically via the Copilot CLI subagentStop / sessionEnd hooks (helix/.github/hooks/scripts/crg-sweep.js)."
-    Write-Host "Run '/build-graph' (or 'python -m code_review_graph update --repo <path>') to populate flows before review phases."
+    Write-Host "Run '/build-graph full' only when you need a manual repair or full refresh."
 }
 
 if (-not $SkipGraphBuild -and $crgMode -ne 'mcp') {
     Write-Host ""
-    Write-Host "CRG mode is '$crgMode'. To enable graph-based retrieval, run: ./helix/scripts/set-context-provider.ps1 -Mode mcp -Bootstrap"
+    Write-Host "CRG mode is '$crgMode'. This is an emergency fallback; Helix will use default agent/search behavior. To restore graph-based retrieval, run: ./helix/scripts/set-context-provider.ps1 -Mode mcp -Bootstrap"
 }

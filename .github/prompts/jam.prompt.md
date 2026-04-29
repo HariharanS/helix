@@ -1,6 +1,7 @@
 ---
 name: jam
 description: Start an interactive jam session to refine a feature idea into a clear intent
+mode: agent
 agent: jam
 tools: ['read', 'search/codebase']
 ---

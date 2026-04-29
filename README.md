@@ -168,22 +168,22 @@ Current script entry points in this repo:
 - `scripts/workspace-setup.ps1` — wrapper for future `helix workspace setup` (delegates to `setup-workspace.ps1`)
 - `scripts/doctor.ps1` — validate manifests, workspace layout, user-level agent collisions, and repo readiness
 - `scripts/install-helix.ps1` — install or sync managed Helix files into a meta repo
-- `scripts/set-context-provider.ps1` — enable or disable optional context providers such as code-review-graph
+- `scripts/set-context-provider.ps1` — configure the code-review-graph provider; `off` is an emergency fallback
 - `scripts/init-meta-repo.ps1`, `scripts/sync-helix.ps1`, and `scripts/setup-workspace.ps1` — underlying implementation scripts kept for compatibility and internal wiring
 
-## Optional Structural Retrieval
+## Structural Retrieval
 
-Helix can optionally layer in `code-review-graph` for code-centric retrieval.
+Helix uses `code-review-graph` (CRG) as the default code-centric retrieval layer.
 
 - Keep Helix workspace artifacts as the source of truth for intent, design, and task contracts
-- Use `code-review-graph` only as a code-selection engine for blast radius, changed-file scoping, and targeted dependency lookup
-- Keep the provider `off` by default, then switch to `mcp` only when the graph is built and the signal quality is worth the extra tool calls and tokens
+- Use CRG as the first stop for code navigation, blast radius, changed-file scoping, flow analysis, and targeted dependency lookup
+- Keep the provider in `mcp` mode for normal setup; `off` is an emergency fallback for using default agent/search behavior
 - Init seeds a clean `.vscode/mcp.json` for VS Code project config
-- Enable and bootstrap CRG with `scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap`
+- Init enables and bootstraps CRG with `scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap`
 - That command reconciles both documented host locations without overwriting unrelated servers:
   - `.vscode/mcp.json` for VS Code project-level MCP
   - `~/.copilot/mcp-config.json` for Copilot CLI user-level MCP
-- Switching back to `off` removes only the Helix-managed `code-review-graph` entry from those host configs
+- Switching back to `off` removes only the Helix-managed `code-review-graph` entry from those host configs and should be treated as an explicit emergency/debug action
 
 ## Optional LSP Support
 

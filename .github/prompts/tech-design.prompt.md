@@ -2,7 +2,7 @@
 name: tech-design
 description: Start a technical design session from a PRD
 agent: architect
-mode: ask
+mode: agent
 tools: ['read', 'search/codebase']
 ---
 

@@ -8,7 +8,7 @@ This directory holds Helix runtime state and memory-like artifacts.
 - `install-state.yml` — what Helix installed into the meta repo (instance-only — created by install-helix)
 - `repo-state/` — generated readiness and scan results per repo
 - `model-config.yml` — model-to-role assignments
-- `context-providers.yml` — optional retrieval providers and token budgets
+- `context-providers.yml` — CRG retrieval provider mode and token budgets
 - `memory/index.md` — entry point to durable learnings
 - `memory/episodes/` — episodic session summaries
 - `memory/learnings/` — reusable insights
@@ -27,7 +27,7 @@ This directory holds Helix runtime state and memory-like artifacts.
 
 - Treat memory as distilled guidance, not a raw transcript archive
 - Treat `repo-state/` as generated runtime state, not operator-authored config
-- Treat `context-providers.yml` as the switch for optional retrieval tooling; if it is off, do not assume graph assistance exists
+- Treat `context-providers.yml` as the CRG switch. Normal setup expects `mode: mcp`; `off` is an emergency fallback where agents use default search/manual behavior.
 - Prefer existing learning files over scanning all episodes
 - Update or reuse existing learning topics instead of duplicating them
 - If you need current feature state, workspace artifacts are usually a better source than memory

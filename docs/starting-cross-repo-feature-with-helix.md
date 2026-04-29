@@ -156,15 +156,17 @@ Then use the `setup` agent, the `workspace-sync` skill, or the installed `helix 
 
 - clone or attach only the selected repos under `workspaces/{name}/repos/{repo-id}/`
 - generate or refresh `.helix/repo-state/*.yml`
+- generate or refresh `.helix/repo-capabilities/*.yml`
+- build CRG graphs for the selected repos when `code_review_graph.mode: mcp`
 - generate `{name}.code-workspace` at the meta-repo root
 - generate `.github/instructions/*.instructions.md`
 - set `.helix/active-workspace.yml`
 
 Use the legacy Bash helper only for the old combined layout. The PowerShell script is the target entry point for the meta-repo model.
 
-### Optional: Enable Graph Retrieval Conservatively
+### Graph Retrieval Setup
 
-If you want structural code retrieval without making it mandatory, bootstrap a clean CRG runtime first, then build the graph before relying on it:
+Normal Helix setup uses CRG as the default code navigation layer. Bootstrap a clean CRG runtime first, then build the graph before JAM, PRD, design, or task breakdown rely on code facts:
 
 ```powershell
 ./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap
@@ -172,7 +174,7 @@ If you want structural code retrieval without making it mandatory, bootstrap a c
 
 That keeps Helix in charge of process and workspace artifacts while reconciling the documented host-specific MCP locations with portable commands instead of instance-specific absolute paths.
 
-If it is noisy, unhelpful, or too expensive, turn it back off:
+If CRG is broken and you need to continue with default agent/search behavior, turn it off explicitly as an emergency fallback:
 
 ```powershell
 ./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode off

@@ -27,7 +27,7 @@ Each phase writes an artifact. The next phase reads it. The artifact files are t
 ```
 "Set up workspace hpp"
 ```
-The host agent validates `helix-repos.yml` + `workspace.yml`, runs workspace-setup.ps1, and confirms repo-state.
+The host agent validates `helix-repos.yml` + `workspace.yml`, runs workspace-setup.ps1, and confirms repo-state, repo-capabilities, MCP config, and CRG graph readiness.
 For manifest questions it uses `ask_user` directly. Purely mechanical steps (clone, fetch) can be dispatched to the `setup` sub-agent.
 
 **One active workspace per session:** Exactly one workspace is active at a time, tracked in `.helix/active-workspace.yml`. Switch it explicitly before working on a different feature space.
@@ -265,14 +265,14 @@ view("workspaces/{workspace}/reviews/prd-review-{date}.md")
 
 - **Don't route interactive phases through `@helix` in CLI** — the relay pattern wastes 2+ premium requests per question.
 - **Keep context bundles task-scoped** — explorer writes them to disk; implementer reads from disk, not inline.
-- **Use `--skip-flows` on CRG builds** for fast initial indexing; run full build later for community/flow detection.
+- **Build CRG before planning phases** so JAM, PRD, TECH DESIGN, and TASK BREAKDOWN can navigate code through graph-backed context instead of broad text search.
 - **Dispatch explorer as `explore` agent type** (Haiku model) — cheapest way to gather codebase context.
 
 ---
 
 ## code-review-graph (CRG)
 
-CRG is optional. Init seeds a clean `.vscode/mcp.json` for VS Code project config. Enable and bootstrap it with `set-context-provider.ps1 -Mode mcp -Bootstrap` when you want structural retrieval. That command reconciles both `.vscode/mcp.json` (VS Code) and `~/.copilot/mcp-config.json` (Copilot CLI). The graph must be built before `curate-context` uses it (otherwise falls back to manual scanning with `confidence: low`).
+CRG is the default Helix code navigation layer. Init seeds `.vscode/mcp.json` for VS Code project config and bootstraps `~/.copilot/mcp-config.json` for Copilot CLI with `set-context-provider.ps1 -Mode mcp -Bootstrap`. The graph must be built before `curate-context` uses it; if `mode: mcp` is set and the graph is missing, treat that as a setup gap instead of silently falling back to manual scanning.
 
 **Initial setup (run from meta-repo root):**
 ```powershell
@@ -284,7 +284,7 @@ python -m code_review_graph register .\path\to\product-repo --alias RepoAlias
 # ... repeat for each repo in the workspace
 
 # Build graph per repo — MUST use a path, NOT the alias name alone (alias-only silently builds 0 nodes)
-python -m code_review_graph build --repo .\path\to\product-repo --skip-flows
+python -m code_review_graph build --repo .\path\to\product-repo
 # If relative path fails, use absolute path:
 # python -m code_review_graph build --repo "C:\Users\...\path\to\product-repo"
 ```
@@ -309,7 +309,7 @@ python -m code_review_graph update --repo .\path\to\product-repo
 python -m code_review_graph serve
 ```
 
-**Config:** `.helix/context-providers.yml` controls whether Helix should use CRG. Host-specific MCP files are `.vscode/mcp.json` for VS Code and `~/.copilot/mcp-config.json` for Copilot CLI.
+**Config:** `.helix/context-providers.yml` controls CRG mode and budgets. Normal setup uses `mode: mcp`; `mode: off` is an emergency fallback. Host-specific MCP files are `.vscode/mcp.json` for VS Code and `~/.copilot/mcp-config.json` for Copilot CLI.
 
 ---
 

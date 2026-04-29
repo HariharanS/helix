@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # Curate Context Skill
 
-Produces a tiered context bundle for a task using code-review-graph as the primary retrieval engine. Manual fallback only when the operator explicitly sets `mode: off` — a missing or stale graph in `mode: mcp` is a hard error.
+Produces a tiered context bundle for a task using code-review-graph as the primary retrieval engine. Use CRG first for code navigation, symbol lookup, flows, blast radius, and cross-repo search. Manual fallback is allowed only when the operator explicitly sets `mode: off` — a missing or stale graph in `mode: mcp` is a hard setup error.
 
 ## Workflow
 
@@ -26,6 +26,7 @@ Produces a tiered context bundle for a task using code-review-graph as the prima
 Before invoking any MCP tools, verify the graph is built:
 
 ```powershell
+# Example runner; use the CRG runner configured by setup if it differs.
 python -m code_review_graph status --repo {primary-repo-path}
 ```
 
@@ -69,7 +70,7 @@ When classifying, prefer depth over breadth:
 
 ### 4. Gap-Fill
 
-Scan manually ONLY for what CRG's code graph cannot provide:
+Scan manually only for what CRG's code graph cannot provide or cannot answer confidently:
 
 - Domain docs, ADRs, README context relevant to the task
 - SAM/CloudFormation templates for infrastructure relationships (Lambda -> DynamoDB -> EventBridge)

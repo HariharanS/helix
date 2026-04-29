@@ -17,8 +17,8 @@ Performs a comprehensive structural review of a pull request or branch diff, com
 
 Read `.helix/context-providers.yml`.
 
-- `mode: mcp` → proceed with Step 2
-- `mode: off` → skip to Step 7 (manual fallback)
+- `mode: mcp` → proceed with Step 2; CRG tool failure is a setup gap
+- `mode: off` → skip to Step 7 (emergency manual fallback)
 
 ### 2. Resolve Repo Root and Base Ref
 
@@ -96,7 +96,7 @@ Only call `inheritors_of` when the HIGH-risk node is a class or interface. If af
 get_affected_flows_tool(base="{base-sha}", repo_root="{resolved-repo-path}")
 ```
 
-### 7. Manual Fallback (mode: off or CRG unavailable)
+### 7. Manual Fallback (mode: off only)
 
 ```powershell
 git -C "{resolved-repo-path}" diff "{base-sha}"...HEAD

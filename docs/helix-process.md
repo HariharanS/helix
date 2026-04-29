@@ -17,7 +17,7 @@ Use this document when you need the full lifecycle, loops, artifacts, and phase 
 SETUP -> JAM -> [AUTO-CURATE] -> PRD -> [AUTO-CURATE] -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
 ```
 
-Auto-curation uses the `/curate-context` skill (backed by code-review-graph) to produce tiered context bundles before planning phases. Skipped when context already exists or intent is still vague (JAM phase).
+Auto-curation uses the `/curate-context` skill (backed by code-review-graph) to produce tiered context bundles before JAM, PRD, TECH DESIGN, TASK BREAKDOWN, and per-task implementation work. Keep JAM curation narrow when intent is vague, but do not assert code facts without graph-backed or explicitly manual evidence.
 
 ## Phase Contract
 
@@ -39,6 +39,7 @@ Auto-curation uses the `/curate-context` skill (backed by code-review-graph) to 
 - read repo registry
 - attach or clone only the repos needed now
 - inspect repo readiness and update `.helix/repo-state/`
+- refresh `.helix/repo-capabilities/`
 - onboard only repos that are not Helix-ready
 - register repos with code-review-graph and build graphs (via workspace-sync skill)
 - confirm active workspace

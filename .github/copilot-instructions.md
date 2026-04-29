@@ -31,14 +31,16 @@ In an installed meta repo, use `helix/docs/helix-process.md` as the canonical li
 
 - Read root `AGENTS.md` for the repo map, then prefer the nearest relevant `AGENTS.md` in the subtree you are touching
 - Read .instructions.md files (in `.github/instructions/`) for repo-specific conventions
-- Read `.helix/context-providers.yml` before assuming optional retrieval tooling is available or desired
+- Read `.helix/context-providers.yml`; normal Helix setup expects `code_review_graph.mode: mcp`
 - Prefer task-specific context bundles over broad repo summaries when implementing a task
 - Prefer index or summary documents over annexes or large blob files when both exist
 - Treat domain claims as evidence-backed only when supported by code, tests, config, or approved design docs
 - Each repo's conventions are discovered by the onboard skill — not hardcoded
 - Never assume a tech stack — always read repo conventions first
-- If `code_review_graph.mode` is `mcp`, use MCP tool calls for graph queries; stay within the token and call budgets in `context-providers.yml`
-- If `code_review_graph.mode` is `off` or graph retrieval fails, fall back immediately to manual repo search and context bundles
+- If `code_review_graph.mode` is `mcp`, use CRG MCP first for code navigation, symbol lookup, blast radius, affected flows, and cross-repo search; stay within the token and call budgets in `context-providers.yml`
+- If CRG cannot answer a question, use `search/codebase`, `rg`, or PowerShell search to gap-fill docs, config, infra, or ambiguous graph results
+- If CRG errors while `mode: mcp`, treat it as a setup gap and surface it; do not silently degrade to manual code search
+- If `code_review_graph.mode` is `off`, treat it as an emergency fallback and use default agent/search behavior
 - **Skill invocation:** Skills with `disable-model-invocation: true` have no agent backing — to invoke one, read `.github/skills/{name}/SKILL.md` and execute its workflow inline. The calling agent IS the executor.
 
 ## Context Economy

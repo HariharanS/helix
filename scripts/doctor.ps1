@@ -18,6 +18,10 @@ function Add-WarningLine([string]$Message) {
     $script:warnings += $Message
 }
 
+if ($WriteRepoState) {
+    Add-WarningLine "-WriteRepoState is deprecated and no longer writes repo-state. Run setup-workspace.ps1 so repo-state uses the active workspace checkout paths."
+}
+
 function Test-CodeReviewGraphPythonModule {
     param(
         [Parameter(Mandatory = $true)][string]$Command,
@@ -66,7 +70,7 @@ function Test-CodeReviewGraphServerConfig {
 
     $runtimeAvailable = Test-CodeReviewGraphRuntimeAvailable
     if (-not $runtimeAvailable) {
-        Add-WarningLine "$LocationLabel enables 'code-review-graph', but no verified runtime was found (uvx, code-review-graph, python -m code_review_graph, or py -3 -m code_review_graph). Copilot will fall back to manual context when the MCP server cannot start."
+        Add-WarningLine "$LocationLabel enables 'code-review-graph', but no verified runtime was found (uvx, code-review-graph, python -m code_review_graph, or py -3 -m code_review_graph). In mcp mode this is a setup issue; re-run set-context-provider.ps1 -Mode mcp -Bootstrap."
     }
 }
 
@@ -145,10 +149,14 @@ if (Test-Path $agentTemplatePath) {
 }
 
 $legacyProjectMcpPath = Join-Path $TargetRoot '.mcp.json'
+$legacyProjectContainsServer = $false
+$vscodeContainsServer = $false
+$cliContainsServer = $false
 if (Test-Path $legacyProjectMcpPath) {
     try {
         $mcpConfig = Get-Content -LiteralPath $legacyProjectMcpPath -Raw | ConvertFrom-Json
         $hasCodeReviewGraph = $null -ne $mcpConfig.mcpServers -and ($mcpConfig.mcpServers.PSObject.Properties.Name -contains 'code-review-graph')
+        $legacyProjectContainsServer = $hasCodeReviewGraph
         if ($hasCodeReviewGraph) {
             $server = $mcpConfig.mcpServers.'code-review-graph'
             $command = if ($null -ne $server) { [string]$server.command } else { '' }
@@ -165,6 +173,7 @@ if (Test-Path $vscodeMcpPath) {
     try {
         $vscodeConfig = Get-Content -LiteralPath $vscodeMcpPath -Raw | ConvertFrom-Json
         $hasCodeReviewGraph = $null -ne $vscodeConfig.servers -and ($vscodeConfig.servers.PSObject.Properties.Name -contains 'code-review-graph')
+        $vscodeContainsServer = $hasCodeReviewGraph
         if ($hasCodeReviewGraph) {
             $server = $vscodeConfig.servers.'code-review-graph'
             $command = if ($null -ne $server) { [string]$server.command } else { '' }
@@ -180,6 +189,7 @@ if (Test-Path $userCliMcpPath) {
     try {
         $userCliMcpConfig = Get-Content -LiteralPath $userCliMcpPath -Raw | ConvertFrom-Json
         $hasCodeReviewGraph = $null -ne $userCliMcpConfig.mcpServers -and ($userCliMcpConfig.mcpServers.PSObject.Properties.Name -contains 'code-review-graph')
+        $cliContainsServer = $hasCodeReviewGraph
         if ($hasCodeReviewGraph) {
             $server = $userCliMcpConfig.mcpServers.'code-review-graph'
             $command = if ($null -ne $server) { [string]$server.command } else { '' }
@@ -208,6 +218,45 @@ if (-not $hasInstallState -and -not $hasRegistry) {
         Add-Issue "Missing helix-repos.yml (legacy fallback repos.yml not found)"
     } elseif ($registryResolution.source -eq 'legacy') {
         Add-WarningLine "Using legacy registry manifest 'repos.yml'. Rename it to canonical 'helix-repos.yml'."
+    }
+}
+
+$contextProvidersPath = Join-Path $TargetRoot '.helix/context-providers.yml'
+$crgMode = $null
+if (($hasInstallState -or $hasRegistry) -and -not (Test-Path $contextProvidersPath)) {
+    Add-Issue "Missing .helix/context-providers.yml"
+} elseif (Test-Path $contextProvidersPath) {
+    try {
+        $contextProviders = Import-HelixYamlFile -Path $contextProvidersPath
+        if ($contextProviders.providers -and
+            $contextProviders.providers.code_review_graph -and
+            $contextProviders.providers.code_review_graph.mode) {
+            $crgMode = [string]$contextProviders.providers.code_review_graph.mode
+        }
+    } catch {
+        Add-Issue "Could not parse .helix/context-providers.yml"
+    }
+}
+
+if ($hasInstallState -or $hasRegistry) {
+    if ([string]::IsNullOrWhiteSpace($crgMode)) {
+        Add-Issue ".helix/context-providers.yml does not define providers.code_review_graph.mode"
+    } elseif ($crgMode -eq 'mcp') {
+        if (-not $vscodeContainsServer) {
+            Add-Issue "CRG mode is 'mcp' but '.vscode/mcp.json' does not configure code-review-graph."
+        }
+
+        if (-not $cliContainsServer) {
+            Add-Issue "CRG mode is 'mcp' but '~/.copilot/mcp-config.json' does not configure code-review-graph."
+        }
+
+        if (-not (Test-CodeReviewGraphRuntimeAvailable)) {
+            Add-Issue "CRG mode is 'mcp' but no verified runtime was found. Run 'helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap'."
+        }
+    } elseif ($crgMode -eq 'off') {
+        Add-WarningLine "CRG mode is 'off'. This is an emergency fallback; normal Helix setup expects code-review-graph MCP to be configured."
+    } else {
+        Add-Issue "Unsupported code_review_graph.mode '$crgMode' in .helix/context-providers.yml."
     }
 }
 
@@ -272,9 +321,6 @@ if ($hasRegistry) {
 
         $repoRoot = Join-Path $TargetRoot $localPath
         $repoState = Get-HelixRepoReadiness -RepoId $repoId -RepoPath $repoRoot
-        if ($WriteRepoState) {
-            Write-HelixYamlFile -Path (Join-Path $TargetRoot ".helix/repo-state/$repoId.yml") -Value $repoState
-        }
 
         if ($repoState.readiness.state -eq 'needs-onboarding') {
             Add-WarningLine "Repo '$repoId' needs onboarding."

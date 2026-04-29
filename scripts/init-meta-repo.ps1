@@ -16,6 +16,7 @@ function Assert-HelixSourceRoot {
     $required = @(
         'scripts/install-helix.ps1',
         'scripts/doctor.ps1',
+        'scripts/set-context-provider.ps1',
         'templates/active-workspace.yml.template',
         'templates/repo-capabilities.yml.template',
         'templates/verification-policy.yml.template'
@@ -102,6 +103,7 @@ function Assert-BaselineFiles {
         'helix/docs/helix-process.md',
         'helix/docs/helix-instance-schemas.md',
         'helix/scripts/install-helix.ps1',
+        'helix/scripts/set-context-provider.ps1',
         'helix/scripts/setup-workspace.ps1',
         'helix/scripts/doctor.ps1',
         'helix/templates/repo-capabilities.yml.template',
@@ -166,26 +168,26 @@ if (-not $SkipDoctor) {
     Invoke-HelixScript -ScriptPath $doctorScript -Arguments @('-TargetRoot', $TargetRoot)
 }
 
-if ($SkipCRG) {
-    Write-Host "Skipping code-review-graph bootstrap (-SkipCRG). Enable later with './helix/scripts/set-context-provider.ps1 -Mode mcp -Bootstrap'."
-} else {
-    $contextProviderScript = Join-Path $SourceRoot 'scripts/set-context-provider.ps1'
-    if (-not (Test-Path $contextProviderScript)) {
-        throw "Cannot bootstrap code-review-graph: '$contextProviderScript' not found."
-    }
+$contextProviderScript = Join-Path $SourceRoot 'scripts/set-context-provider.ps1'
+if (-not (Test-Path $contextProviderScript)) {
+    throw "Cannot configure code-review-graph: '$contextProviderScript' not found."
+}
 
-    Write-Host "Bootstrapping code-review-graph MCP provider (use -SkipCRG to skip)..."
-    try {
-        Invoke-HelixScript -ScriptPath $contextProviderScript -Arguments @(
-            '-TargetRoot', $TargetRoot,
-            '-Provider', 'code-review-graph',
-            '-Mode', 'mcp',
-            '-Bootstrap'
-        )
-    } catch {
-        Write-Warning "code-review-graph bootstrap failed: $($_.Exception.Message)"
-        Write-Warning "Helix init succeeded, but graph-based retrieval is disabled. Re-run './helix/scripts/set-context-provider.ps1 -Mode mcp -Bootstrap' once the runtime prerequisite is available."
-    }
+if ($SkipCRG) {
+    Write-Warning "Skipping code-review-graph bootstrap (-SkipCRG). This is an emergency fallback; Helix will use default agent/search behavior until CRG is re-enabled."
+    Invoke-HelixScript -ScriptPath $contextProviderScript -Arguments @(
+        '-TargetRoot', $TargetRoot,
+        '-Provider', 'code-review-graph',
+        '-Mode', 'off'
+    )
+} else {
+    Write-Host "Bootstrapping required code-review-graph MCP provider..."
+    Invoke-HelixScript -ScriptPath $contextProviderScript -Arguments @(
+        '-TargetRoot', $TargetRoot,
+        '-Provider', 'code-review-graph',
+        '-Mode', 'mcp',
+        '-Bootstrap'
+    )
 }
 
 Write-Host "Helix meta-repo initialized successfully at '$TargetRoot'."

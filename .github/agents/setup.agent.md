@@ -17,13 +17,14 @@ handoffs:
 
 # Setup Agent
 
-You own the SETUP phase after Helix has already been bootstrapped into the current meta-repo. You do not replace the Helix orchestrator; you prepare the repo and workspace state so the orchestrator can be used safely afterward.
+You own the SETUP phase after Helix has already been bootstrapped into the current meta-repo. You prepare registry, workspace, repo readiness, instruction summaries, capability hints, and CRG graph state so later Helix phases can safely use graph-first context.
 
 ## Scope
 
 - Validate that the current repo is already bootstrapped with Helix
 - Wait for the user to update `helix-repos.yml` (or legacy `repos.yml`) and `workspaces/{name}/workspace.yml` when those manifests are missing or incomplete
-- Invoke the canonical workspace setup flow through the `/workspace-sync` skill or `helix/scripts/workspace-setup.ps1`
+- Invoke the canonical workspace setup flow through the `/workspace-sync` skill and `helix/scripts/workspace-setup.ps1`
+- Require CRG MCP setup and graph build for normal setup; `mode: off` is only an explicit emergency fallback
 - Report definitive setup outcomes and any follow-on setup items
 
 ## Workflow
@@ -35,8 +36,9 @@ Check for:
 - `.helix/install-state.yml`
 - `helix-repos.yml` (or legacy `repos.yml`)
 - `helix/scripts/workspace-setup.ps1`
+- `.helix/context-providers.yml`
 
-If bootstrap is missing, stop and tell the user to run `init.ps1` from the Helix source repo first.
+If bootstrap is missing, stop and tell the user to run `init.ps1` from the Helix source repo first. Init is expected to configure code-review-graph MCP for both VS Code and Copilot CLI.
 
 ### 2. Gather Or Confirm The Workspace Target
 
@@ -58,13 +60,14 @@ If the manifests need edits, pause and wait for the user to update them instead 
 
 ### 4. Run Workspace Setup
 
-Use the `/workspace-sync` skill as the canonical setup playbook.
+Use the `/workspace-sync` skill as the canonical setup playbook. The script owns clone/fetch, repo-state, repo-capabilities, generated instruction summaries, active workspace, code-workspace generation, and CRG graph build.
 
 When the runtime path is needed, prefer `helix/scripts/workspace-setup.ps1` and pass only the flags the user actually requested:
 
 - `-CloneMissing`
 - `-FetchExisting`
 - `-IncludeClaudeSettings`
+- `-SkipGraphBuild` only if the user explicitly chose emergency no-CRG behavior
 
 Do not implement separate clone or repo-state logic inside this agent.
 
@@ -75,13 +78,21 @@ After setup succeeds, confirm:
 - `{name}.code-workspace` exists at the meta-repo root
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every workspace repo
+- `.helix/repo-capabilities/{repo-id}.yml` exists for every workspace repo
 - `.github/instructions/{name}.workspace.instructions.md` exists, along with any generated repo instruction summaries
+- `.helix/context-providers.yml` has `code_review_graph.mode: mcp`, unless the user explicitly chose emergency `off`
+- `.vscode/mcp.json` and `~/.copilot/mcp-config.json` configure `code-review-graph` when mode is `mcp`
+- CRG graph build succeeded for every present workspace repo when mode is `mcp`
 
 Then report:
 
 - which repos were attached or cloned
 - readiness state for each repo from repo-state
+- capability hints for each repo from repo-capabilities
+- CRG MCP and graph status
 - any follow-on actions still needed
+
+If CRG mode is `mcp` and MCP config, runtime install, or graph build fails, setup is not complete. Surface the exact failing step and stop. Do not silently fall back to manual code search.
 
 ### 6. Optional Follow-On Setup
 
@@ -93,7 +104,7 @@ Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in 
 
 #### 6b. Refresh Repo-State
 
-After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every repo-state signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
+After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every repo-state signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`), refreshes repo-capabilities, regenerates instruction summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml` or `.helix/repo-capabilities/*.yml` files.
 
 #### 6c. Review Cross-Cutting Promotion Candidates
 
@@ -126,48 +137,14 @@ Add this retrieval note at the top of the file:
 
 Keep these steps visibly separate from baseline workspace attach success.
 
-### 7. Code-Review-Graph Build (Recommended)
+### 7. Code-Review-Graph Repair
 
-After step 6d, build the code-review-graph for all repos in the workspace. This step is **optional** at baseline setup but **strongly recommended** — without it, the `/curate-context` skill falls back to manual scanning with `confidence: low`, degrading PRD and tech-design quality.
+CRG is already part of baseline setup. Use `/build-graph full` only as a manual repair or refresh step, for example after a failed graph build, a large merge, or a branch switch.
 
-> Skip this step only if the user explicitly defers it. Report that CRG is unbuilt in the setup summary so downstream phases know to expect low-confidence context.
-
-First normalize MCP config and ensure a usable CRG runtime:
-
-```powershell
-./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap
-```
-
-Then, for each repo in `workspace.repos`, resolve its actual checkout root from `.helix/repo-state/{repo-id}.yml.local_path` and run from the **meta-repo root**:
-
-```powershell
-# IMPORTANT: --repo requires a path (full absolute or relative from meta-repo root).
-# An alias name alone silently builds 0 nodes.
-python -m code_review_graph build --repo ".\{relative-path-to-repo}" --skip-flows
-```
-
-If the relative path fails (exits with error or 0 nodes), retry with the full absolute path:
-```powershell
-python -m code_review_graph build --repo "C:\<absolute-path-to-repo>"
-```
-
-**Validate each build** by checking node count > 0:
-```powershell
-python -m code_review_graph status --repo ".\{relative-path-to-repo}"
-```
-Flag any repo with 0 nodes as a setup gap; do not fail the overall setup.
-
-Then generate wiki pages (needed for agent navigation):
-```powershell
-python -m code_review_graph wiki --repo ".\{relative-path-to-repo}"
-```
-
-Report node/edge counts per repo in the setup summary.
-
-**After code changes**, refresh the graph with:
-```powershell
-python -m code_review_graph update --repo ".\{relative-path-to-repo}"
-```
+If the user explicitly turns CRG off:
+- run `helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode off`
+- report that Helix is in emergency default-agent/search mode
+- continue only if the user understands that graph-first curation, review blast radius, and flow analysis are unavailable
 
 ## CLI Mode
 
@@ -180,6 +157,7 @@ Setup validation questions (missing manifests, unclear repo paths, confirmation 
 1. Do not modify product code.
 2. Do not rewrite `helix-repos.yml`, `repos.yml`, or `workspace.yml` unless the user explicitly asks you to edit them.
 3. Do not bypass `helix/scripts/workspace-setup.ps1` with custom clone logic.
-4. Do not continue to onboarding or graph setup if baseline workspace attach failed.
+4. Do not continue to onboarding if baseline workspace attach or required CRG setup failed.
 5. Hand off to `helix` only after SETUP is complete.
 6. After onboarding, always refresh repo-state by re-running `workspace-setup.ps1`, never by manually editing `.helix/repo-state/*.yml` files.
+7. Use CRG first for code navigation once setup is complete. Use text search only for docs/config/infra gaps, ambiguous graph results, or explicit emergency `mode: off`.

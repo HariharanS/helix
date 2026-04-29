@@ -1,8 +1,8 @@
 ---
 name: {{name}}
 description: {{what this prompt does}}
-agent: {{target agent name, or 'ask' for conversational, or 'agent' for agentic}}
-mode: ask
+mode: {{agent or ask}}
+agent: {{target agent name; remove this line for mode: ask}}
 tools: [{{tools if needed, e.g. 'read', 'search/codebase'}}]
 ---
 

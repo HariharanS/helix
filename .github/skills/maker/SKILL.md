@@ -25,7 +25,7 @@ tools: [{appropriate tools}]
 agents: [{agents it can spawn}]
 user-invocable: {true|false}
 disable-model-invocation: false
-model: ['{model from tier assignment}']
+model: {model from tier assignment}
 argument-hint: {what input it expects}
 ---
 ```
@@ -33,6 +33,7 @@ argument-hint: {what input it expects}
 **Guidelines:**
 - Choose model tier based on task type (reasoning/coding/analysis/visual/fast)
 - Reference `.helix/model-config.yml` for tier assignments
+- Write `model` as a single string, never an array
 - Agent must be tech-agnostic — no stack-specific references
 - Include "Read AGENTS.md and .instructions.md for conventions" directive
 - Keep agent instructions lean — avoid long narrative guidance and generic advice
@@ -70,12 +71,15 @@ Creates a new `.github/prompts/{name}.prompt.md` with:
 ---
 name: {name}
 description: {one-line description}
-model: ['{model}']
+mode: agent
+agent: {target agent}
+tools: [{appropriate tools}]
 ---
 ```
 
 **Guidelines:**
 - Prompts are for structured output generation (PRDs, designs, reports)
+- Use `mode: agent` plus `agent:` for lifecycle prompts; use `mode: ask` and remove `agent:` only for guided operator Q&A
 - Include a clear template in the body
 - Prompts are simpler than skills — no multi-phase workflow
 - Keep prompt bodies minimal and specific to the output you need

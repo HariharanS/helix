@@ -146,7 +146,7 @@ function getActiveWorkspace(repoRoot = getRepoRoot()) {
 }
 
 function getCodeReviewGraphPolicy(repoRoot = getRepoRoot()) {
-  const defaults = { mode: 'off', detailLevel: 'minimal' };
+  const defaults = { mode: 'mcp', detailLevel: 'minimal' };
   const configPath = path.join(repoRoot, '.helix', 'context-providers.yml');
   const parsed = readYamlFile(configPath);
   if (!parsed || !parsed.providers || !parsed.providers.code_review_graph) return defaults;

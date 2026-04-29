@@ -145,8 +145,8 @@ blocker: Only if blocked — describe the issue
 - **Focused tests passing = required task-level proof.** Full suite passing = preferred slice-level proof. Never report `confidence: high` if focused tests fail.
 - **Respect manual mode.** If `execution.mode: manual` is set, produce the checklist and stop — do not attempt to run commands or write code.
 - **Report degraded confidence honestly.** If the full suite is unavailable or has unrelated failures, report `confidence: degraded` or `confidence: deferred` with a clear reason. Do not claim full proof when it does not exist.
-- If `code_review_graph.mode` is `mcp` and tools are available, use graph queries to relocate symbols or inspect impact before broad repo search
-- If `code_review_graph.mode` is `off`, use the bundle and spawn @explorer when you need more evidence
+- If `code_review_graph.mode` is `mcp`, use graph queries to relocate symbols or inspect impact before broad repo search; if graph tools fail, surface a setup gap
+- If `code_review_graph.mode` is `off`, treat it as emergency fallback and use the bundle plus @explorer when you need more evidence
 - If you need more context than what was provided, spawn @explorer with a specific question; read the written bundle path after it completes
 - Treat `done_when` as the definition of done — if it is not met, the task is not complete
 - When an optional second-opinion critique capability is available, request a critique after a complex implementation or when progress stalls; focus on cross-file regressions, hidden assumptions, missing edge cases, and whether to continue or escalate

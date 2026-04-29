@@ -5,7 +5,7 @@ tools: [{{tools — e.g. 'read', 'edit', 'search/codebase', 'execute', 'agent'}}
 agents: [{{agents — subagents this can invoke, or [] for none}}]
 user-invocable: {{true or false}}
 disable-model-invocation: {{false unless this should never be auto-invoked}}
-model: Claude Sonnet 4.5 (copilot)
+model: Claude Sonnet 4.6 (copilot)
 argument-hint: {{guidance text shown in chat input}}
 handoffs: {{optional — remove if not needed}}
   - label: {{button text}}

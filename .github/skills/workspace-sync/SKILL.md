@@ -9,15 +9,16 @@ disable-model-invocation: true
 
 # Workspace Sync Skill
 
-Uses the script-owned workspace setup path once Helix is installed and the user has updated `helix-repos.yml` plus `workspaces/{name}/workspace.yml`.
+Uses the script-owned workspace setup path once Helix is installed and the user has updated `helix-repos.yml` plus `workspaces/{name}/workspace.yml`. Normal setup requires CRG MCP (`code_review_graph.mode: mcp`) and builds graphs for the selected repos; `mode: off` is an explicit emergency fallback.
 
 ## Workflow
 
 ### 1. Confirm Helix Is Installed
 
-- Check for `.helix/install-state.yml`, `helix-repos.yml` (or legacy `repos.yml`), and `helix/scripts/workspace-setup.ps1`
+- Check for `.helix/install-state.yml`, `helix-repos.yml` (or legacy `repos.yml`), `.helix/context-providers.yml`, and `helix/scripts/workspace-setup.ps1`
 - If bootstrap is missing, stop and tell the user to run `init.ps1` from the Helix source repo first
 - Do not try to install Helix from this skill
+- Normal bootstrap configures CRG MCP in `.vscode/mcp.json` and `~/.copilot/mcp-config.json`
 
 ### 2. Validate The Registry And Workspace
 
@@ -67,6 +68,7 @@ Run `helix/scripts/workspace-setup.ps1` with the requested workspace name or man
 - Pass `-CloneMissing` only when the user wants missing workspace repos cloned locally
 - Pass `-FetchExisting` only when the user wants already-present repos refreshed
 - Pass `-IncludeClaudeSettings` only when Claude Desktop configuration is explicitly requested
+- Pass `-SkipGraphBuild` only when the user explicitly chose emergency no-CRG behavior
 - Do not mutate `helix-repos.yml` or `repos.yml` from this skill
 - Do not implement clone logic here; the script is the source of truth
 
@@ -77,8 +79,10 @@ After `helix/scripts/workspace-setup.ps1` succeeds, verify:
 - `{name}.code-workspace` exists at the meta-repo root
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every repo in the workspace manifest
+- `.helix/repo-capabilities/{repo-id}.yml` exists for every repo in the workspace manifest
 - `.github/instructions/{name}.workspace.instructions.md` exists, along with any generated repo instruction summaries
 - the status table from the script reflects the expected presence and readiness values
+- if `code_review_graph.mode: mcp`, CRG graph build succeeded for every present repo
 
 Report status using the generated repo-state files as the source of truth.
 
@@ -92,7 +96,7 @@ Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in 
 
 #### 5b. Refresh Repo-State and Capability Files
 
-After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`). Do NOT manually patch `.helix/repo-state/*.yml` files.
+After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos, updates repo-state signals (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`), refreshes repo-capabilities, regenerates instruction summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml` or `.helix/repo-capabilities/*.yml` files.
 
 After the script completes:
 - verify `.helix/repo-capabilities/{repo-id}.yml` exists for each workspace repo
@@ -138,15 +142,17 @@ Add this retrieval note at the top:
 > It provides platform-level context that individual repo docs do not repeat.
 ```
 
-#### 5e. Enable Code-Review-Graph (optional)
+#### 5e. Repair Code-Review-Graph
 
-Enable or verify `code-review-graph` only when the user explicitly wants structural retrieval during setup. Keep this step separate from baseline attach and onboarding success.
+CRG is part of baseline setup. Use this step only to repair or refresh graph state after setup.
 
-If the user wants CRG enabled, normalize the MCP entry and ensure a usable runtime first:
+If MCP config or runtime is broken, normalize the MCP entry and ensure a usable runtime:
 
 ```powershell
 ./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap
 ```
+
+If graph content is stale or missing after repair, run `/build-graph full`.
 
 ## Output
 
@@ -155,7 +161,8 @@ If the user wants CRG enabled, normalize the MCP entry and ensure a usable runti
 - Generated `.github/instructions/*.instructions.md` summaries for the workspace and participating repos
 - Refreshed `.helix/repo-state/*.yml` for the workspace repos (via script, not manual edits)
 - Refreshed `.helix/repo-capabilities/*.yml` capability hints for the workspace repos
-- A setup report that separates baseline attach results from optional onboarding and graph work
+- Built CRG graphs for present workspace repos when `code_review_graph.mode: mcp`
+- A setup report that separates baseline attach and CRG results from optional onboarding work
 
 ## Error Handling
 
@@ -167,21 +174,22 @@ If the user wants CRG enabled, normalize the MCP entry and ensure a usable runti
 | service-a | workspaces/order-history/repos/service-a | yes | ready | main | none |
 | service-b | workspaces/order-history/repos/service-b | cloned | partial | main | onboard |
 
-Generated: {name}.code-workspace, .github/instructions/*.instructions.md, .helix/repo-state/*.yml
+Generated: {name}.code-workspace, .github/instructions/*.instructions.md, .helix/repo-state/*.yml, .helix/repo-capabilities/*.yml
 Updated: .helix/active-workspace.yml
 Optional: .claude/settings.local.json when Claude Desktop integration is explicitly requested
 ```
 
 - Helix not installed → stop and point to `init.ps1` from the Helix source repo
 - `helix-repos.yml` (or legacy `repos.yml`) or `workspace.yml` missing or still using placeholder values → stop and ask the user to repair the manifests
-- `workspace-setup.ps1` fails → surface the script output and do not continue to onboarding or graph setup
+- `workspace-setup.ps1` fails → surface the script output and do not continue to onboarding
 - Onboard fails → report error and leave repo-state at `partial` or `needs-onboarding`
-- Graph setup fails → report it separately from baseline workspace attach
+- CRG MCP setup or graph build fails while `mode: mcp` → setup is incomplete; repair CRG or explicitly set `mode: off` as emergency fallback
 
 ## Prerequisites
 
 - Helix bootstrap already completed via `init.ps1` from the Helix source repo or the equivalent installer flow
 - `helix-repos.yml` has been updated with the real repo registry (`repos.yml` is accepted only as a legacy alias)
 - `workspaces/{name}/workspace.yml` has been created or updated with the participating repos
+- CRG MCP bootstrap completed during init, or the user explicitly set emergency `mode: off`
 - `git` available
 - Prefer `helix/scripts/workspace-setup.ps1` for the target meta-repo model; the old Bash helper is legacy

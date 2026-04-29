@@ -78,7 +78,7 @@ These skills handle: graph sync, change detection, blast radius, affected flows,
 
 Use CRG output as one input to the evidence assessment (blast radius, test coverage gaps) and to the semantic lenses — not as the complete review. The lenses provide semantic judgment that graph analysis cannot substitute.
 
-If CRG skills are unavailable or the graph hasn't updated yet, fall back to manual review without blocking.
+If `mode: mcp` and CRG skills are unavailable or the graph has not updated, surface a setup gap before relying on graph-assisted findings. If the operator explicitly set `mode: off`, fall back to manual review and say that structural graph coverage is unavailable.
 
 ## Output Format
 
@@ -137,4 +137,4 @@ If CRG skills are unavailable or the graph hasn't updated yet, fall back to manu
 - Spawn @explorer for additional context if needed — be specific about what you need; read the written bundle path, not inline content
 - Review infrastructure changes — check that permissions follow least-privilege and conventions are followed
 - Treat CRG structural output as one evidence input, not as the sole review. Always complement with semantic lens judgment.
-- If CRG skills require `mode: mcp`, verify the mode before invoking `/review-delta` or `/review-pr`; fall back to manual review if unavailable
+- If CRG skills require `mode: mcp`, verify the mode before invoking `/review-delta` or `/review-pr`; in `mcp` mode, CRG failure is a setup gap, while `off` mode is an explicit manual-review fallback

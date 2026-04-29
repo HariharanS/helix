@@ -25,32 +25,6 @@ function Get-DefaultContextProvidersConfig {
     }
 }
 
-function Get-DefaultCodeReviewGraphServer {
-    $server = Get-VerifiedCodeReviewGraphServer
-    if ($null -ne $server) {
-        return $server
-    }
-
-    if (Get-Command python -ErrorAction SilentlyContinue) {
-        return [ordered]@{
-            command = 'python'
-            args = @('-m', 'code_review_graph', 'serve')
-        }
-    }
-
-    if (Get-Command py -ErrorAction SilentlyContinue) {
-        return [ordered]@{
-            command = 'py'
-            args = @('-3', '-m', 'code_review_graph', 'serve')
-        }
-    }
-
-    return [ordered]@{
-        command = 'python'
-        args = @('-m', 'code_review_graph', 'serve')
-    }
-}
-
 function Test-CodeReviewGraphPythonModule {
     param(
         [Parameter(Mandatory = $true)][string]$Command,
@@ -373,7 +347,7 @@ if ($Mode -ne 'off') {
     }
 
     if ($null -eq $resolvedServer) {
-        $resolvedServer = Get-DefaultCodeReviewGraphServer
+        throw "No verified code-review-graph runtime was found. Re-run with -Bootstrap to install it automatically, or set -Mode off as an emergency fallback."
     }
 }
 
@@ -413,14 +387,10 @@ if ($legacyProjectMcpPathExists -and $null -ne $legacyProjectMcpConfig) {
 Show-CodeReviewGraphStatus -Config $contextProvidersConfig -CliMcpConfig $cliMcpConfig -VSCodeMcpConfig $vscodeMcpConfig -LegacyProjectConfigContainsServer:$false
 
 if ($Mode -eq 'off') {
-    Write-Host "Helix will ignore code-review-graph and fall back to manual context bundles."
+    Write-Host "Helix is in emergency off mode and will use default agent/search behavior."
     return
-}
-
-if (-not $runtimeAvailable) {
-    Write-Warning "No verified code-review-graph runtime was found. The MCP entry was normalized to a portable command, but you still need a usable runtime before the provider will work. Re-run with -Bootstrap to install it automatically."
 }
 
 Write-Host "Next steps:"
 Write-Host "1. Build the graph in each repo you want to query."
-Write-Host "2. Use 'mcp' only when the graph is built and the signal quality is worth the extra tool calls and tokens."
+Write-Host "2. Keep mode 'mcp' for normal Helix setup; use '-Mode off' only as an emergency fallback."

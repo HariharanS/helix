@@ -10,7 +10,7 @@ This directory contains helper scripts and hook implementations.
 - `workspace-setup.ps1` — user-facing wrapper for future `helix workspace setup`
 - `init-meta-repo.ps1` — bootstrap implementation behind `init.ps1`
 - `install-helix.ps1` — materializes Helix into a meta repo
-- `set-context-provider.ps1` — enables or disables optional context providers such as code-review-graph
+- `set-context-provider.ps1` — configures code-review-graph mode and MCP entries; `off` is emergency fallback only
 - `sync-helix.ps1` — sync implementation behind `sync.ps1` and `upgrade.ps1`
 - `setup-workspace.ps1` — workspace setup implementation behind `workspace-setup.ps1`
 - `doctor.ps1` — validates manifests and readiness

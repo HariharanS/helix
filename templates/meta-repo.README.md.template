@@ -18,7 +18,7 @@ It does not own product code. Product repos are attached from the registry only 
 1. Update `helix-repos.yml` with the repos Helix can use
 2. Create or edit `workspaces/<workspace-id>/workspace.yml` using `helix/templates/workspace.yml.template` as the starter shape when needed
 3. Run workspace setup: `helix workspace setup` (current script: `./helix/scripts/workspace-setup.ps1 -Workspace <workspace-id>`)
-4. Optional: run `./helix/scripts/set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap`
+4. Confirm workspace setup built CRG graphs for the selected repos
 5. Start Helix from the active meta repo workspace
 
 ## CLI Commands
@@ -46,7 +46,7 @@ Until the `helix` CLI is available, invoke the scripts directly.
 - `.github/` — agents, prompts, skills, and Copilot instructions
 - `helix/` — installed Helix-managed docs, scripts, and templates
 - `.helix/` — install state, active workspace pointer, repo-state, generated state
-- `.helix/context-providers.yml` — optional graph retrieval switches and budgets
+- `.helix/context-providers.yml` — CRG mode and retrieval budgets (`off` is emergency fallback only)
 - `.vscode/mcp.json` — VS Code project-level MCP server config (seeded once; preserved locally)
 - `workspaces/` — feature-space artifacts, including task boards and decisions
 - `helix-repos.yml` — canonical repo registry

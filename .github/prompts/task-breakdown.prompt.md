@@ -2,7 +2,7 @@
 name: task-breakdown
 description: Break a technical design into small, independent tasks
 agent: decomposer
-mode: ask
+mode: agent
 tools: ['read', 'search/codebase']
 ---
 

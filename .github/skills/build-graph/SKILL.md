@@ -1,7 +1,7 @@
 ---
 name: build-graph
 managed-by: helix-core
-description: Build or incrementally update the code-review-graph for all active workspace repos, register them for cross-repo search, and sync context-providers.yml mode.
+description: Build or incrementally update the code-review-graph for all active workspace repos, register them for cross-repo search, and verify graph readiness.
 argument-hint: "[full] — pass 'full' to force a complete rebuild of all repos"
 user-invocable: true
 disable-model-invocation: true
@@ -9,16 +9,17 @@ disable-model-invocation: true
 
 # Build Graph Skill
 
-Build or incrementally update the code-review-graph for every repo in the active workspace. Also registers repos for cross-repo search (`cross_repo_search_tool`) and updates `context-providers.yml` mode based on results.
+Build or incrementally update the code-review-graph for every repo in the active workspace. Also registers repos for cross-repo search (`cross_repo_search_tool`) and generates wiki pages. This is normally handled by workspace setup; use this skill for manual repair or refresh.
 
 ## Workflow
 
 ### 1. Check Configuration
 
-- Read `.helix/context-providers.yml` — if `mode: off`, report CRG is disabled and stop. The user must set `mode: mcp` before a build is meaningful.
+- Read `.helix/context-providers.yml` — if `mode: off`, report CRG is in emergency fallback and stop. The user must set `mode: mcp` before a build is meaningful.
 - Read `.helix/active-workspace.yml` for the workspace name.
 - Read `workspaces/{name}/workspace.yml` for the `repos` list.
 - Read `.helix/repo-state/{repo-id}.yml` for each workspace repo and use `local_path` as the authoritative checkout root.
+- Use the CRG runner configured by setup (`uvx code-review-graph`, `code-review-graph`, or `python -m code_review_graph`). Command snippets below use the Python form as an example.
 
 ### 2. Check Graph Status Per Repo
 
@@ -66,13 +67,9 @@ After a successful build or update, generate wiki pages for agent navigation:
 python -m code_review_graph wiki --repo "{repo-state.local_path}"
 ```
 
-### 6. Update `context-providers.yml` Mode
+### 6. Keep `context-providers.yml` Mode
 
-Based on aggregate results:
-
-- At least one repo built successfully (nodes > 0) → set `mode: mcp`
-- All repos have 0 nodes or build failed → set `mode: off`
-- If the user deferred this step → leave `mode` unchanged
+Do not automatically change `context-providers.yml` based on build results. Normal Helix setup expects `mode: mcp`; a failed build is a setup gap to repair. Only set `mode: off` when the user explicitly requests emergency default-agent/search behavior.
 
 ### 7. Report
 
@@ -83,15 +80,15 @@ Per repo:
 - Any errors
 
 Overall:
-- CRG mode now in `context-providers.yml`
+- CRG mode remains `mcp` unless the user explicitly changed it
 - Which repos are ready for graph-assisted queries
 - Cross-repo registration status
 
 ## When to Use
 
-- After workspace setup (step 7 of setup.agent.md calls this pattern directly)
+- After workspace setup when a manual repair or full refresh is needed
 - After switching branches or after a large merge
-- When `/curate-context` falls back to manual mode unexpectedly
+- When `/curate-context` reports a missing or stale graph in `mode: mcp`
 - When `/review-delta` or `/review-pr` detect a stale or missing graph
 
 ## Notes
@@ -99,4 +96,4 @@ Overall:
 - The graph database lives at `.code-review-graph/graph.db` inside each product repo
 - Git-ignored files are skipped automatically; use `.code-review-graphignore` for tracked exclusions
 - Do NOT run this mid-flight during a fleet implementation loop — only at phase boundaries
-- Flow analysis (`list_flows_tool`, `get_affected_flows_tool`) is populated by default. If the build was originally run with `--skip-flows` (as in setup.agent.md step 7), run `update` to populate flows before review phases
+- Flow analysis (`list_flows_tool`, `get_affected_flows_tool`) is expected to be populated by the normal full build path. If a graph was created through an older `--skip-flows` path, run `full` to refresh it before review phases.

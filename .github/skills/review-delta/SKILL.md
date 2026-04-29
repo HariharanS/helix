@@ -21,8 +21,8 @@ If implementation work has just completed, run `/build-graph` first. A stale gra
 
 Read `.helix/context-providers.yml`.
 
-- `mode: mcp` → proceed with Step 2
-- `mode: off` → skip to Step 6 (manual fallback)
+- `mode: mcp` → proceed with Step 2; CRG tool failure is a setup gap
+- `mode: off` → skip to Step 6 (emergency manual fallback)
 
 ### 2. Resolve Repo Root
 
@@ -78,7 +78,7 @@ If `detect_changes_tool` reported affected flows, call once:
 get_affected_flows_tool(repo_root="{resolved-repo-path}")
 ```
 
-### 6. Manual Fallback (mode: off or CRG unavailable)
+### 6. Manual Fallback (mode: off only)
 
 ```powershell
 git -C "{resolved-repo-path}" diff HEAD~1
