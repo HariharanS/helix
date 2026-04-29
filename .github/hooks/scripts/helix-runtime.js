@@ -25,6 +25,10 @@ function getStateDeltaPath(repoRoot = getRepoRoot()) {
   return path.join(repoRoot, '.helix', 'state-deltas.jsonl');
 }
 
+function getHookEventPath(repoRoot = getRepoRoot()) {
+  return path.join(repoRoot, '.helix', 'hook-events.jsonl');
+}
+
 function appendJsonl(filePath, record) {
   ensureDirectory(path.dirname(filePath));
   fs.appendFileSync(filePath, `${JSON.stringify(record)}\n`, 'utf8');
@@ -181,6 +185,36 @@ function isoTimestamp(input) {
   return new Date(ms).toISOString();
 }
 
+function hookInputField(input, ...keys) {
+  if (!input || typeof input !== 'object') {
+    return null;
+  }
+  for (const key of keys) {
+    if (input[key] !== undefined && input[key] !== null) {
+      return input[key];
+    }
+  }
+  return null;
+}
+
+function appendHookEvent(repoRoot, eventType, input = {}, fields = {}) {
+  const record = {
+    ...sanitizeForLog(fields),
+    schema_version: 1,
+    ts: isoTimestamp(input),
+    event_type: eventType,
+    hook_name: hookInputField(input, 'hook', 'hookName', 'hook_event_name'),
+    source: hookInputField(input, 'source'),
+    copilot_session_id: hookInputField(input, 'session_id', 'sessionId'),
+    tool_call_id: hookInputField(input, 'tool_call_id', 'toolCallId'),
+  };
+  appendJsonl(getHookEventPath(repoRoot), record);
+}
+
+function logEvent(eventType, input = {}, fields = {}) {
+  appendHookEvent(getRepoRoot(), eventType, input, fields);
+}
+
 // Append one Helix state-delta record. Schema (all opaque strings, schema-ready
 // for future workflows):
 //   { ts, delta_type, workspace, workflow, phase, ...extras }
@@ -192,13 +226,16 @@ function appendStateDelta(repoRoot, deltaType, ts, fields = {}) {
 }
 
 module.exports = {
+  appendHookEvent,
   appendStateDelta,
   getActiveWorkspace,
   getCodeReviewGraphPolicy,
+  getHookEventPath,
   getRepoRoot,
   getStateDeltaPath,
   getWorkspaceState,
   isoTimestamp,
+  logEvent,
   parseSimpleYaml,
   parseToolArgs,
   readHookInput,

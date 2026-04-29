@@ -198,6 +198,7 @@ Copilot CLI LSP support is useful, but Helix should treat it as **advisory conte
 - Bootstrap a new meta repo: run `scripts/init.ps1`, then update `helix-repos.yml`, create `workspaces/{name}/workspace.yml`, and use `scripts/workspace-setup.ps1`, the `setup` agent, or the `workspace-sync` skill to attach the selected repos
 - New to Helix: [`docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
 - Canonical lifecycle and loops: [`docs/helix-process.md`](./docs/helix-process.md)
+- Copilot session traces and Lens overlay plan: [`docs/trace-schema.md`](./docs/trace-schema.md) and [`docs/copilot-session-overlay-plan.md`](./docs/copilot-session-overlay-plan.md)
 - Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
 - Meta-repo manifest schemas: [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md)
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)

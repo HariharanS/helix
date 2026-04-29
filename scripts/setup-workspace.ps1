@@ -377,6 +377,12 @@ if ($verificationPolicyDeclared -and -not (Test-Path $verificationPolicyPath)) {
     }
 }
 
+$mentalModelPath = Join-Path $workspaceDir 'mental-model.md'
+if (-not (Test-Path $mentalModelPath)) {
+    $mentalModelTemplatePath = Resolve-HelixTemplatePath -HelixRoot $TargetRoot -TemplateFileName 'mental-model.md.template'
+    Copy-Item -LiteralPath $mentalModelTemplatePath -Destination $mentalModelPath -Force
+}
+
 $workspaceConfig = [ordered]@{
     folders = $folders
     settings = [ordered]@{

@@ -106,6 +106,20 @@ For each candidate, emit:
 
 Feed approved candidates to the `/skill-synth` skill for generation. Do NOT create skills unilaterally — present for human review first.
 
+## Cross-Session Persistence (`.helix/skills/`)
+
+Promotion candidates accumulate evidence across features — they are NOT one-shot per session. Full schema + gates: `helix/docs/distillation-architecture.md`.
+
+For each candidate identified in this session:
+
+1. Compute a stable kebab-case `id` from the pattern.
+2. **Check the graveyard.** Read `.helix/skills/graveyard/{id}.md` if it exists. If the "Don't re-suggest if" fingerprint matches the current pattern, suppress the candidate. Record under `## Suppressed (graveyarded)` in the session distill report. Move on.
+3. **Append, don't duplicate.** Read `.helix/skills/candidates/{id}.md`:
+   - If it exists, append a new dated block to its `## Evidence Log`, bump `occurrences`, union the new feature slug into `features`, update `last_evidence`. Do NOT rewrite earlier evidence.
+   - If it does not exist, create it from the schema (`distillation-architecture.md` → "candidates/{id}.md").
+4. **Evaluate the promotion gate** after the update: `occurrences ≥ 3 AND len(features) ≥ 2 AND held_out_replay = PASS AND quarterly_promotions < 5`. Set `Status:` to `ELIGIBLE`, `NOT-YET ({reason})`, or `ELIGIBLE-BUT-CAPPED`. Held-out replay is `/skill-synth`'s job — call it when the first three gates would otherwise pass.
+5. **Recommend, don't promote.** Even when `Status: ELIGIBLE`, write `Recommendation: CREATE SKILL` and stop. Operator runs `/maker` to generate the SKILL.md.
+
 ## Workflow
 
 1. Read the workspace task board, decisions log, and any artifacts produced
@@ -114,7 +128,8 @@ Feed approved candidates to the `/skill-synth` skill for generation. Do NOT crea
 4. Produce delivery distill (always)
 5. Check if any insights qualify for runtime distill
 6. Check if any repeating patterns qualify for promotion distill
-7. Update `.helix/memory/index.md` with new entries
+7. **For each candidate, follow Cross-Session Persistence above** — graveyard check → append-or-create candidate → evaluate gate → recommend
+8. Update `.helix/memory/index.md` with new entries
 
 ## Guidelines
 

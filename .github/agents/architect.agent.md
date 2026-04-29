@@ -54,7 +54,9 @@ You run as a top-level interactive agent — your context window is shared with 
 
 ## Output Format
 
-For small or simple work, write `workspaces/{workspace-name}/tech-design.md`.
+For small or simple work confined to a single repo, write `workspaces/{workspace-name}/tech-design.md`.
+
+**Any feature that touches more than one repo MUST use package mode** — even if the design itself is short. Cross-repo contracts and the mental-model file expect `tech-design/` siblings (`contracts.yaml`, `contracts.md`); single-file mode silently drops the structured contract that decomposer needs for slice ordering.
 
 For cross-repo or larger work, write a design package under `workspaces/{workspace-name}/tech-design/` and use `index.md` as the entry point:
 
@@ -165,6 +167,37 @@ sequenceDiagram
 ## Risks
 - Risk and mitigation
 ````
+
+## Cross-Repo Contracts (structured)
+
+When a feature spans multiple repos, capture the cross-repo contracts as **structured YAML**, not prose. Decomposer consumes the structure directly into `slices[].cross_repo_contracts` (see [`helix-instance-schemas.md`](../../docs/helix-instance-schemas.md) — execution-plan cross-repo slice extensions). Cross-repo features always use package mode (see Output Format), so `contracts.yaml` and `contracts.md` are co-located under `tech-design/`.
+
+- Write `workspaces/{workspace-name}/tech-design/contracts.yaml` alongside the existing `contracts.md`
+- One entry per contract crossing a repo boundary; fields: `type` (opaque, e.g. `event` / `http` / `schema`), `name`, `version`, `producer` (repo id), `consumers` (list of repo ids), `schema_path` (path to schema source-of-truth)
+- `contracts.md` continues to hold the prose around *why* and *how* contracts are shaped; `contracts.yaml` holds the machine-readable identity decomposer needs to plan slice ordering
+- Stay tech-agnostic — do not bake in a runner, framework, or transport beyond what's already true in the affected repos
+
+Example entry:
+
+```yaml
+contracts:
+  - type: event
+    name: OrderPlaced
+    version: v1
+    producer: orders-api
+    consumers: [orders-worker]
+    schema_path: shared-contracts/events/order-placed.v1.json
+```
+
+## Mental Model
+
+You own `workspaces/{workspace-name}/mental-model.md` — the workspace-scoped capture of cross-repo coupling AI agents cannot crawl natively. Shape lives in `helix/templates/mental-model.md.template` (six sections: Domain Glossary, Flag Inventory, Coupling Map, Behavior Conditions, State Diagrams, Surprise Log).
+
+- Update Domain Glossary, Flag Inventory, Coupling Map, Behavior Conditions, and State Diagrams during the tech-design phase, alongside `tech-design/contracts.yaml`
+- Read this file before any cross-repo recommendation — treat unverified coupling claims the same way you treat unverified code patterns
+- The Surprise Log is consumer-driven: operator and implementer append entries via `/surprise`. Do **not** write to the Surprise Log directly; if a surprise is resolved structurally, update the relevant section above and leave the log entry intact
+- Stay tech-agnostic — no language, framework, or runner baked in
+- Architecture reference: `helix/docs/mental-model-architecture.md`
 
 ## CLI Mode
 

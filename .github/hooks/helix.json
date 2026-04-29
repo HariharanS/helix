@@ -47,6 +47,13 @@
       },
       {
         "type": "command",
+        "bash": "node ./scripts/distill-trigger.js",
+        "powershell": "node ./scripts/distill-trigger.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
         "bash": "node ./scripts/crg-sweep.js",
         "powershell": "node ./scripts/crg-sweep.js",
         "cwd": ".github/hooks",

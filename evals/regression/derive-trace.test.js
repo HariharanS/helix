@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 
 const SCRIPT = path.resolve(__dirname, '..', '..', '.github', 'hooks', 'scripts', 'derive-trace.js');
-const { deriveTraceRecords, sanitizeToolArgs } = require(SCRIPT);
+const { buildSessionIndexRecord, deriveTraceRecords, sanitizeToolArgs } = require(SCRIPT);
 
 const baselineDelta = {
   ts: '2026-04-28T12:00:00.000Z',
@@ -20,6 +20,10 @@ const baselineDelta = {
 
 function ev(type, ts, data = {}) {
   return { type, timestamp: ts, data };
+}
+
+function evWithId(id, type, ts, data = {}) {
+  return { id, type, timestamp: ts, data };
 }
 
 test('emits prompt record for user.message', () => {
@@ -38,6 +42,38 @@ test('carries workspace/workflow/phase from state-delta into trace records', () 
   assert.equal(recs[0].workflow, 'full-rpi');
   assert.equal(recs[0].phase, 'implementation');
   assert.equal(recs[0].crg_mode, 'mcp');
+});
+
+test('adds stable Copilot source references to trace records', () => {
+  const events = [
+    evWithId('event-1', 'user.message', '2026-04-28T12:01:00.000Z', { content: 'hi' }),
+    evWithId('event-2', 'subagent.started', '2026-04-28T12:01:01.000Z', {
+      toolCallId: 'sub-1',
+      agentName: 'architect',
+    }),
+    evWithId('event-3', 'subagent.completed', '2026-04-28T12:01:03.000Z', {
+      toolCallId: 'sub-1',
+      agentName: 'architect',
+    }),
+  ];
+  const recs = deriveTraceRecords(events, [baselineDelta], { sessionId: 'session-1' });
+  const prompt = recs.find(r => r.kind === 'prompt');
+  const subagent = recs.find(r => r.kind === 'subagent');
+
+  assert.equal(prompt.copilot_session_id, 'session-1');
+  assert.equal(prompt.source_event_id, 'event-1');
+  assert.equal(prompt.source_event_index, 0);
+  assert.equal(prompt.source_event_type, 'user.message');
+  assert.equal(prompt.source_tool_call_id, null);
+
+  assert.equal(subagent.copilot_session_id, 'session-1');
+  assert.equal(subagent.source_event_id, 'event-3');
+  assert.equal(subagent.source_event_index, 2);
+  assert.equal(subagent.source_event_type, 'subagent.completed');
+  assert.equal(subagent.source_tool_call_id, 'sub-1');
+  assert.equal(subagent.tool_call_id, 'sub-1');
+  assert.equal(subagent.source_start_event_id, 'event-2');
+  assert.equal(subagent.source_start_event_index, 1);
 });
 
 test('attributes events inside a subagent span to that subagent', () => {
@@ -193,4 +229,27 @@ test('phase changes via successive deltas reflect in records after the change ts
   assert.equal(recs[0].phase, 'implementation');
   assert.equal(recs[1].phase, 'review');
   assert.equal(recs[1].workspace, 'feature-x', 'workspace must carry forward across phase change');
+});
+
+test('buildSessionIndexRecord: bridges Copilot session id to Helix trace paths', () => {
+  const repoRoot = path.resolve('repo-root');
+  const events = [
+    ev('session.start', '2026-04-28T12:00:00.000Z', {}),
+    ev('user.message', '2026-04-28T12:01:00.000Z', { content: 'hi' }),
+    ev('session.shutdown', '2026-04-28T12:09:00.000Z', {}),
+  ];
+  const records = deriveTraceRecords(events, [baselineDelta], { sessionId: 'session-1' });
+  const rec = buildSessionIndexRecord(repoRoot, 'session-1', events, [baselineDelta], records);
+
+  assert.equal(rec.schema_version, 1);
+  assert.equal(rec.copilot_session_id, 'session-1');
+  assert.equal(rec.repo_root, repoRoot);
+  assert.equal(rec.workspace, 'feature-x');
+  assert.equal(rec.workflow, 'full-rpi');
+  assert.equal(rec.phase, 'implementation');
+  assert.equal(rec.crg_mode, 'mcp');
+  assert.equal(rec.first_seen_at, '2026-04-28T12:00:00.000Z');
+  assert.equal(rec.last_seen_at, '2026-04-28T12:09:00.000Z');
+  assert.equal(rec.trace_path, '.helix/traces/session-1.jsonl');
+  assert.equal(rec.label_path, '.helix/traces/session-1.label.yml');
 });

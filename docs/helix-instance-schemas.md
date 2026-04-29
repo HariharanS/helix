@@ -470,6 +470,70 @@ Optional. Opt in by declaring `artifacts.verification_policy` in `workspace.yml`
 | `policy.backpressure.max_consecutive_unverified_slices` | no | integer | Beta scheduler threshold before Helix should pause and surface verification debt |
 | `overrides` | no | list | Workspace-specific exceptions or future operator rules |
 
+### `workspaces/{id}/execution-plans/{feature}.yaml` — cross-repo slice extensions
+
+Purpose: extend the slice schema documented in [`execution-plan.yaml.template`](../templates/execution-plan.yaml.template) so a single slice can span multiple repos and record the contracts crossing repo boundaries.
+
+These fields are **additive** to the existing slice shape. Tech-agnostic by design: the schema records contract identity and verification *intent*; the runner is whatever the operator's ecosystem provides (in-process tests, container orchestration, contract verifier, CI pipeline). Helix does not ship or invoke a runner.
+
+| Field | Required | Type | Notes |
+|---|---|---|---|
+| `slices[].repos` | yes for cross-repo | list[string] | Repo ids the slice spans. Each must exist in the workspace `repos` list. Single-repo slices may omit and continue to rely on `tasks[].repo`. |
+| `slices[].cross_repo_contracts` | no | list | Contracts the slice introduces, modifies, or consumes. Empty or omitted for in-repo slices. |
+| `slices[].cross_repo_contracts[].type` | yes | string | Operator-meaningful contract surface (e.g. `event`, `http`, `schema`, `queue`). Opaque string — not enum-constrained. |
+| `slices[].cross_repo_contracts[].name` | yes | string | Contract identifier (e.g. `OrderPlaced`, `POST /orders`). |
+| `slices[].cross_repo_contracts[].version` | yes | string | Contract version label (e.g. `v1`, `2026-04-01`). |
+| `slices[].cross_repo_contracts[].producer` | yes | string | Repo id producing/owning the contract surface. Must appear in `slices[].repos`. |
+| `slices[].cross_repo_contracts[].consumers` | yes | list[string] | Repo ids consuming the contract. Each must appear in `slices[].repos`. |
+| `slices[].cross_repo_contracts[].schema_path` | yes | string | Path to the contract source-of-truth (e.g. `shared-contracts/events/order-placed.v1.json`). Path only — Helix does not validate the schema document format. |
+| `slices[].write_ownership` | no | map | Multi-repo write ownership keyed by repo id: `{repo-id: [path, ...]}`. Use at slice level when a slice spans repos; per-task `tasks[].ownership.write_paths` continues to apply within a single repo. |
+| `slices[].verification.contract_tests` | no | list[string] | Paths or references to contract tests/specs. Tech-agnostic — files, glob patterns, or runner-specific references are all valid. Helix does not invoke them; the runner is operator-supplied. |
+| `slices[].verification.integration` | no | map | Optional cross-repo integration check for slices that need an end-to-end gate. |
+| `slices[].verification.integration.description` | yes when integration present | string | Human-readable description of what the integration check proves. |
+| `slices[].verification.integration.command` | yes when integration present | string | Opaque operator-supplied command. Helix runs it as-is and treats the exit code as pass/fail. |
+
+The existing `slices[].verification.commands` field continues to apply for single-repo, in-process gates. `contract_tests` and `integration` are additive for cross-repo cases.
+
+#### Example (cross-repo slice)
+
+```yaml
+slices:
+  - id: SLICE-1
+    title: Order placement event flow
+    repos: [orders-api, orders-worker, shared-contracts]
+    task_ids: [TASK-001, TASK-002, TASK-003]
+    cross_repo_contracts:
+      - type: event
+        name: OrderPlaced
+        version: v1
+        producer: orders-api
+        consumers: [orders-worker]
+        schema_path: shared-contracts/events/order-placed.v1.json
+    write_ownership:
+      shared-contracts:
+        - events/order-placed.v1.json
+      orders-api:
+        - src/Orders/PlaceOrderHandler.cs
+        - tests/PlaceOrderTests.cs
+      orders-worker:
+        - src/Workers/OrderPlacedHandler.cs
+        - tests/OrderPlacedHandlerTests.cs
+    verification:
+      contract_tests:
+        - shared-contracts/tests/order-placed.v1.spec
+      integration:
+        description: Bring up producer + consumer; emit canonical OrderPlaced event; assert handler outcome
+        command: <operator-provided>
+```
+
+#### Validation Rules
+
+- every `slices[].repos` entry must exist in the workspace `repos` list
+- every `cross_repo_contracts[].producer` and each `consumers[]` entry must appear in the same slice's `repos`
+- `schema_path` must be repo-rooted (relative to the meta-repo or to a participating repo); do not embed absolute filesystem paths
+- when a slice's `cross_repo_contracts` is non-empty, decomposer must topologically order slices so a slice introducing a contract precedes any slice consuming it
+- `verification.integration.command` is opaque — Helix does not parse, validate, or substitute into it; the operator owns the runner
+
 > These schemas are **beta**. Fields may change without a version bump until promoted to stable.
 
 ## Templates

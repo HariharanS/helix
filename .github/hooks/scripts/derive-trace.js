@@ -19,7 +19,6 @@ const readline = require('readline');
 const {
   getRepoRoot,
   getStateDeltaPath,
-  isoTimestamp,
   readHookInput,
   readYamlFile,
   redactText,
@@ -28,6 +27,7 @@ const {
 } = require('./helix-runtime');
 
 const COPILOT_HOME = process.env.COPILOT_HOME || path.join(os.homedir(), '.copilot');
+const SOURCE_EVENT_INDEX = Symbol('helixSourceEventIndex');
 
 function pathsEqual(a, b) {
   if (!a || !b) return false;
@@ -58,13 +58,28 @@ function findCopilotSessionId(repoRoot) {
 async function readJsonlLines(filePath) {
   if (!fs.existsSync(filePath)) return [];
   const out = [];
+  let lineIndex = 0;
   const rl = readline.createInterface({
     input: fs.createReadStream(filePath, { encoding: 'utf8' }),
     crlfDelay: Infinity,
   });
   for await (const line of rl) {
+    const currentIndex = lineIndex;
+    lineIndex += 1;
     if (!line.trim()) continue;
-    try { out.push(JSON.parse(line)); } catch { /* skip malformed */ }
+    try {
+      const parsed = JSON.parse(line);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        continue;
+      }
+      Object.defineProperty(parsed, SOURCE_EVENT_INDEX, {
+        value: currentIndex,
+        enumerable: false,
+      });
+      out.push(parsed);
+    } catch {
+      // skip malformed
+    }
   }
   return out;
 }
@@ -98,12 +113,41 @@ function makeContextResolver(deltas) {
 // nested-attribution lookups are O(1) instead of linear scans of the events list.
 function indexSubagentStarts(events) {
   const byId = new Map();
-  for (const e of events) {
+  for (let index = 0; index < events.length; index += 1) {
+    const e = events[index];
     if (e.type === 'subagent.started' && e.data?.toolCallId) {
-      byId.set(e.data.toolCallId, e);
+      byId.set(e.data.toolCallId, {
+        event: e,
+        index: getSourceEventIndex(e, index),
+      });
     }
   }
   return byId;
+}
+
+function getSourceEventId(event) {
+  return event?.id ?? event?.event_id ?? event?.eventId ?? null;
+}
+
+function getSourceEventIndex(event, fallbackIndex) {
+  if (Number.isInteger(event?.[SOURCE_EVENT_INDEX])) {
+    return event[SOURCE_EVENT_INDEX];
+  }
+  return Number.isInteger(fallbackIndex) ? fallbackIndex : null;
+}
+
+function getSourceToolCallId(event) {
+  return event?.data?.toolCallId ?? event?.toolCallId ?? event?.tool_call_id ?? null;
+}
+
+function sourceRefs(event, fallbackIndex, sessionId) {
+  return {
+    copilot_session_id: sessionId || null,
+    source_event_id: getSourceEventId(event),
+    source_event_index: getSourceEventIndex(event, fallbackIndex),
+    source_event_type: event?.type || null,
+    source_tool_call_id: getSourceToolCallId(event),
+  };
 }
 
 function sanitizeToolArgs(args) {
@@ -114,13 +158,15 @@ function sanitizeToolArgs(args) {
 // Walks events in append-order (time-ordered by Copilot) and emits trace records.
 // Maintains an active-subagent stack inline so each non-subagent event is attributed
 // to the innermost open subagent without per-event interval scans.
-function deriveTraceRecords(events, deltas) {
+function deriveTraceRecords(events, deltas, options = {}) {
+  const sessionId = options.sessionId || null;
   const resolveCtx = makeContextResolver(deltas);
   const startById = indexSubagentStarts(events);
   const activeStack = []; // [{ toolCallId, agent }]
   const records = [];
 
-  for (const e of events) {
+  for (let eventIndex = 0; eventIndex < events.length; eventIndex += 1) {
+    const e = events[eventIndex];
     const ts = e.timestamp;
     if (!ts) continue;
 
@@ -137,12 +183,14 @@ function deriveTraceRecords(events, deltas) {
     const ctx = resolveCtx(ts);
     const innermost = activeStack[activeStack.length - 1];
     const agentForChild = innermost?.agent || 'top-level';
+    const refs = sourceRefs(e, eventIndex, sessionId);
 
     switch (e.type) {
       case 'user.message':
         records.push({
           ts,
           kind: 'prompt',
+          ...refs,
           ...ctx,
           agent: agentForChild,
           content: truncateText(redactText(e.data?.content || '')),
@@ -154,6 +202,7 @@ function deriveTraceRecords(events, deltas) {
         records.push({
           ts,
           kind: 'assistant',
+          ...refs,
           ...ctx,
           agent: agentForChild,
           tool_requests: reqs,
@@ -167,6 +216,7 @@ function deriveTraceRecords(events, deltas) {
         records.push({
           ts,
           kind: 'tool',
+          ...refs,
           ...ctx,
           agent: agentForChild,
           tool_name: e.data?.toolName || null,
@@ -179,17 +229,22 @@ function deriveTraceRecords(events, deltas) {
 
       case 'subagent.completed': {
         const id = e.data?.toolCallId;
-        const startTs = id ? startById.get(id)?.timestamp : null;
+        const start = id ? startById.get(id) : null;
+        const startTs = start?.event?.timestamp || null;
         records.push({
           ts,
           kind: 'subagent',
+          ...refs,
           ...ctx,
           agent: e.data?.agentName || e.data?.agentDisplayName || null,
+          tool_call_id: id || null,
           model: e.data?.model || null,
           tokens: e.data?.totalTokens ?? null,
           tool_calls: e.data?.totalToolCalls ?? null,
           latency_ms: startTs ? Date.parse(ts) - Date.parse(startTs) : null,
           outcome: e.data?.outcome || 'success',
+          source_start_event_id: start ? getSourceEventId(start.event) : null,
+          source_start_event_index: start ? start.index : null,
         });
         const idx = activeStack.findIndex(f => f.toolCallId === id);
         if (idx !== -1) activeStack.splice(idx, 1);
@@ -197,13 +252,14 @@ function deriveTraceRecords(events, deltas) {
       }
 
       case 'session.model_change':
-        records.push({ ts, kind: 'model_change', ...ctx, model: e.data?.newModel || null });
+        records.push({ ts, kind: 'model_change', ...refs, ...ctx, model: e.data?.newModel || null });
         break;
 
       case 'session.warning':
         records.push({
           ts,
           kind: 'warning',
+          ...refs,
           ...ctx,
           message: truncateText(redactText(e.data?.message || ''), 200),
           warning_type: e.data?.warningType || null,
@@ -226,6 +282,85 @@ function writeAtomic(filePath, content) {
   fs.renameSync(tmp, filePath);
 }
 
+function getSessionIndexPath(repoRoot) {
+  return path.join(repoRoot, '.helix', 'session-index.jsonl');
+}
+
+function appendJsonlRecord(filePath, record) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.appendFileSync(filePath, `${JSON.stringify(record)}\n`, 'utf8');
+}
+
+function latestDeltaContext(deltas) {
+  const sorted = sortDeltasAsc(deltas);
+  const ctx = { workspace: null, workflow: null, phase: null, crg_mode: null };
+  for (const d of sorted) {
+    if (d.workspace !== undefined) ctx.workspace = d.workspace;
+    if (d.workflow !== undefined) ctx.workflow = d.workflow;
+    if (d.phase !== undefined) ctx.phase = d.phase;
+    if (d.crg_mode !== undefined) ctx.crg_mode = d.crg_mode;
+  }
+  return ctx;
+}
+
+function latestRecordContext(records) {
+  for (let i = records.length - 1; i >= 0; i -= 1) {
+    const record = records[i];
+    if (
+      record.workspace !== undefined ||
+      record.workflow !== undefined ||
+      record.phase !== undefined ||
+      record.crg_mode !== undefined
+    ) {
+      return {
+        workspace: record.workspace ?? null,
+        workflow: record.workflow ?? null,
+        phase: record.phase ?? null,
+        crg_mode: record.crg_mode ?? null,
+      };
+    }
+  }
+  return { workspace: null, workflow: null, phase: null, crg_mode: null };
+}
+
+function validTimestamp(value) {
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value));
+}
+
+function sessionTimeBounds(events, records) {
+  const eventTimes = events.map(event => event?.timestamp).filter(validTimestamp);
+  const recordTimes = records.map(record => record?.ts).filter(validTimestamp);
+  const times = eventTimes.length ? eventTimes : recordTimes;
+  const fallback = new Date().toISOString();
+  return {
+    first_seen_at: times[0] || fallback,
+    last_seen_at: times[times.length - 1] || fallback,
+  };
+}
+
+function buildSessionIndexRecord(repoRoot, sessionId, events, deltas, records) {
+  const deltaCtx = latestDeltaContext(deltas);
+  const recordCtx = latestRecordContext(records);
+  const times = sessionTimeBounds(events, records);
+  return {
+    schema_version: 1,
+    copilot_session_id: sessionId,
+    repo_root: path.resolve(repoRoot),
+    workspace: recordCtx.workspace ?? deltaCtx.workspace,
+    workflow: recordCtx.workflow ?? deltaCtx.workflow,
+    phase: recordCtx.phase ?? deltaCtx.phase,
+    crg_mode: recordCtx.crg_mode ?? deltaCtx.crg_mode,
+    first_seen_at: times.first_seen_at,
+    last_seen_at: times.last_seen_at,
+    trace_path: `.helix/traces/${sessionId}.jsonl`,
+    label_path: `.helix/traces/${sessionId}.label.yml`,
+  };
+}
+
+function appendSessionIndexRecord(repoRoot, record) {
+  appendJsonlRecord(getSessionIndexPath(repoRoot), record);
+}
+
 async function main() {
   try {
     readHookInput(); // drain stdin even though we don't use the payload
@@ -240,12 +375,20 @@ async function main() {
     const events = await readJsonlLines(eventsPath);
     const deltas = await readJsonlLines(getStateDeltaPath(repoRoot));
 
-    const records = deriveTraceRecords(events, deltas);
+    const records = deriveTraceRecords(events, deltas, { sessionId });
     const tracePath = path.join(repoRoot, '.helix', 'traces', `${sessionId}.jsonl`);
     const body = records.map(r => JSON.stringify(r)).join('\n') + (records.length ? '\n' : '');
     writeAtomic(tracePath, body);
+    try {
+      appendSessionIndexRecord(
+        repoRoot,
+        buildSessionIndexRecord(repoRoot, sessionId, events, deltas, records)
+      );
+    } catch (err) {
+      process.stderr.write(`[derive-trace] failed to append session-index: ${err.message || err}\n`);
+    }
     process.stderr.write(
-      `[derive-trace] wrote ${records.length} records to .helix/traces/${sessionId}.jsonl\n`
+      `[derive-trace] wrote ${records.length} records to .helix/traces/${sessionId}.jsonl${records.length ? '\n  -> run /label-session to label this trace (correctness/rework/notes)' : ''}\n`
     );
   } catch (err) {
     // Hooks must never abort the host. Surface and exit 0.
@@ -256,8 +399,12 @@ async function main() {
 if (require.main === module) main();
 
 module.exports = {
+  appendSessionIndexRecord,
+  buildSessionIndexRecord,
   deriveTraceRecords,
+  getSessionIndexPath,
   indexSubagentStarts,
   makeContextResolver,
+  readJsonlLines,
   sanitizeToolArgs,
 };

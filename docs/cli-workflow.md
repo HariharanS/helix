@@ -151,7 +151,7 @@ Use this when you want to stay close to each task — inspect failing tests befo
 "Distill learnings from today's implementation"
 ```
 
-**`/chronicle` (optional, experimental):** If the host runtime provides a `/chronicle` session-event log, you may pass it to the distiller as supplementary context. It is advisory enrichment only — never the sole source of truth. Workspace artifacts and code changes remain the primary evidence. If `/chronicle` is unavailable or low-signal, omit it.
+**`/chronicle` (optional, experimental):** If the host runtime provides `/chronicle` output or other session-store-derived summaries, you may pass them to the distiller as supplementary context. They are advisory enrichment only — never the sole source of truth. Workspace artifacts and code changes remain the primary evidence. If `/chronicle` is unavailable or low-signal, omit it.
 
 **Output:** `.helix/memory/episodes/`, `.helix/memory/learnings/`
 

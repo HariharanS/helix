@@ -51,6 +51,8 @@ You break technical designs into small, implementable tasks that fit cleanly int
    - **fleet eligible:** same as above, plus disjoint write ownership from sibling tasks in the same parallel group
    - **manual:** missing commands, unresolvable environment, ambiguous ownership, or explicitly requested by human; task is emitted but not autopilot-safe
 6. Group tasks into slices with verification commands
+   - Cross-repo slices: read `tech-design/contracts.yaml` (when present) and populate `slices[].repos`, `slices[].cross_repo_contracts`, and slice-level `slices[].write_ownership` per the execution-plan schema
+   - **Topologically order slices over the contract graph** — a slice that introduces a contract (`producer`) must precede every slice that consumes it (`consumers`). If two slices form a cycle, surface it back to the architect; do not invent a tie-break
 7. Produce both the human task board and the machine-readable execution plan
 
 Read AGENTS.md and .instructions.md in each repo for conventions on how to structure code and where files belong.
@@ -118,7 +120,8 @@ tasks:
     depends_on: []
     can_run_in_parallel: false
     design_refs:
-      - tech-design/contracts.md#Interface Contracts
+      - tech-design.md#Interface Contracts          # single-file design
+      # or: tech-design/contracts.md#Interface Contracts   # package mode (always for cross-repo)
     context_bundle: workspaces/{workspace-name}/context-bundle-TASK-001.md
     ownership:
       write_paths:

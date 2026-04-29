@@ -8,10 +8,10 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, execFileSync } = require('child_process');
 const {
+  appendHookEvent,
   getActiveWorkspace,
   getCodeReviewGraphPolicy,
   getRepoRoot,
-  logEvent,
   readHookInput,
 } = require('./helix-runtime');
 
@@ -92,11 +92,25 @@ function listWorkspaceRepos(repoRoot, workspace) {
     .filter((repo) => fs.existsSync(path.join(repo.path, '.git')));
 }
 
-function main() {
+function recordHookEvent(repoRoot, eventType, input, fields, appendEvent = appendHookEvent) {
+  try {
+    appendEvent(repoRoot, eventType, input, fields);
+  } catch (error) {
+    const message = error && error.message ? error.message : String(error);
+    process.stderr.write(`[crg-sweep] failed to append hook event: ${message}\n`);
+  }
+}
+
+function main(deps = {}) {
+  const readInput = deps.readHookInput || readHookInput;
+  const appendEvent = deps.appendHookEvent || appendHookEvent;
+  const findRunner = deps.findPythonRunner || findPythonRunner;
+  const spawnUpdate = deps.spawnDetachedUpdate || spawnDetachedUpdate;
+
   // Drain stdin even when payload is unused; some hook hosts block on EOF.
   let input = {};
   try {
-    input = readHookInput();
+    input = readInput();
   } catch {
     // Ignore — hook input is optional for this sweep.
   }
@@ -105,25 +119,25 @@ function main() {
   const policy = getCodeReviewGraphPolicy(repoRoot);
 
   if (policy.mode !== 'mcp') {
-    logEvent('crgSweep', input, { skipped: true, reason: `mode=${policy.mode}` });
+    recordHookEvent(repoRoot, 'crgSweep', input, { skipped: true, reason: `mode=${policy.mode}` }, appendEvent);
     return;
   }
 
   const workspace = getActiveWorkspace(repoRoot);
   if (!workspace) {
-    logEvent('crgSweep', input, { skipped: true, reason: 'no-active-workspace' });
+    recordHookEvent(repoRoot, 'crgSweep', input, { skipped: true, reason: 'no-active-workspace' }, appendEvent);
     return;
   }
 
   const repos = listWorkspaceRepos(repoRoot, workspace);
   if (repos.length === 0) {
-    logEvent('crgSweep', input, { skipped: true, reason: 'no-repos', workspace });
+    recordHookEvent(repoRoot, 'crgSweep', input, { skipped: true, reason: 'no-repos', workspace }, appendEvent);
     return;
   }
 
-  const runner = findPythonRunner();
+  const runner = findRunner();
   if (!runner) {
-    logEvent('crgSweep', input, { skipped: true, reason: 'no-python-runner', workspace });
+    recordHookEvent(repoRoot, 'crgSweep', input, { skipped: true, reason: 'no-python-runner', workspace }, appendEvent);
     return;
   }
 
@@ -151,13 +165,13 @@ function main() {
 
     let pid = null;
     try {
-      pid = spawnDetachedUpdate(runner, repo.path, logFile);
+      pid = spawnUpdate(runner, repo.path, logFile);
     } catch (error) {
-      logEvent('crgSweepRepoError', input, {
+      recordHookEvent(repoRoot, 'crgSweepRepoError', input, {
         workspace,
         repo: repo.id,
         error: error && error.message ? error.message : String(error),
-      });
+      }, appendEvent);
       continue;
     }
 
@@ -171,12 +185,28 @@ function main() {
 
   writeState(repoRoot, state);
 
-  logEvent('crgSweep', input, {
+  recordHookEvent(repoRoot, 'crgSweep', input, {
     workspace,
     runner: runner.command,
     triggered,
     unchanged,
-  });
+  }, appendEvent);
 }
 
-main();
+if (require.main === module) {
+  try {
+    main();
+  } catch (error) {
+    process.stderr.write(`[crg-sweep] ${error.stack || error.message || String(error)}\n`);
+  }
+}
+
+module.exports = {
+  findPythonRunner,
+  gitHead,
+  listWorkspaceRepos,
+  main,
+  readState,
+  recordHookEvent,
+  writeState,
+};

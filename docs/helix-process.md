@@ -121,7 +121,7 @@ Verification may be skipped when the environment does not support it (e.g., no b
 - update memory indexes
 - note candidate improvements to Helix itself
 
-**`/chronicle` (optional, experimental):** If the host runtime provides a `/chronicle` capability, its session-event log may be passed to the distiller as supplementary enrichment. Treat it as advisory only — learnings and decisions must be derived from workspace artifacts and code changes, not solely from the chronicle log. If `/chronicle` is unavailable or noisy, skip it without degrading distill quality.
+**`/chronicle` (optional, experimental):** If the host runtime provides `/chronicle` output or other session-store-derived summaries, pass them to the distiller only as supplementary enrichment. Treat them as advisory only — learnings and decisions must be derived from workspace artifacts and code changes, not solely from chronicle output. If `/chronicle` is unavailable or noisy, skip it without degrading distill quality.
 
 ## Beta Runtime Artifacts
 

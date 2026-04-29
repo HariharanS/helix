@@ -11,6 +11,15 @@ disable-model-invocation: true
 
 Scans a codebase for repeating patterns and evaluates whether they should become reusable skills.
 
+## Two-Pass Synthesis
+
+Run in two model tiers (per `.helix/model-config.yml`) so cheap scanning doesn't pay reasoning-model cost and final judgment doesn't get rushed:
+
+- **Pass 1 — `fast` tier (Haiku).** Phases 1–2 (Scan, Evaluate). Identify and shortlist candidates. Cheap, broad. Output: a raw candidate list with frequency + consistency scores.
+- **Pass 2 — `reasoning` tier (Opus).** Phases 3–5 (Prove Reusability, Report, Handoff). Held-out replay, parameter extraction, recommendation. Expensive, careful. Output: the candidate report.
+
+Always run both passes. A pass-1 candidate that pass-2 downgrades to `NOT WORTH IT` is the system working — the cheap scan is allowed to be generous.
+
 ## Workflow
 
 ### 1. Scan

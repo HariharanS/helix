@@ -17,7 +17,7 @@ Regression covers what we can test deterministically without invoking an LLM. Qu
 
 ## Layer 1 — Regression tests
 
-- Lives in `helix/evals/regression/`. Run via `node --test helix/evals/regression/`.
+- Lives in `helix/evals/regression/`. Run via `node --test helix/evals/regression/*.test.js`.
 - Pure unit tests against hook scripts and runtime helpers. No Copilot CLI, no LLM, no network.
 - Targets behaviour Helix is responsible for and that has a single correct answer.
 
@@ -31,6 +31,7 @@ What's covered:
 - `helix-runtime.getWorkspaceState` returns the documented default (`workflow: full-rpi`) when manifest is missing, and reads the declared workflow when present (opaque string passthrough — not enum-constrained).
 - `helix-runtime.appendStateDelta` writes a record matching the schema in `trace-schema.md`.
 - `derive-trace.deriveTraceRecords` against fixture events + deltas: emits expected kinds, attributes nested events to innermost subagent, computes `latency_ms` from start/end timestamps, sanitizes nested tool-args, carries workspace/workflow/phase/crg_mode forward via state-delta join.
+- Planned trace regression coverage: source event references for Copilot CLI Lens (`copilot_session_id`, `source_event_id`, `source_event_index`, `source_event_type`, `source_tool_call_id`) and missing-Helix overlay fallback behavior in Lens.
 
 What's deliberately NOT covered:
 
@@ -47,7 +48,7 @@ The trace pipeline (`derive-trace.js` → `.helix/traces/<session-id>.jsonl`) al
 Process:
 
 1. Each real Helix session through Weeks 3-5 emits a trace at `sessionEnd`. No extra effort required.
-2. The operator (you) tags trace files with a one-line judgement when the session closes — `good`, `mediocre`, `bad`, plus the reason. Stored as a sibling file `.helix/traces/<session-id>.label.yml`. No labelling tool yet — just the file.
+2. The operator tags trace files with `/label-session` when the session closes. The prompt writes a sibling file `.helix/traces/<session-id>.label.yml` using the closed schema in `label-schema.md`: `correctness`, `rework`, `notes`.
 3. By Week 6, the labelled set IS the baseline. Re-run the same intents through Helix at Week 6 (where reproducible) and compare; for non-reproducible runs, score Week 6 sessions blind against the same rubric and check distribution.
 
 Rubric fields (recorded in the label file):
@@ -56,7 +57,7 @@ Rubric fields (recorded in the label file):
 - `token_cost` — total tokens across the session (read from trace, not labelled)
 - `wall_clock_ms` — session duration (read from trace, not labelled)
 - `rework` — did the operator have to redo significant work afterwards? `none | minor | major`
-- `notes` — free-form, what went wrong or right
+- `notes` — single-line free-form text, what went wrong or right
 
 Why this works:
 

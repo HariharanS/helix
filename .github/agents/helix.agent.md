@@ -48,22 +48,26 @@ On every session start:
 4. Read the root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files in each repo for conventions — never assume a tech stack
 5. Read `.helix/model-config.yml`. When dispatching any sub-agent via `task()`, always pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is **not** auto-applied by the `task()` tool.
 
-## Available Skills
+## Available Skills and Prompts
 
-Skills with `disable-model-invocation: true` have no agent backing — invoke by reading `.github/skills/{name}/SKILL.md` and executing its workflow inline.
+Slash commands resolve to either a **skill** (workflow file under `.github/skills/{name}/SKILL.md`, invoked inline) or a **prompt** (under `.github/prompts/{name}.prompt.md`, routes to an agent or runs as guided dialogue). The full operator-facing index is [`.github/prompts/README.md`](../prompts/README.md). The agent-facing skills most relevant to orchestration:
 
 | Skill | Primary user | When |
 |-------|-------------|------|
 | `/curate-context` | explorer | Before every PRD/TECH DESIGN/TASK BREAKDOWN phase and per-task in Ralph loop |
 | `/task-board` | decomposer (create), scribe (update/read), resume (read) | All task board operations |
 | `/workspace-sync` | setup | Workspace attach and repo onboarding |
-| `/distill` | distiller | End of session or phase |
 | `/tdd-cycle` | implementer | Fleet mode red-green-refactor |
 | `/onboard` | setup | Make a repo agent-ready |
 | `/maker` | any | Create new agents, skills, prompts, or workspaces |
 | `/build-graph` | setup, reviewer | After workspace setup and when the graph is stale; prerequisite for `/review-delta` and `/review-pr` |
 | `/review-delta` | reviewer | Incremental structural review of changes since last commit (blast radius, risk scores, test gaps) |
 | `/review-pr` | reviewer | Full structural PR review across all commits (blast radius, impact radius, risk scoring) |
+| `/skill-synth` | distiller (post-promotion) | Held-out replay before recommending a candidate for promotion |
+| `/vertical-slice-verifier` | decomposer | Emit verification scaffolds for cross-repo contracts |
+| `/refactor`, `/playwright-cli` | implementer, ui-tester | Domain-specific implementation skills |
+
+Operator slash commands (`/jam`, `/tech-design`, `/task-breakdown`, `/distill`, `/label-session`, `/surprise`, `/skill-audit`, `/skill-graveyard`) live in the prompts directory — see the prompt-library README above.
 
 ## Optional Second-Opinion Critique
 

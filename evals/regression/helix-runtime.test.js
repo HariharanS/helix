@@ -10,7 +10,9 @@ const path = require('node:path');
 
 const RUNTIME = path.resolve(__dirname, '..', '..', '.github', 'hooks', 'scripts', 'helix-runtime.js');
 const {
+  appendHookEvent,
   appendStateDelta,
+  getHookEventPath,
   getStateDeltaPath,
   getWorkspaceState,
   parseSimpleYaml,
@@ -135,4 +137,28 @@ test('appendStateDelta: appends multiple records as separate lines', () => {
   assert.equal(lines.length, 2);
   assert.equal(JSON.parse(lines[0]).delta_type, 'session_baseline');
   assert.equal(JSON.parse(lines[1]).delta_type, 'phase_change');
+});
+
+test('appendHookEvent: writes operational hook telemetry separately from state deltas', () => {
+  const repo = tmpRepo();
+  appendHookEvent(repo, 'crgSweep', {
+    timestamp: Date.parse('2026-04-28T12:00:00.000Z'),
+    hookName: 'sessionEnd',
+    sessionId: 'session-1',
+  }, {
+    skipped: true,
+    reason: 'mode=off',
+    token: 'Bearer abc.def',
+  });
+
+  const rec = JSON.parse(fs.readFileSync(getHookEventPath(repo), 'utf8').trim());
+  assert.equal(rec.schema_version, 1);
+  assert.equal(rec.ts, '2026-04-28T12:00:00.000Z');
+  assert.equal(rec.event_type, 'crgSweep');
+  assert.equal(rec.hook_name, 'sessionEnd');
+  assert.equal(rec.copilot_session_id, 'session-1');
+  assert.equal(rec.skipped, true);
+  assert.equal(rec.reason, 'mode=off');
+  assert.match(rec.token, /Bearer \[REDACTED\]/);
+  assert.equal(fs.existsSync(getStateDeltaPath(repo)), false);
 });
