@@ -18,14 +18,14 @@ Each surprise log entry is a `### YYYY-MM-DD — {title}` subsection with `**Exp
 ## Ownership
 
 - **Architect** owns the document. Updates Domain Glossary / Flag Inventory / Coupling Map / Behavior Conditions / State Diagrams during the tech-design phase, alongside `tech-design/contracts.yaml` (T3).
-- **Operator and implementer** append to the Surprise Log via `/surprise`. The architect does not write directly to the log.
-- No automatic firing — `/surprise` is operator-invoked only. Surprises caught mid-implementation are recorded by the operator as they surface; the document is not auto-updated by hooks.
+- **Operator and implementer** append to the Surprise Log via `/hc-surprise`. The architect does not write directly to the log.
+- No automatic firing — `/hc-surprise` is operator-invoked only. Surprises caught mid-implementation are recorded by the operator as they surface; the document is not auto-updated by hooks.
 
 ## Lifecycle
 
 1. `setup-workspace.ps1` seeds the file from the template if absent (idempotent — re-runs do not overwrite).
 2. Architect populates the upper sections during tech-design.
-3. Operator and implementer use `/surprise` to record divergences as they appear.
+3. Operator and implementer use `/hc-surprise` to record divergences as they appear.
 4. When a surprise is resolved structurally, the architect updates the relevant section above; the log entry stays as history.
 
 ## Deferred auto-population

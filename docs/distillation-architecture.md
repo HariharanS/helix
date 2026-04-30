@@ -63,7 +63,7 @@ Append-only. Distiller adds one block per occurrence — never rewrites prior en
 ## Promotion Gate
 - Required: occurrences ≥ 3 AND len(features) ≥ 2 AND held_out_replay = PASS AND quarterly_promotions < 5
 - Status: ELIGIBLE | NOT-YET ({reason}) | ELIGIBLE-BUT-CAPPED
-- Action: hand off to `/maker` for SKILL.md generation, or wait
+- Action: hand off to `/hc-maker` for SKILL.md generation, or wait
 
 ## Recommendation
 CREATE SKILL | ADD TO EXISTING (<existing-id>) | NOT WORTH IT
@@ -114,7 +114,7 @@ Append-only. One record per skill invocation:
 
 Decision: defer the writer until a real usage-feedback workflow exists. The schema stays so the file format is stable when we do build it. Until then:
 
-- `/skill-audit` skips the edit-distance section when `usage.jsonl` is empty or absent (already in the prompt).
+- `/hc-skill-audit` skips the edit-distance section when `usage.jsonl` is empty or absent (already in the prompt).
 - Invocation counts, if needed for an audit, can be derived from trace `tool` records at audit time without committing to a writer.
 - Edit-distance specifically requires an operator-supplied number; that workflow is a separate future track once skills are being used in anger.
 
@@ -148,10 +148,10 @@ A candidate promotes when **all** are true:
 
 1. `occurrences ≥ 3`
 2. `len(features) ≥ 2` — same pattern appearing in two distinct features (not three occurrences in one feature)
-3. `held_out_replay === 'PASS'` — `/skill-synth` validates the candidate against an unseen occurrence
+3. `held_out_replay === 'PASS'` — `/hc-skill-synth` validates the candidate against an unseen occurrence
 4. `quarterly_promotions < 5` — read from `audits/{current-quarter}.md`. Hard cap.
 
-If 1–3 pass but 4 fails, candidate stays as `ELIGIBLE-BUT-CAPPED`; operator can override with `/maker --force` (not a T2 deliverable).
+If 1–3 pass but 4 fails, candidate stays as `ELIGIBLE-BUT-CAPPED`; operator can override with `/hc-maker --force` (not a T2 deliverable).
 
 If ≥1 fails, candidate stays `candidate` with `Status: NOT-YET ({reason})`.
 
@@ -168,38 +168,38 @@ The distiller is **not** invoked automatically by the hook chain — distillatio
 - `phase.current === 'distill'` — actively in distill phase
 - `phase.last_completed === 'review'` — review just finished, distill is next
 
-Edge case: trigger fires every sessionEnd while the heuristic matches. No idempotency. Operator dismisses by running `/distill` (which advances phase) or by accepting the noise. This is intentional — under-triggering risks losing distillation entirely; over-triggering is a stderr line.
+Edge case: trigger fires every sessionEnd while the heuristic matches. No idempotency. Operator dismisses by running `/hc-distill` (which advances phase) or by accepting the noise. This is intentional — under-triggering risks losing distillation entirely; over-triggering is a stderr line.
 
-The script does **not** invoke the distiller agent. It records that distillation is due and prints a reminder. The agent runs in the next interactive session when the operator types `/distill` or asks "@distiller distill this session."
+The script does **not** invoke the hc-distiller agent. It records that distillation is due and prints a reminder. The agent runs in the next interactive session when the operator types `/hc-distill` or asks "@hc-distiller distill this session."
 
-### Manual `/distill` prompt
+### Manual `/hc-distill` prompt
 
-`helix/.github/prompts/distill.prompt.md` is the operator-facing entry. Routes to the `distiller` agent with the active workspace as context. Always available; cheaper than waiting for the heuristic.
+`helix/.github/prompts/hc-distill.prompt.md` is the operator-facing entry. Routes to the `hc-distiller` agent with the active workspace as context. Always available; cheaper than waiting for the heuristic.
 
 ### Workspace-close trigger
 
-Plan §6 listed "workspace-close" as a trigger. Helix doesn't currently have a clean signal for workspace closure (no `status: closed` field). For T2 this is the manual `/distill` path — operator runs it before archiving a workspace. A future close trigger can extend `distill-trigger.js` once workspace state has a closure signal.
+Plan §6 listed "workspace-close" as a trigger. Helix doesn't currently have a clean signal for workspace closure (no `status: closed` field). For T2 this is the manual `/hc-distill` path — operator runs it before archiving a workspace. A future close trigger can extend `distill-trigger.js` once workspace state has a closure signal.
 
-## Distiller agent contract changes
+## HC Distiller Agent Contract Changes
 
-The distiller agent (`helix/.github/agents/distiller.agent.md`) gains two responsibilities:
+The hc-distiller agent (`helix/.github/agents/hc-distiller.agent.md`) gains two responsibilities:
 
 1. **Before emitting a promotion candidate**, read `.helix/skills/candidates/{id}.md`. If it exists, **append** to its Evidence Log instead of creating a duplicate. Update frontmatter (`occurrences`, `features`, `last_evidence`).
 2. **Before suggesting any candidate**, scan `.helix/skills/graveyard/`. If a graveyarded entry's "Don't re-suggest if" fingerprint matches the pattern, suppress and note in the session distill report under `## Suppressed (graveyarded)`.
 
-Held-out replay continues to be `/skill-synth`'s responsibility. Distiller calls it when `occurrences ≥ 3 AND features ≥ 2`, then records the result in the candidate's `Held-Out Replay` section.
+Held-out replay continues to be `/hc-skill-synth`'s responsibility. Distiller calls it when `occurrences ≥ 3 AND features ≥ 2`, then records the result in the candidate's `Held-Out Replay` section.
 
 ## What's deliberately NOT in T2
 
-- **Auto-promotion.** Even when all gates pass, distiller writes `Recommendation: CREATE SKILL` and stops. Operator runs `/maker` manually. We do not want skills created without a human signing off.
+- **Auto-promotion.** Even when all gates pass, distiller writes `Recommendation: CREATE SKILL` and stops. Operator runs `/hc-maker` manually. We do not want skills created without a human signing off.
 - **Edit-distance demotion.** No `usage.jsonl` consumer exists today. Schema is in place; the consumer is future work.
 - **Two-pass synthesis (Haiku ID + Opus eval).** Plan §6 + Week 6 work; not T2.
-- **Quarterly audit automation.** Audits dir ships empty; a future `/skill-audit` prompt populates it.
+- **Quarterly audit automation.** Audits dir ships empty; a future `/hc-skill-audit` prompt populates it.
 - **Cross-repo aggregation across separate meta-repos.** `.helix/skills/` is per-meta-repo. If multiple meta-repos exist on one operator's machine, evidence does not cross meta-repo boundaries. Acceptable now; revisit when Helix is used by multiple teams.
 
 ## Hard constraints (carry forward)
 
 - No git hooks. Trigger lives in Copilot CLI sessionEnd.
 - No `.claude/` additions.
-- Tech-agnostic: distiller does not assume any language/framework. Patterns are scanned by `/skill-synth` against whatever the operator has.
+- Tech-agnostic: distiller does not assume any language/framework. Patterns are scanned by `/hc-skill-synth` against whatever the operator has.
 - Distiller writes Markdown + JSONL only — no binary state, no hidden DBs.

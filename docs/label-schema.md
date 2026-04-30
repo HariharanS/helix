@@ -5,7 +5,7 @@ The sibling file an operator writes to label a captured trace. Closes the Layer 
 ## Where it lives
 
 - Path: `<repo-root>/.helix/traces/<session-id>.label.yml` (sibling to `<session-id>.jsonl`).
-- Created via the `/label-session` slash command.
+- Created via the `/hc-label-session` slash command.
 - Schema is **closed**: unknown keys are rejected. New dimensions require a schema bump, not silent extension.
 
 ## Fields (all required)

@@ -644,7 +644,7 @@ if ($crgResults.Count -gt 0) {
     Write-Host "Code-review-graph build:"
     $crgResults | Format-Table -AutoSize
     Write-Host "Incremental updates fire automatically via the Copilot CLI subagentStop / sessionEnd hooks (helix/.github/hooks/scripts/crg-sweep.js)."
-    Write-Host "Run '/build-graph full' only when you need a manual repair or full refresh."
+    Write-Host "Run '/hc-build-graph full' only when you need a manual repair or full refresh."
 }
 
 if (-not $SkipGraphBuild -and $crgMode -ne 'mcp') {

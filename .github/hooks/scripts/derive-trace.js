@@ -388,7 +388,7 @@ async function main() {
       process.stderr.write(`[derive-trace] failed to append session-index: ${err.message || err}\n`);
     }
     process.stderr.write(
-      `[derive-trace] wrote ${records.length} records to .helix/traces/${sessionId}.jsonl${records.length ? '\n  -> run /label-session to label this trace (correctness/rework/notes)' : ''}\n`
+      `[derive-trace] wrote ${records.length} records to .helix/traces/${sessionId}.jsonl${records.length ? '\n  -> run /hc-label-session to label this trace (correctness/rework/notes)' : ''}\n`
     );
   } catch (err) {
     // Hooks must never abort the host. Surface and exit 0.

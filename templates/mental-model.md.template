@@ -1,6 +1,6 @@
 # Mental Model — {workspace}
 
-Workspace-scoped cross-repo coupling notes. Architect owns this file and updates it during the tech-design phase. Operator and implementer append entries to the Surprise Log via `/surprise`. Tech-agnostic: do not bake in a language, framework, or runner.
+Workspace-scoped cross-repo coupling notes. Architect owns this file and updates it during the tech-design phase. Operator and implementer append entries to the Surprise Log via `/hc-surprise`. Tech-agnostic: do not bake in a language, framework, or runner.
 
 ## Domain Glossary
 
@@ -12,7 +12,7 @@ _Empty — populate during tech-design._
 
 Feature flags, env vars, and config keys that affect cross-repo behaviour. Record the key, where it is read, and what it gates.
 
-> Auto-population deferred. Populate by hand during tech-design or via `/surprise` on the first hit.
+> Auto-population deferred. Populate by hand during tech-design or via `/hc-surprise` on the first hit.
 
 _Empty — populate during tech-design._
 
@@ -20,7 +20,7 @@ _Empty — populate during tech-design._
 
 Calls (HTTP/RPC), publishes (events/messages), and shares (DB tables, files, schemas) that cross repo boundaries. One row or bullet per edge.
 
-> Auto-population deferred. Populate by hand during tech-design or via `/surprise` on the first hit.
+> Auto-population deferred. Populate by hand during tech-design or via `/hc-surprise` on the first hit.
 
 _Empty — populate during tech-design._
 
@@ -38,6 +38,6 @@ _Empty — add diagrams here when useful._
 
 ## Surprise Log
 
-Append-only log of "the model said X, reality showed Y" moments. Each entry is a dated subsection added by `/surprise`. Do not edit older entries; surprises that are later resolved should be addressed by updating the relevant section above and leaving the log entry intact as history.
+Append-only log of "the model said X, reality showed Y" moments. Each entry is a dated subsection added by `/hc-surprise`. Do not edit older entries; surprises that are later resolved should be addressed by updating the relevant section above and leaving the log entry intact as history.
 
 <!-- Surprise entries appear below this line as `### YYYY-MM-DD — title` subsections. -->

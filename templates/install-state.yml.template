@@ -18,8 +18,8 @@ runtime_surface:
   skill_registry_file: .helix/skills/index.yml
 
 managed_paths:
-  - path: .github/agents/helix.agent.md
-    source: .github/agents/helix.agent.md
+  - path: .github/agents/hc-helix.agent.md
+    source: .github/agents/hc-helix.agent.md
     category: agent
     sync_mode: replace
     required: true

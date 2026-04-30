@@ -21,7 +21,8 @@ if (-not $skill) {
     throw "Skill '$SkillId' was not found in '.helix/skills/index.yml'."
 }
 
-if ([string]::Equals([string]$skill.status, 'core', [System.StringComparison]::OrdinalIgnoreCase)) {
+if ($SkillId.StartsWith('hc-', [System.StringComparison]::OrdinalIgnoreCase) -or
+    [string]::Equals([string]$skill.status, 'core', [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "Skill '$SkillId' is a Helix core skill. Core skills are promoted upstream manually, not projected with promote-skill.ps1."
 }
 

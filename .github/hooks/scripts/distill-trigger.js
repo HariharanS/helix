@@ -2,8 +2,8 @@
 
 // Detects when distillation is due based on active-workspace phase state and
 // emits a `distill_trigger` state-delta + a stderr reminder. Does NOT invoke
-// the distiller agent — distillation requires LLM reasoning and is too
-// expensive for a sessionEnd hook. Operator runs `/distill` in the next
+// the hc-distiller agent — distillation requires LLM reasoning and is too
+// expensive for a sessionEnd hook. Operator runs `/hc-distill` in the next
 // interactive session when prompted (or when they want to anyway).
 //
 // See helix/docs/distillation-architecture.md for the trigger heuristic and
@@ -44,7 +44,7 @@ function main() {
     process.stderr.write(
       `[distill-trigger] workspace=${ws.workspaceId} phase=${ws.phase || '-'} ` +
       `last_completed=${ws.lastCompletedPhase || '-'} -> distillation due. ` +
-      `Run /distill in the next session.\n`
+      `Run /hc-distill in the next session.\n`
     );
   } catch (err) {
     // Hooks must never abort the host. Surface and exit 0.

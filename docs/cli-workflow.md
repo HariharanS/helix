@@ -99,7 +99,7 @@ Dispatches `decomposer` as a background sub-agent. Returns task board + executio
 ---
 
 ### IMPLEMENTATION — Ralph Loop (recommended)
-**Who runs it:** `@helix` in CLI — this is where it earns its keep as an orchestrator.
+**Who runs it:** `@hc-helix` in CLI — this is where it earns its keep as an orchestrator.
 **Interactive?** No — fully autonomous.
 **How:**
 ```
@@ -183,20 +183,20 @@ Each phase reads the previous phase's artifact from `workspaces/hpp/`.
 
 ---
 
-## When to Use @helix vs Direct Invocation
+## When to Use @hc-helix vs Direct Invocation
 
 | Scenario | Use |
 |----------|-----|
-| Starting a new feature from scratch | `@helix` — routes to correct phase |
-| **Interactive phase (JAM / PRD / design)** | **`@jam`, `@planner`, `@architect` directly** — they run as top-level agents with full `ask_user` capability |
-| Autonomous phase (decompose / review / distill) | Invoke specific agent directly, or let `@helix` chain them |
-| **Implementation (Ralph loop)** | **`@helix` — orchestrator manages context bundle → implementer → scribe loop** |
-| Resuming work | `@resume` then follow its suggested next step |
-| Tracking state | `@scribe` (usually spawned automatically by helix/implementer) |
+| Starting a new feature from scratch | `@hc-helix` — routes to correct phase |
+| **Interactive phase (JAM / PRD / design)** | **`@hc-jam`, `@hc-planner`, `@hc-architect` directly** — they run as top-level agents with full `ask_user` capability |
+| Autonomous phase (decompose / review / distill) | Invoke specific agent directly, or let `@hc-helix` chain them |
+| **Implementation (Ralph loop)** | **`@hc-helix` — orchestrator manages context bundle → implementer → scribe loop** |
+| Resuming work | `@hc-resume` then follow its suggested next step |
+| Tracking state | `@hc-scribe` (usually spawned automatically by helix/implementer) |
 
 > **Key constraint:** `ask_user` is only available to whichever agent is the **top-level** conversation agent.
 > Sub-agents spawned via `task()` **cannot** use `ask_user` regardless of their frontmatter.
-> Solution: invoke interactive agents **directly** (`@planner` not `task("...", agent_type="planner")`).
+> Solution: invoke interactive agents **directly** (`@hc-planner` not `task("...", agent_type="hc-planner")`).
 > Context continuity across phases is handled by the **artifact chain** on disk — artifacts are the designed handoff.
 
 ---
@@ -206,7 +206,7 @@ Each phase reads the previous phase's artifact from `workspaces/hpp/`.
 Back-and-forth dialogue in a long JAM or PRD session fills the context window quickly. The rule: **the top-level interactive agent owns only the dialogue — all heavy work is delegated to sub-agents and written to disk**.
 
 ```
-@planner (top-level)
+@hc-planner (top-level)
     │── ask_user: 3 clarifying questions         ← stays in context (small)
     │── task(explorer, background)               ← isolated context, 0 pollution
     │       └─ reads 40 files, runs CRG queries
@@ -237,7 +237,7 @@ Back-and-forth dialogue in a long JAM or PRD session fills the context window qu
 | `task(mode="background")` + `read_agent` | Long-running analysis; host reads result after completion notification |
 | `task(mode="sync")` | Fast, focused prompts expected to finish quickly |
 | **File-based handoff** (agent writes bundle to disk; caller reads file path) | Preferred for large context — files persist, are re-usable, and don't bloat host context |
-| Direct invocation (`@planner`, `@jam`, `@architect`) | Interactive phases — only pattern that gives sub-agent `ask_user` capability |
+| Direct invocation (`@hc-planner`, `@hc-jam`, `@hc-architect`) | Interactive phases — only pattern that gives sub-agent `ask_user` capability |
 
 ### File-Based Handoff (preferred for large context)
 
@@ -263,7 +263,7 @@ view("workspaces/{workspace}/reviews/prd-review-{date}.md")
 
 ## Token Economy Tips
 
-- **Don't route interactive phases through `@helix` in CLI** — the relay pattern wastes 2+ premium requests per question.
+- **Don't route interactive phases through `@hc-helix` in CLI** — the relay pattern wastes 2+ premium requests per question.
 - **Keep context bundles task-scoped** — explorer writes them to disk; implementer reads from disk, not inline.
 - **Build CRG before planning phases** so JAM, PRD, TECH DESIGN, and TASK BREAKDOWN can navigate code through graph-backed context instead of broad text search.
 - **Dispatch explorer as `explore` agent type** (Haiku model) — cheapest way to gather codebase context.
@@ -272,7 +272,7 @@ view("workspaces/{workspace}/reviews/prd-review-{date}.md")
 
 ## code-review-graph (CRG)
 
-CRG is the default Helix code navigation layer. Init seeds `.vscode/mcp.json` for VS Code project config and bootstraps `~/.copilot/mcp-config.json` for Copilot CLI with `set-context-provider.ps1 -Mode mcp -Bootstrap`. The graph must be built before `curate-context` uses it; if `mode: mcp` is set and the graph is missing, treat that as a setup gap instead of silently falling back to manual scanning.
+CRG is the default Helix code navigation layer. Init seeds `.vscode/mcp.json` for VS Code project config and bootstraps `~/.copilot/mcp-config.json` for Copilot CLI with `set-context-provider.ps1 -Mode mcp -Bootstrap`. The graph must be built before `hc-curate-context` uses it; if `mode: mcp` is set and the graph is missing, treat that as a setup gap instead of silently falling back to manual scanning.
 
 **Initial setup (run from meta-repo root):**
 ```powershell
@@ -335,7 +335,7 @@ When dispatching specialist agents via `task()`, the agent's frontmatter `model:
 
 Example:
 ```
-task("Run PRD for hpp", agent_type="planner", model="claude-opus-4.6", ...)
+task("Run PRD for hpp", agent_type="hc-planner", model="claude-opus-4.6", ...)
 task("Gather context for hpp", agent_type="explore", model="claude-haiku-4.5", ...)
 ```
 

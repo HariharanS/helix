@@ -236,3 +236,39 @@ test('promote-skill projects candidate into meta-root hr skill and updates regis
   assert.equal(skillUse.selected_skill, 'hr-payment-contract-fixtures');
   assert.equal(skillUse.status, 'projected');
 });
+
+test('promote-skill rejects hc core skills', () => {
+  const root = seedRegistry([
+    '  - id: hc-workspace-sync',
+    '    name: hc-workspace-sync',
+    '    status: core',
+    '    origin:',
+    '      kind: helix-core',
+    '      source_path: .github/skills/hc-workspace-sync/SKILL.md',
+    '    path: .github/skills/hc-workspace-sync/SKILL.md',
+    '    projected_path: null',
+    '    scope:',
+    '      repos: []',
+    '      paths: []',
+    '    confidence: high',
+    '    description: Sync a Helix workspace',
+    '    requires_skill_use_record: true',
+  ].join('\n'));
+
+  writeFile(path.join(root, '.github', 'skills', 'hc-workspace-sync', 'SKILL.md'), [
+    '---',
+    'name: hc-workspace-sync',
+    'managed-by: helix-core',
+    'description: Sync a Helix workspace',
+    'argument-hint: "Workspace name"',
+    'user-invocable: true',
+    '---',
+    '',
+    '# Workspace Sync',
+    '',
+  ].join('\n'));
+
+  const result = runPowerShellFile(PROMOTE_SCRIPT, ['-TargetRoot', root, '-SkillId', 'hc-workspace-sync'], HELIX_ROOT);
+  assert.notEqual(result.status, 0, 'core skills should not be projected by promote-skill');
+  assert.match(result.stderr, /Helix core skill/);
+});

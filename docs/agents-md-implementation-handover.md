@@ -17,7 +17,7 @@ Source-of-truth rules:
 - Read `AGENTS.md` first.
 - Read `docs/agents-md-authoring.md` before changing onboarding, setup, or guidance files.
 - Treat `scripts/setup-workspace.ps1`, `scripts/install-helix.ps1`, `scripts/doctor.ps1`, and `scripts/Helix.Tools.psm1` as the runtime source of truth.
-- Treat `.github/skills/onboard/SKILL.md`, `.github/skills/workspace-sync/SKILL.md`, and `.github/agents/setup.agent.md` as the operator contract.
+- Treat `.github/skills/hc-onboard/SKILL.md`, `.github/skills/hc-workspace-sync/SKILL.md`, and `.github/agents/hc-setup.agent.md` as the operator contract.
 
 Do not re-decide:
 - `.github/copilot-instructions.md` is removed entirely, not kept as a shim.
@@ -38,9 +38,9 @@ Validation:
 - `scripts/install-helix.ps1`
 - `scripts/doctor.ps1`
 - `scripts/Helix.Tools.psm1`
-- `.github/skills/onboard/SKILL.md`
-- `.github/skills/workspace-sync/SKILL.md`
-- `.github/agents/setup.agent.md`
+- `.github/skills/hc-onboard/SKILL.md`
+- `.github/skills/hc-workspace-sync/SKILL.md`
+- `.github/agents/hc-setup.agent.md`
 - `docs/agents-md-authoring.md`
 - `docs/helix-instance-schemas.md`
 - `docs/helix-core-meta-repo-model.md`

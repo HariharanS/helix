@@ -160,7 +160,7 @@ artifacts:
 
 Keep task boards and decisions inside each workspace. Root `decisions/` and `task-boards/` directories are deprecated legacy placeholders, not the active model.
 
-Then use the `setup` agent, the `workspace-sync` skill, or the installed `helix workspace setup` command (current script: `./helix/scripts/workspace-setup.ps1 -Workspace <id>`) to:
+Then use the `hc-setup` agent, the `hc-workspace-sync` skill, or the installed `helix workspace setup` command (current script: `./helix/scripts/workspace-setup.ps1 -Workspace <id>`) to:
 
 - clone or attach only the selected repos under `workspaces/{name}/repos/{repo-id}/`
 - generate or refresh `.helix/repo-state/*.yml`
@@ -192,7 +192,7 @@ If CRG is broken and you need to continue with default agent/search behavior, tu
 
 Because some repos may not be Helix-ready yet, onboarding is the first real step for only the repos that need it.
 
-Use `.helix/repo-state/{repo-id}.yml` to decide which repos need onboarding. Run the `onboard` skill only for repos marked `needs-onboarding` or `partial`.
+Use `.helix/repo-state/{repo-id}.yml` to decide which repos need onboarding. Run the `hc-onboard` skill only for repos marked `needs-onboarding` or `partial`.
 
 The goal is to generate repo-specific context from the actual codebase:
 
@@ -227,7 +227,7 @@ Start with JAM if the feature is still partly vague.
 Use a prompt like:
 
 ```text
-@helix Start a new feature in the active workspace.
+@hc-helix Start a new feature in the active workspace.
 The feature spans orders-api, orders-web, and customer-profile-adapter.
 We have no previous AI context in these repos.
 Use JAM first and make the downstream contract changes explicit.
@@ -480,7 +480,7 @@ Set this up for Helix and onboard each repo.
 ### 2. Refine the feature
 
 ```text
-@helix Start JAM for the order-history workspace.
+@hc-helix Start JAM for the order-history workspace.
 I want a new feature that lets users view their historical orders in the web app.
 The data comes from orders-api and may require adapter changes.
 We need unit tests first, sandbox integration tests for downstream behavior, and Playwright coverage for the UI flow.
@@ -489,7 +489,7 @@ We need unit tests first, sandbox integration tests for downstream behavior, and
 ### 3. Move to PRD
 
 ```text
-@helix Use the refined intent and produce the PRD for this feature.
+@hc-helix Use the refined intent and produce the PRD for this feature.
 Make the acceptance criteria explicit and identify which repos own which behaviors.
 ```
 
@@ -503,7 +503,7 @@ Focus on hidden assumptions, ambiguous acceptance criteria, and missing repo-bou
 ### 4. Move to tech design
 
 ```text
-@helix Create the technical design for this feature.
+@hc-helix Create the technical design for this feature.
 Lock the contracts between repos and define where unit, sandbox integration, and Playwright tests belong.
 ```
 
@@ -517,7 +517,7 @@ Focus on contract stability, rollout risk, cross-repo edge cases, and unnecessar
 ### 5. Break the work down
 
 ```text
-@helix Break this feature into repo-scoped tasks and create the execution plan.
+@hc-helix Break this feature into repo-scoped tasks and create the execution plan.
 Do not create cross-repo implementation tasks.
 Verify focused and full test commands per repo.
 ```
@@ -532,7 +532,7 @@ Focus on missing commands, overlapping write ownership, unsafe parallelism, and 
 ### 6. Start implementation
 
 ```text
-@helix Start implementation in interactive mode.
+@hc-helix Start implementation in interactive mode.
 Use TDD for each task.
 Begin with the first contract task, then move to the next unblocked task.
 ```
@@ -540,14 +540,14 @@ Begin with the first contract task, then move to the next unblocked task.
 ### 7. Review the result
 
 ```text
-@reviewer Review the completed feature across the affected repos.
+@hc-reviewer Review the completed feature across the affected repos.
 Focus on correctness, contract compatibility, test coverage, and scope control.
 ```
 
 ### 8. Distill learnings
 
 ```text
-@distiller Capture learnings from this cross-repo feature, especially:
+@hc-distiller Capture learnings from this cross-repo feature, especially:
 - onboarding gaps
 - repeated sandbox integration patterns
 - Playwright patterns worth standardizing

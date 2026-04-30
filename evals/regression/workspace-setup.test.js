@@ -100,9 +100,9 @@ function seedMetaRepoFixture() {
     '',
   ].join('\n'));
 
-  writeFile(path.join(root, '.github', 'skills', 'workspace-sync', 'SKILL.md'), [
+  writeFile(path.join(root, '.github', 'skills', 'hc-workspace-sync', 'SKILL.md'), [
     '---',
-    'name: workspace-sync',
+    'name: hc-workspace-sync',
     'managed-by: helix-core',
     'description: Sync a Helix workspace',
     'argument-hint: "Workspace name"',
@@ -220,7 +220,7 @@ test('setup-workspace emits AGENTS settings and cleans only Helix-generated inst
   assert.ok(fs.existsSync(skillIndexPath), 'skill registry was not generated');
   const skillIndex = fs.readFileSync(skillIndexPath, 'utf8');
   assert.match(skillIndex, /active_workspace: demo/);
-  assert.match(skillIndex, /id: he-workspace-sync/);
+  assert.match(skillIndex, /id: hc-workspace-sync/);
   assert.match(skillIndex, /status: core/);
   assert.match(skillIndex, /id: hr-payment-contract-fixtures/);
   assert.match(skillIndex, /status: candidate/);

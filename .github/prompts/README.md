@@ -1,6 +1,6 @@
 # Helix Prompt Library
 
-Slash-command prompts. Each is invoked as `/<name>` from Copilot CLI or VS Code chat. Prompts route to an agent (`mode: agent`) or run as a guided dialogue (`mode: ask`). To create a new prompt, run `/maker` with `new prompt for ...`.
+Slash-command prompts. Each is invoked as `/<name>` from Copilot CLI or VS Code chat. Prompts route to an agent (`mode: agent`) or run as a guided dialogue (`mode: ask`). To create a new prompt, run `/hc-maker` with `new prompt for ...`.
 
 ## Lifecycle phase prompts
 
@@ -8,10 +8,10 @@ These drive the main Helix workflow (intent → design → tasks → implementat
 
 | Command | Mode | Routes to | Does |
 |---|---|---|---|
-| `/jam` | agent | @jam | Refine a fuzzy feature idea into a clear intent that drives a PRD |
-| `/tech-design` | agent | @architect | Start technical design from an approved PRD; produces `tech-design/` package |
-| `/task-breakdown` | agent | @decomposer | Break a tech design into ralph/fleet/manual tasks + slices |
-| `/distill` | agent | @distiller | Distil the active session into delivery memory + runtime learnings + promotion candidates |
+| `/hc-jam` | agent | @hc-jam | Refine a fuzzy feature idea into a clear intent that drives a PRD |
+| `/hc-tech-design` | agent | @hc-architect | Start technical design from an approved PRD; produces `tech-design/` package |
+| `/hc-task-breakdown` | agent | @hc-decomposer | Break a tech design into ralph/fleet/manual tasks + slices |
+| `/hc-distill` | agent | @hc-distiller | Distil the active session into delivery memory + runtime learnings + promotion candidates |
 
 ## Capture-loop prompts
 
@@ -19,8 +19,8 @@ Operator-driven entries that grow the corpus. Tech-agnostic; one screen each.
 
 | Command | Mode | Writes | Does |
 |---|---|---|---|
-| `/label-session` | ask | `.helix/traces/<id>.label.yml` | Label the most recent trace with `correctness`, `rework`, `notes` (Layer 2 baseline) |
-| `/surprise` | ask | `workspaces/{active}/mental-model.md` | Append a dated entry under the workspace's Surprise Log |
+| `/hc-label-session` | ask | `.helix/traces/<id>.label.yml` | Label the most recent trace with `correctness`, `rework`, `notes` (Layer 2 baseline) |
+| `/hc-surprise` | ask | `workspaces/{active}/mental-model.md` | Append a dated entry under the workspace's Surprise Log |
 
 ## Skill-lifecycle prompts
 
@@ -28,8 +28,8 @@ Maintain `.helix/skills/`. Always operator-initiated — Helix never auto-promot
 
 | Command | Mode | Writes | Does |
 |---|---|---|---|
-| `/skill-audit [quarter]` | ask | `.helix/skills/audits/{YYYY-Q#}.md` | Quarterly roll-up of promotions, graveyards, edit-distance trend |
-| `/skill-graveyard <id>` | ask | `.helix/skills/graveyard/{id}.md` | Reject a candidate with reason + re-suggest fingerprint |
+| `/hc-skill-audit [quarter]` | ask | `.helix/skills/audits/{YYYY-Q#}.md` | Quarterly roll-up of promotions, graveyards, edit-distance trend |
+| `/hc-skill-graveyard <id>` | ask | `.helix/skills/graveyard/{id}.md` | Reject a candidate with reason + re-suggest fingerprint |
 
 ## Conventions
 
@@ -43,7 +43,7 @@ Maintain `.helix/skills/`. Always operator-initiated — Helix never auto-promot
 
 | Prompt | Reference doc |
 |---|---|
-| `/distill`, `/skill-audit`, `/skill-graveyard` | [`helix/docs/distillation-architecture.md`](../../docs/distillation-architecture.md) |
-| `/label-session` | [`helix/docs/label-schema.md`](../../docs/label-schema.md) and [`helix/docs/eval-strategy.md`](../../docs/eval-strategy.md) |
-| `/surprise` | [`helix/docs/mental-model-architecture.md`](../../docs/mental-model-architecture.md) and [`helix/templates/mental-model.md.template`](../../templates/mental-model.md.template) |
-| `/tech-design`, `/task-breakdown`, `/jam` | The respective agent files in [`helix/.github/agents/`](../agents/) |
+| `/hc-distill`, `/hc-skill-audit`, `/hc-skill-graveyard` | [`helix/docs/distillation-architecture.md`](../../docs/distillation-architecture.md) |
+| `/hc-label-session` | [`helix/docs/label-schema.md`](../../docs/label-schema.md) and [`helix/docs/eval-strategy.md`](../../docs/eval-strategy.md) |
+| `/hc-surprise` | [`helix/docs/mental-model-architecture.md`](../../docs/mental-model-architecture.md) and [`helix/templates/mental-model.md.template`](../../templates/mental-model.md.template) |
+| `/hc-tech-design`, `/hc-task-breakdown`, `/hc-jam` | The respective agent files in [`helix/.github/agents/`](../agents/) |

@@ -16,8 +16,8 @@ phase:
 
 # Set to true if this workspace touches UI and end-to-end browser tests
 # (Playwright) are part of verification. When true, architect routes UI
-# tasks through ui-tester (author/debug modes) and the playwright-cli skill
-# is loaded. When false, ui-tester and playwright-cli are never loaded.
+# tasks through hc-ui-tester (author/debug modes) and the hc-playwright-cli skill
+# is loaded. When false, hc-ui-tester and hc-playwright-cli are never loaded.
 # Green-path test runs are always executed as plain commands from the
 # execution plan, regardless of this flag — the flag only gates LLM
 # involvement (test authoring + failure debugging).

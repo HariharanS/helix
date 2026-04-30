@@ -49,11 +49,11 @@ test('adds stable Copilot source references to trace records', () => {
     evWithId('event-1', 'user.message', '2026-04-28T12:01:00.000Z', { content: 'hi' }),
     evWithId('event-2', 'subagent.started', '2026-04-28T12:01:01.000Z', {
       toolCallId: 'sub-1',
-      agentName: 'architect',
+      agentName: 'hc-architect',
     }),
     evWithId('event-3', 'subagent.completed', '2026-04-28T12:01:03.000Z', {
       toolCallId: 'sub-1',
-      agentName: 'architect',
+      agentName: 'hc-architect',
     }),
   ];
   const recs = deriveTraceRecords(events, [baselineDelta], { sessionId: 'session-1' });
@@ -79,12 +79,12 @@ test('adds stable Copilot source references to trace records', () => {
 test('attributes events inside a subagent span to that subagent', () => {
   const events = [
     ev('user.message', '2026-04-28T12:01:00.000Z', { content: 'go' }),
-    ev('subagent.started', '2026-04-28T12:01:01.000Z', { toolCallId: 'c1', agentName: 'architect' }),
+    ev('subagent.started', '2026-04-28T12:01:01.000Z', { toolCallId: 'c1', agentName: 'hc-architect' }),
     ev('tool.execution_complete', '2026-04-28T12:01:02.000Z', {
       toolName: 'read_file', toolCallId: 't1', arguments: { path: 'x.md' }, outcome: 'success',
     }),
     ev('subagent.completed', '2026-04-28T12:01:05.000Z', {
-      toolCallId: 'c1', agentName: 'architect', model: 'claude-sonnet-4-6',
+      toolCallId: 'c1', agentName: 'hc-architect', model: 'claude-sonnet-4-6',
       totalTokens: 1000, totalToolCalls: 1, outcome: 'success',
     }),
     ev('tool.execution_complete', '2026-04-28T12:01:06.000Z', {
@@ -96,19 +96,19 @@ test('attributes events inside a subagent span to that subagent', () => {
   const innerTool = recs.find(r => r.kind === 'tool' && r.tool_call_id === 't1');
   const outerTool = recs.find(r => r.kind === 'tool' && r.tool_call_id === 't2');
   assert.equal(promptRec.agent, 'top-level');
-  assert.equal(innerTool.agent, 'architect');
+  assert.equal(innerTool.agent, 'hc-architect');
   assert.equal(outerTool.agent, 'top-level', 'event after subagent.completed must be top-level again');
 });
 
 test('innermost subagent wins when nested', () => {
   const events = [
     ev('subagent.started', '2026-04-28T12:01:00.000Z', { toolCallId: 'outer', agentName: 'orchestrator' }),
-    ev('subagent.started', '2026-04-28T12:01:01.000Z', { toolCallId: 'inner', agentName: 'implementer' }),
+    ev('subagent.started', '2026-04-28T12:01:01.000Z', { toolCallId: 'inner', agentName: 'hc-implementer' }),
     ev('tool.execution_complete', '2026-04-28T12:01:02.000Z', {
       toolName: 'edit_file', toolCallId: 't1', arguments: { path: 'a' },
     }),
     ev('subagent.completed', '2026-04-28T12:01:03.000Z', {
-      toolCallId: 'inner', agentName: 'implementer',
+      toolCallId: 'inner', agentName: 'hc-implementer',
     }),
     ev('tool.execution_complete', '2026-04-28T12:01:04.000Z', {
       toolName: 'edit_file', toolCallId: 't2', arguments: { path: 'b' },
@@ -120,15 +120,15 @@ test('innermost subagent wins when nested', () => {
   const recs = deriveTraceRecords(events, [baselineDelta]);
   const t1 = recs.find(r => r.kind === 'tool' && r.tool_call_id === 't1');
   const t2 = recs.find(r => r.kind === 'tool' && r.tool_call_id === 't2');
-  assert.equal(t1.agent, 'implementer', 'innermost active subagent attributes the event');
+  assert.equal(t1.agent, 'hc-implementer', 'innermost active subagent attributes the event');
   assert.equal(t2.agent, 'orchestrator', 'after inner completes, outer is innermost');
 });
 
 test('subagent record carries latency_ms = end - start', () => {
   const events = [
-    ev('subagent.started', '2026-04-28T12:00:00.000Z', { toolCallId: 'c1', agentName: 'reviewer' }),
+    ev('subagent.started', '2026-04-28T12:00:00.000Z', { toolCallId: 'c1', agentName: 'hc-reviewer' }),
     ev('subagent.completed', '2026-04-28T12:00:18.402Z', {
-      toolCallId: 'c1', agentName: 'reviewer', model: 'claude-sonnet-4-6',
+      toolCallId: 'c1', agentName: 'hc-reviewer', model: 'claude-sonnet-4-6',
       totalTokens: 13280, totalToolCalls: 7, outcome: 'success',
     }),
   ];
@@ -143,7 +143,7 @@ test('subagent record carries latency_ms = end - start', () => {
 test('subagent record latency_ms is null when no matching start', () => {
   const events = [
     ev('subagent.completed', '2026-04-28T12:00:18.402Z', {
-      toolCallId: 'orphan', agentName: 'reviewer',
+      toolCallId: 'orphan', agentName: 'hc-reviewer',
     }),
   ];
   const recs = deriveTraceRecords(events, [baselineDelta]);

@@ -358,8 +358,8 @@ function Add-HelixSkillRegistryEntry {
     if ($Ids.Contains($candidateId) -and -not [string]::IsNullOrWhiteSpace($CollisionPrefix)) {
         if ($candidateId.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)) {
             $candidateId = "hr-$CollisionPrefix-$($candidateId.Substring(3))"
-        } elseif ($candidateId.StartsWith('he-', [System.StringComparison]::OrdinalIgnoreCase)) {
-            $candidateId = "he-$CollisionPrefix-$($candidateId.Substring(3))"
+        } elseif ($candidateId.StartsWith('hc-', [System.StringComparison]::OrdinalIgnoreCase)) {
+            $candidateId = "hc-$CollisionPrefix-$($candidateId.Substring(3))"
         } else {
             $candidateId = "$CollisionPrefix-$candidateId"
         }
@@ -411,10 +411,10 @@ function Write-HelixSkillIndex {
             $slug = ConvertTo-HelixSkillSlug -Value $skillName
             $managedBy = if ($frontmatter.Contains('managed-by')) { [string]$frontmatter['managed-by'] } else { '' }
             $isRuntimeProjection = $folderName.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)
-            $id = if ($folderName.StartsWith('he-', [System.StringComparison]::OrdinalIgnoreCase) -or $folderName.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)) {
+            $id = if ($folderName.StartsWith('hc-', [System.StringComparison]::OrdinalIgnoreCase) -or $folderName.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)) {
                 ConvertTo-HelixSkillSlug -Value $folderName
             } elseif ([string]::Equals($managedBy, 'helix-core', [System.StringComparison]::OrdinalIgnoreCase)) {
-                "he-$slug"
+                "hc-$slug"
             } else {
                 "hr-$slug"
             }

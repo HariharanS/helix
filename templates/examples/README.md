@@ -11,6 +11,6 @@ This folder contains illustrative examples of Helix prompt and artifact shapes.
 
 ## Current Examples
 
-- `jam.prompt.md` — simple prompt entry example
+- `hc-jam.prompt.md` — simple prompt entry example
 
 For canonical reusable structure, prefer the templates in the parent `templates/` directory over the examples in this folder.

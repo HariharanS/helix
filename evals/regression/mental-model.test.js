@@ -1,5 +1,5 @@
 // Asserts the Track T4 mental-model contract:
-//   1. helix/.github/prompts/surprise.prompt.md exists and conforms to the
+//   1. helix/.github/prompts/hc-surprise.prompt.md exists and conforms to the
 //      ≤30-line verbosity discipline shared with other Helix prompts.
 //   2. helix/templates/mental-model.md.template carries the six required
 //      sections (Domain Glossary, Flag Inventory, Coupling Map, Behavior
@@ -10,7 +10,7 @@
 //      leaves earlier sections byte-identical, and preserves the heading order.
 //
 // Validators / helpers are colocated. Lift them into a shared module if a real
-// consumer (e.g. a /surprise script implementation) ever lands.
+// consumer (e.g. a /hc-surprise script implementation) ever lands.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -20,7 +20,7 @@ const path = require('node:path');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const TEMPLATE_PATH = path.join(REPO_ROOT, 'helix', 'templates', 'mental-model.md.template');
-const PROMPT_PATH = path.join(REPO_ROOT, 'helix', '.github', 'prompts', 'surprise.prompt.md');
+const PROMPT_PATH = path.join(REPO_ROOT, 'helix', '.github', 'prompts', 'hc-surprise.prompt.md');
 
 const REQUIRED_SECTIONS = [
   'Domain Glossary',
@@ -91,16 +91,16 @@ function tmpDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'helix-mental-model-'));
 }
 
-test('prompt: surprise.prompt.md exists', () => {
+test('prompt: hc-surprise.prompt.md exists', () => {
   assert.ok(fs.existsSync(PROMPT_PATH), `missing prompt at ${PROMPT_PATH}`);
 });
 
-test('prompt: surprise.prompt.md respects ≤30-line cap', () => {
+test('prompt: hc-surprise.prompt.md respects ≤30-line cap', () => {
   const lineCount = readFile(PROMPT_PATH).split(/\r?\n/).filter((_, i, a) => i < a.length - 1 || a[i] !== '').length;
-  // Match the discipline used by label-session.prompt.md (29 lines).
+  // Match the discipline used by hc-label-session.prompt.md (29 lines).
   assert.ok(
     lineCount <= PROMPT_LINE_CAP,
-    `surprise.prompt.md is ${lineCount} lines, cap is ${PROMPT_LINE_CAP}`
+    `hc-surprise.prompt.md is ${lineCount} lines, cap is ${PROMPT_LINE_CAP}`
   );
 });
 

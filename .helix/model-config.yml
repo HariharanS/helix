@@ -24,23 +24,23 @@ task_ids:
 assignments:
   # Router/setup agents use analysis: they choose deterministic script/agent
   # paths and handle failures, but should not spend reasoning-tier budget.
-  helix: analysis
-  setup: analysis
-  scribe: fast
+  hc-helix: analysis
+  hc-setup: analysis
+  hc-scribe: fast
   # Product and architecture shaping stay on reasoning-tier models because they
   # resolve ambiguity, scope, domain tradeoffs, and cross-repo contracts.
-  jam: reasoning
-  planner: reasoning
-  architect: reasoning
-  decomposer: analysis
+  hc-jam: reasoning
+  hc-planner: reasoning
+  hc-architect: reasoning
+  hc-decomposer: analysis
   # Read-only gathering and compact state work should stay cheap unless a
   # caller explicitly escalates for a hard investigation.
-  explorer: fast
-  implementer: coding
-  tdd-red: coding
-  reviewer: analysis
-  distiller: fast
-  resume: fast
+  hc-explorer: fast
+  hc-implementer: coding
+  hc-tdd-red: coding
+  hc-reviewer: analysis
+  hc-distiller: fast
+  hc-resume: fast
   # Visual tier is reserved for image/browser reasoning. Green-path UI test
   # runs should be shell commands, not model invocations.
-  ui-tester: visual
+  hc-ui-tester: visual

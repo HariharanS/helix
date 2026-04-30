@@ -48,7 +48,7 @@ The trace pipeline (`derive-trace.js` → `.helix/traces/<session-id>.jsonl`) al
 Process:
 
 1. Each real Helix session through Weeks 3-5 emits a trace at `sessionEnd`. No extra effort required.
-2. The operator tags trace files with `/label-session` when the session closes. The prompt writes a sibling file `.helix/traces/<session-id>.label.yml` using the closed schema in `label-schema.md`: `correctness`, `rework`, `notes`.
+2. The operator tags trace files with `/hc-label-session` when the session closes. The prompt writes a sibling file `.helix/traces/<session-id>.label.yml` using the closed schema in `label-schema.md`: `correctness`, `rework`, `notes`.
 3. By Week 6, the labelled set IS the baseline. Re-run the same intents through Helix at Week 6 (where reproducible) and compare; for non-reproducible runs, score Week 6 sessions blind against the same rubric and check distribution.
 
 Rubric fields (recorded in the label file):

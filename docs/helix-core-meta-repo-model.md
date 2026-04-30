@@ -256,14 +256,14 @@ Use this rule of thumb:
 
 Suppose an installed meta repo adds:
 
-- `.github/skills/build-graph/SKILL.md`
-- `.github/skills/review-delta/SKILL.md`
-- `.github/skills/review-pr/SKILL.md`
+- `.github/skills/hc-build-graph/SKILL.md`
+- `.github/skills/hc-review-delta/SKILL.md`
+- `.github/skills/hc-review-pr/SKILL.md`
 
 and updates:
 
-- `.github/agents/helix.agent.md`
-- `.github/agents/reviewer.agent.md`
+- `.github/agents/hc-helix.agent.md`
+- `.github/agents/hc-reviewer.agent.md`
 - `helix/docs/helix-process.md`
 - `helix/docs/cli-workflow.md`
 

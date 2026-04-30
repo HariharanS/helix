@@ -57,28 +57,28 @@ Setup is ready when `.helix/active-workspace.yml` points at the workspace, repo 
 
 ## When To Start Agents
 
-Use `@setup` after the meta repo is bootstrapped and `helix-repos.yml` has real repos. The setup agent calls `.\helix\scripts\workspace-setup.ps1`; it can pass `-ReposCsv` when you give repo ids, and otherwise expects `workspaces/<workspace-id>/workspace.yml` to already exist.
+Use `@hc-setup` after the meta repo is bootstrapped and `helix-repos.yml` has real repos. The hc-setup agent calls `.\helix\scripts\workspace-setup.ps1`; it can pass `-ReposCsv` when you give repo ids, and otherwise expects `workspaces/<workspace-id>/workspace.yml` to already exist.
 
 ```text
-@setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
+@hc-setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
 ```
 
 If the workspace manifest does not exist yet, include repo ids:
 
 ```text
-@setup Set up workspace directeddebit with repos repo-a, repo-b, repo-c. Clone missing repos, refresh repo-state, and report readiness.
+@hc-setup Set up workspace directeddebit with repos repo-a, repo-b, repo-c. Clone missing repos, refresh repo-state, and report readiness.
 ```
 
-Use `@helix` after SETUP is complete:
+Use `@hc-helix` after SETUP is complete:
 
 ```text
-@helix Use active workspace directeddebit. Start JAM for: <feature idea>. Keep mode interactive.
+@hc-helix Use active workspace directeddebit. Start JAM for: <feature idea>. Keep mode interactive.
 ```
 
 Use the Ralph loop only after PRD, tech design, task breakdown, and a runnable execution plan exist:
 
 ```text
-@helix Start Ralph loop for directeddebit using the current execution plan.
+@hc-helix Start Ralph loop for directeddebit using the current execution plan.
 ```
 
 ## CLI Commands

@@ -222,7 +222,7 @@ if (-not $hasInstallState -and -not $hasRegistry) {
 
     $skillIndexPath = Join-Path $TargetRoot '.helix/skills/index.yml'
     if (-not (Test-Path $skillIndexPath)) {
-        Add-WarningLine "Missing skill registry '.helix/skills/index.yml'. Re-run install-helix.ps1 or setup-workspace.ps1 so agents can use he-skill-router deterministically."
+        Add-WarningLine "Missing skill registry '.helix/skills/index.yml'. Re-run install-helix.ps1 or setup-workspace.ps1 so agents can use hc-skill-router deterministically."
     }
 }
 

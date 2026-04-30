@@ -367,19 +367,19 @@
   <p class="lede">The default <span class="mono">full-rpi</span> workflow runs seven phases. Each phase routes to one agent and produces one named artifact. <span class="mono">workflow:</span> is opaque in the schema, so future workflows (review-only, test-only) can plug in without migration.</p>
 
   <div class="lifecycle">
-    <div class="step"><div class="ph">/jam</div>intent</div>
+    <div class="step"><div class="ph">/hc-jam</div>intent</div>
     <div class="arrow">&rarr;</div>
-    <div class="step"><div class="ph">@jam</div>PRD</div>
+    <div class="step"><div class="ph">@hc-jam</div>PRD</div>
     <div class="arrow">&rarr;</div>
-    <div class="step"><div class="ph">/tech-design</div>tech design</div>
+    <div class="step"><div class="ph">/hc-tech-design</div>tech design</div>
     <div class="arrow">&rarr;</div>
-    <div class="step"><div class="ph">/task-breakdown</div>tasks &amp; slices</div>
+    <div class="step"><div class="ph">/hc-task-breakdown</div>tasks &amp; slices</div>
     <div class="arrow">&rarr;</div>
-    <div class="step"><div class="ph">@implementer</div>implement</div>
+    <div class="step"><div class="ph">@hc-implementer</div>implement</div>
     <div class="arrow">&rarr;</div>
-    <div class="step"><div class="ph">@reviewer</div>review</div>
+    <div class="step"><div class="ph">@hc-reviewer</div>review</div>
     <div class="arrow">&rarr;</div>
-    <div class="step"><div class="ph">/distill</div>distill</div>
+    <div class="step"><div class="ph">/hc-distill</div>distill</div>
   </div>
 
   <div class="grid grid-2" style="margin-top: 18px;">
@@ -431,7 +431,7 @@
 
   <div class="card" style="margin-top: 18px;">
     <h3>Promotion gate</h3>
-    <p>A candidate promotes only when <strong>all</strong> are true: <code>occurrences &ge; 3</code> &middot; <code>features &ge; 2</code> (distinct) &middot; <code>held_out_replay = PASS</code> &middot; <code>quarterly_promotions &lt; 5</code> (hard cap). Even when eligible, the distiller writes <code>Recommendation: CREATE SKILL</code> and stops &mdash; the operator runs <code>/maker</code>.</p>
+    <p>A candidate promotes only when <strong>all</strong> are true: <code>occurrences &ge; 3</code> &middot; <code>features &ge; 2</code> (distinct) &middot; <code>held_out_replay = PASS</code> &middot; <code>quarterly_promotions &lt; 5</code> (hard cap). Even when eligible, the distiller writes <code>Recommendation: CREATE SKILL</code> and stops &mdash; the operator runs <code>/hc-maker</code>.</p>
     <p style="margin-top: 6px;"><span class="pill green">Operator-signed-off</span> <span class="pill blue">Evidence accumulates across features, not per-session</span></p>
   </div>
 
@@ -445,15 +445,15 @@
 
   <div class="grid grid-3">
     <div class="card">
-      <h3>/distill</h3>
-      <p>Runs the distiller agent against the active session. Appends evidence to existing candidates instead of duplicating; checks the graveyard fingerprint before suggesting a candidate.</p>
+      <h3>/hc-distill</h3>
+      <p>Runs the hc-distiller agent against the active session. Appends evidence to existing candidates instead of duplicating; checks the graveyard fingerprint before suggesting a candidate.</p>
     </div>
     <div class="card">
-      <h3>/skill-audit</h3>
+      <h3>/hc-skill-audit</h3>
       <p>Quarterly roll-up. Reads <code>candidates/</code>, <code>graveyard/</code>, and <code>usage.jsonl</code>; writes <code>audits/{YYYY-Q#}.md</code> with promotions made, graveyards, and edit-distance trend.</p>
     </div>
     <div class="card">
-      <h3>/skill-graveyard &lt;id&gt;</h3>
+      <h3>/hc-skill-graveyard &lt;id&gt;</h3>
       <p>Operator rejects a candidate with reason + a fingerprint to suppress re-suggestion. Idempotent. The candidate file is deleted; full evidence remains in git history.</p>
     </div>
   </div>
@@ -461,7 +461,7 @@
   <div class="card" style="margin-top: 18px; border-color: rgba(224, 175, 104, 0.4);">
     <h3 style="color: var(--warn);">Honest gap &mdash; deferred</h3>
     <p><strong>Edit-distance feedback writer is not built.</strong> The schema for <code>usage.jsonl</code> ships, including an <code>edit_distance</code> field, but no agent or hook writes it. Three approaches were considered (hook-based, skill-side append, operator command); all were rejected as either noisy (load &ne; use) or unreliable. The right time to ship a writer is when an operator first asks &ldquo;I keep editing skill X the same way &mdash; can we just demote it?&rdquo;</p>
-    <p style="margin-top: 6px;"><code>/skill-audit</code> already skips the edit-distance section gracefully when <code>usage.jsonl</code> is empty.</p>
+    <p style="margin-top: 6px;"><code>/hc-skill-audit</code> already skips the edit-distance section gracefully when <code>usage.jsonl</code> is empty.</p>
   </div>
 </section>
 
@@ -485,7 +485,7 @@
     </div>
     <div class="card">
       <h3>Layer 2 &mdash; Quality baseline</h3>
-      <p>Every real Helix session emits a trace at <code>sessionEnd</code>. The operator labels each via <code>/label-session</code>, writing a sibling <code>.label.yml</code> with three required fields:</p>
+      <p>Every real Helix session emits a trace at <code>sessionEnd</code>. The operator labels each via <code>/hc-label-session</code>, writing a sibling <code>.label.yml</code> with three required fields:</p>
       <table>
         <tr><td class="mono-cell">correctness</td><td>match | partial | wrong</td></tr>
         <tr><td class="mono-cell">rework</td><td>none | minor | major</td></tr>
@@ -513,10 +513,10 @@
         <li>State Diagrams</li>
         <li>Surprise Log <span class="pill" style="font-size: 10px;">append-only</span></li>
       </ol>
-      <p class="footnote" style="margin-top: 10px;">Architect owns sections 1&ndash;5 and updates them during tech-design. Operator and implementer append to the Surprise Log via <code>/surprise</code>.</p>
+      <p class="footnote" style="margin-top: 10px;">Architect owns sections 1&ndash;5 and updates them during tech-design. Operator and implementer append to the Surprise Log via <code>/hc-surprise</code>.</p>
     </div>
     <div class="card">
-      <h3>/surprise &mdash; divergence capture</h3>
+      <h3>/hc-surprise &mdash; divergence capture</h3>
       <p>Asks for title, expected, actual, optional repos. Appends a dated <code>### YYYY-MM-DD &mdash; title</code> entry under <code>## Surprise Log</code>.</p>
       <pre>### 2026-04-29 &mdash; orders-api emits
        OrderPlaced.v1 but worker

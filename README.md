@@ -237,33 +237,33 @@ Open `{workspace}.code-workspace` in VS Code when working through the editor. In
 
 ## When To Start Agents
 
-Use the `setup` agent only after Helix has been bootstrapped into the meta repo. It is for validating registry/workspace manifests, running `.\helix\scripts\workspace-setup.ps1`, onboarding repos, refreshing repo-state, and reporting readiness. If the workspace manifest is missing, include repo ids in the prompt so the agent can pass `-ReposCsv`; otherwise create or edit `workspaces/<workspace-id>/workspace.yml` first.
+Use the `hc-setup` agent only after Helix has been bootstrapped into the meta repo. It is for validating registry/workspace manifests, running `.\helix\scripts\workspace-setup.ps1`, onboarding repos, refreshing repo-state, and reporting readiness. If the workspace manifest is missing, include repo ids in the prompt so the agent can pass `-ReposCsv`; otherwise create or edit `workspaces/<workspace-id>/workspace.yml` first.
 
-Start the `helix` agent after SETUP is complete. That means the active workspace is set, selected repos are present or explicitly marked missing, generated state files exist, and CRG is either healthy in `mcp` mode or deliberately disabled for emergency fallback.
+Start the `hc-helix` agent after SETUP is complete. That means the active workspace is set, selected repos are present or explicitly marked missing, generated state files exist, and CRG is either healthy in `mcp` mode or deliberately disabled for emergency fallback.
 
 Good first prompts:
 
 ```text
-@setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
+@hc-setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
 ```
 
 If `workspaces/directeddebit/workspace.yml` does not exist yet:
 
 ```text
-@setup Set up workspace directeddebit with repos repo-a, repo-b, repo-c. Clone missing repos, refresh repo-state, and report readiness.
+@hc-setup Set up workspace directeddebit with repos repo-a, repo-b, repo-c. Clone missing repos, refresh repo-state, and report readiness.
 ```
 
 ```text
-@helix Use active workspace directeddebit. Start JAM for: <feature idea>. Keep mode interactive.
+@hc-helix Use active workspace directeddebit. Start JAM for: <feature idea>. Keep mode interactive.
 ```
 
-After PRD, tech design, and task breakdown produce a runnable execution plan, use `@helix` for the Ralph loop:
+After PRD, tech design, and task breakdown produce a runnable execution plan, use `@hc-helix` for the Ralph loop:
 
 ```text
-@helix Start Ralph loop for directeddebit using the current execution plan.
+@hc-helix Start Ralph loop for directeddebit using the current execution plan.
 ```
 
-For Copilot CLI, interactive phases such as JAM, PRD, and tech design can be invoked directly as `@jam`, `@planner`, or `@architect` when you need structured back-and-forth. Use `@helix` when you want routing, phase chaining, resume decisions, or autonomous implementation orchestration.
+For Copilot CLI, interactive phases such as JAM, PRD, and tech design can be invoked directly as `@hc-jam`, `@hc-planner`, or `@hc-architect` when you need structured back-and-forth. Use `@hc-helix` when you want routing, phase chaining, resume decisions, or autonomous implementation orchestration.
 
 ## Structural Retrieval
 

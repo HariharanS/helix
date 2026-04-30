@@ -1,8 +1,8 @@
 ---
-# NOTE: This is a snapshot for illustration purposes. The live version is at .github/prompts/jam.prompt.md
+# NOTE: This is a snapshot for illustration purposes. The live version is at .github/prompts/hc-jam.prompt.md
 name: jam
 description: Start an interactive jam session to refine a feature idea into a clear intent
-agent: jam
+agent: hc-jam
 tools: ['read', 'search/codebase']
 ---
 
