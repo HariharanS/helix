@@ -298,6 +298,217 @@ function New-HelixDirectory {
     [System.IO.Directory]::CreateDirectory($Path) | Out-Null
 }
 
+function ConvertTo-HelixSkillSlug {
+    param([Parameter(Mandatory = $true)][string]$Value)
+
+    $slug = $Value.Trim().ToLowerInvariant() -replace '[^a-z0-9]+', '-'
+    $slug = $slug.Trim('-')
+    if ([string]::IsNullOrWhiteSpace($slug)) {
+        return 'skill'
+    }
+
+    return $slug
+}
+
+function Import-HelixSkillFrontmatter {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $frontmatter = [ordered]@{}
+    if (-not (Test-Path $Path)) {
+        return $frontmatter
+    }
+
+    $lines = [System.IO.File]::ReadAllLines((Resolve-Path -LiteralPath $Path))
+    if ($lines.Count -eq 0 -or $lines[0].Trim() -ne '---') {
+        return $frontmatter
+    }
+
+    for ($i = 1; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i].Trim()
+        if ($line -eq '---') {
+            break
+        }
+
+        $match = [regex]::Match($line, '^(?<key>[A-Za-z0-9_-]+):\s*(?<value>.*)$')
+        if (-not $match.Success) {
+            continue
+        }
+
+        $key = $match.Groups['key'].Value
+        $value = $match.Groups['value'].Value.Trim()
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+
+        $frontmatter[$key] = $value
+    }
+
+    return $frontmatter
+}
+
+function Add-HelixSkillRegistryEntry {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[object]]$Entries,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.HashSet[string]]$Ids,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Entry,
+        [string]$CollisionPrefix
+    )
+
+    $candidateId = [string]$Entry.id
+    if ($Ids.Contains($candidateId) -and -not [string]::IsNullOrWhiteSpace($CollisionPrefix)) {
+        if ($candidateId.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)) {
+            $candidateId = "hr-$CollisionPrefix-$($candidateId.Substring(3))"
+        } elseif ($candidateId.StartsWith('he-', [System.StringComparison]::OrdinalIgnoreCase)) {
+            $candidateId = "he-$CollisionPrefix-$($candidateId.Substring(3))"
+        } else {
+            $candidateId = "$CollisionPrefix-$candidateId"
+        }
+    }
+
+    $baseId = $candidateId
+    $suffix = 2
+    while ($Ids.Contains($candidateId)) {
+        $candidateId = "$baseId-$suffix"
+        $suffix += 1
+    }
+
+    $Entry.id = $candidateId
+    $null = $Ids.Add($candidateId)
+    $Entries.Add($Entry) | Out-Null
+}
+
+function Write-HelixSkillIndex {
+    param(
+        [Parameter(Mandatory = $true)][string]$TargetRoot,
+        [string]$WorkspaceName,
+        [AllowEmptyCollection()][object[]]$WorkspaceRepos = @()
+    )
+
+    $skillsRoot = Join-Path $TargetRoot '.helix/skills'
+    New-HelixDirectory -Path $skillsRoot
+    New-HelixDirectory -Path (Join-Path $skillsRoot 'candidates')
+    New-HelixDirectory -Path (Join-Path $skillsRoot 'graveyard')
+
+    $entries = [System.Collections.Generic.List[object]]::new()
+    $ids = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $rootSkillsDir = Join-Path $TargetRoot '.github/skills'
+
+    if (Test-Path $rootSkillsDir) {
+        $rootSkillFiles = Get-ChildItem -LiteralPath $rootSkillsDir -Directory -ErrorAction SilentlyContinue |
+            Sort-Object Name |
+            ForEach-Object { Join-Path $_.FullName 'SKILL.md' } |
+            Where-Object { Test-Path $_ }
+
+        foreach ($skillPath in $rootSkillFiles) {
+            $skillDir = Split-Path -Parent $skillPath
+            $folderName = Split-Path $skillDir -Leaf
+            $frontmatter = Import-HelixSkillFrontmatter -Path $skillPath
+            $skillName = if ($frontmatter.Contains('name') -and -not [string]::IsNullOrWhiteSpace([string]$frontmatter.name)) {
+                [string]$frontmatter.name
+            } else {
+                $folderName
+            }
+            $slug = ConvertTo-HelixSkillSlug -Value $skillName
+            $managedBy = if ($frontmatter.Contains('managed-by')) { [string]$frontmatter['managed-by'] } else { '' }
+            $isRuntimeProjection = $folderName.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)
+            $id = if ($folderName.StartsWith('he-', [System.StringComparison]::OrdinalIgnoreCase) -or $folderName.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)) {
+                ConvertTo-HelixSkillSlug -Value $folderName
+            } elseif ([string]::Equals($managedBy, 'helix-core', [System.StringComparison]::OrdinalIgnoreCase)) {
+                "he-$slug"
+            } else {
+                "hr-$slug"
+            }
+
+            $entry = [ordered]@{
+                id = $id
+                name = $skillName
+                status = if ($isRuntimeProjection) { 'projected' } else { 'core' }
+                origin = [ordered]@{
+                    kind = if ($isRuntimeProjection) { 'runtime' } else { 'helix-core' }
+                    source_path = Get-HelixRelativePath -BasePath $TargetRoot -TargetPath $skillPath
+                }
+                path = Get-HelixRelativePath -BasePath $TargetRoot -TargetPath $skillPath
+                projected_path = if ($isRuntimeProjection) { Get-HelixRelativePath -BasePath $TargetRoot -TargetPath $skillPath } else { $null }
+                scope = [ordered]@{
+                    repos = @()
+                    paths = @()
+                }
+                confidence = if ($isRuntimeProjection) { 'medium' } else { 'high' }
+                description = if ($frontmatter.Contains('description')) { [string]$frontmatter.description } else { '' }
+                requires_skill_use_record = $true
+            }
+
+            Add-HelixSkillRegistryEntry -Entries $entries -Ids $ids -Entry $entry
+        }
+    }
+
+    foreach ($workspaceRepo in @($WorkspaceRepos)) {
+        $repoId = [string]$workspaceRepo.repo_id
+        $repoPath = [string]$workspaceRepo.repo_path
+        if ([string]::IsNullOrWhiteSpace($repoId) -or [string]::IsNullOrWhiteSpace($repoPath)) {
+            continue
+        }
+
+        $repoSkillsDir = Join-Path $repoPath '.github/skills'
+        if (-not (Test-Path $repoSkillsDir)) {
+            continue
+        }
+
+        $repoSlug = ConvertTo-HelixSkillSlug -Value $repoId
+        $repoSkillFiles = Get-ChildItem -LiteralPath $repoSkillsDir -Directory -ErrorAction SilentlyContinue |
+            Sort-Object Name |
+            ForEach-Object { Join-Path $_.FullName 'SKILL.md' } |
+            Where-Object { Test-Path $_ }
+
+        foreach ($skillPath in $repoSkillFiles) {
+            $skillDir = Split-Path -Parent $skillPath
+            $folderName = Split-Path $skillDir -Leaf
+            $frontmatter = Import-HelixSkillFrontmatter -Path $skillPath
+            $skillName = if ($frontmatter.Contains('name') -and -not [string]::IsNullOrWhiteSpace([string]$frontmatter.name)) {
+                [string]$frontmatter.name
+            } else {
+                $folderName
+            }
+            $slug = ConvertTo-HelixSkillSlug -Value $skillName
+            $relativeSkillPath = Get-HelixRelativePath -BasePath $TargetRoot -TargetPath $skillPath
+
+            $entry = [ordered]@{
+                id = "hr-$slug"
+                name = $skillName
+                status = 'candidate'
+                origin = [ordered]@{
+                    kind = 'repo-local'
+                    workspace_id = $WorkspaceName
+                    repo_id = $repoId
+                    source_path = $relativeSkillPath
+                }
+                path = $relativeSkillPath
+                projected_path = $null
+                scope = [ordered]@{
+                    repos = @($repoId)
+                    paths = @()
+                }
+                confidence = 'medium'
+                description = if ($frontmatter.Contains('description')) { [string]$frontmatter.description } else { '' }
+                requires_skill_use_record = $true
+            }
+
+            Add-HelixSkillRegistryEntry -Entries $entries -Ids $ids -Entry $entry -CollisionPrefix $repoSlug
+        }
+    }
+
+    $index = [ordered]@{
+        schema_version = 1
+        updated_at = (Get-Date).ToUniversalTime().ToString('o')
+        active_workspace = if ([string]::IsNullOrWhiteSpace($WorkspaceName)) { $null } else { $WorkspaceName }
+        skills = @($entries.ToArray())
+    }
+
+    $indexPath = Join-Path $skillsRoot 'index.yml'
+    Write-HelixYamlFile -Path $indexPath -Value $index
+    return $indexPath
+}
+
 function Get-HelixRelativePath {
     param(
         [Parameter(Mandatory = $true)][string]$BasePath,
@@ -579,7 +790,7 @@ function Get-HelixRepoCapabilities {
 
     function Add-Layer {
         param(
-            [Parameter(Mandatory = $true)][System.Collections.Generic.List[object]]$Layers,
+            [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[object]]$Layers,
             [Parameter(Mandatory = $true)][string]$LayerId,
             [Parameter(Mandatory = $true)][string]$ExecutionScope,
             [Parameter(Mandatory = $true)][string]$Confidence,
@@ -803,6 +1014,7 @@ function Merge-HelixMarkedSections {
 
 Export-ModuleMember -Function @(
     'ConvertFrom-HelixYaml',
+    'ConvertTo-HelixSkillSlug',
     'ConvertTo-HelixYamlLines',
     'Get-HelixActiveWorkspacePath',
     'Get-HelixRepoCapabilities',
@@ -812,7 +1024,9 @@ Export-ModuleMember -Function @(
     'Resolve-HelixRegistryPath',
     'Get-HelixWorkspaceManifestPath',
     'Import-HelixYamlFile',
+    'Import-HelixSkillFrontmatter',
     'Merge-HelixMarkedSections',
     'New-HelixDirectory',
+    'Write-HelixSkillIndex',
     'Write-HelixYamlFile'
 )

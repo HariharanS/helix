@@ -301,6 +301,8 @@ Copilot CLI LSP support is useful, but Helix should treat it as **advisory conte
 - Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
 - Meta-repo manifest schemas: [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md)
 - AGENTS.md authoring standard: [`docs/agents-md-authoring.md`](./docs/agents-md-authoring.md)
+- Meta-repo skills management: [`docs/meta-repo-skills-management.md`](./docs/meta-repo-skills-management.md)
+- HC/HR runtime surface rename plan: [`docs/hc-hr-runtime-surface-rename-plan.md`](./docs/hc-hr-runtime-surface-rename-plan.md)
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)
 - Agent navigation and source-of-truth rules: [`AGENTS.md`](./AGENTS.md)
 

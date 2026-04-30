@@ -28,6 +28,7 @@ Spawned by orchestrator for autonomous work. Receives a task contract from the e
 ```
 1. VERIFY — Validate the task contract before coding
    - Confirm `repo`, `context_bundle`, `commands`, `ownership.write_paths`, and `done_when` are present
+   - Run the skill-router preflight for the task repo/path, read the selected `skill_use.source_path` when one is returned, and include the `skill_use` record in your output
    - Check that bundle anchors still resolve using `path`, then `symbol`, then `anchor_text`
    - If an anchor moved but the symbol or anchor text still resolves, continue and note the drift
    - If no reliable anchor resolves, spawn @explorer for updated context
@@ -66,6 +67,7 @@ Entered via handoff from tdd-red. Tests are already written and failing. Just im
 
 ```
 1. GREEN — Write minimal code to pass the failing tests
+   - Run the skill-router preflight for the task repo/path and emit `skill_use`
    - Follow repo conventions from root and nested AGENTS.md files
    - Max 3 attempts to get tests passing
 

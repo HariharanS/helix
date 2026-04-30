@@ -100,6 +100,7 @@ After setup succeeds, run `helix/scripts/doctor.ps1` and inspect generated artif
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every workspace repo
 - `.helix/repo-capabilities/{repo-id}.yml` exists for every workspace repo
+- `.helix/skills/index.yml` exists and includes core skills plus repo-local skill candidates
 - `{name}.code-workspace` enables AGENTS.md and nested AGENTS.md loading settings
 - `.helix/context-providers.yml` has `code_review_graph.mode: mcp`, unless the user explicitly chose emergency `off`
 - `.vscode/mcp.json` and `~/.copilot/mcp-config.json` configure `code-review-graph` when mode is `mcp`
@@ -125,7 +126,7 @@ Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in 
 
 #### 6b. Refresh Repo-State
 
-After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos, updates repo-state signals (`root_agents`, `nested_agents`, `repo_skills`, `tests_present`), refreshes repo-capabilities, removes Helix-generated legacy `.instructions.md` summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml` or `.helix/repo-capabilities/*.yml` files.
+After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos, updates repo-state signals (`root_agents`, `nested_agents`, `repo_skills`, `tests_present`), refreshes repo-capabilities, refreshes `.helix/skills/index.yml`, removes Helix-generated legacy `.instructions.md` summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml`, `.helix/repo-capabilities/*.yml`, or `.helix/skills/index.yml` files.
 
 #### 6c. Review Cross-Cutting Promotion Candidates
 

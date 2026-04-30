@@ -100,6 +100,19 @@ function seedMetaRepoFixture() {
     '',
   ].join('\n'));
 
+  writeFile(path.join(root, '.github', 'skills', 'workspace-sync', 'SKILL.md'), [
+    '---',
+    'name: workspace-sync',
+    'managed-by: helix-core',
+    'description: Sync a Helix workspace',
+    'argument-hint: "Workspace name"',
+    'user-invocable: true',
+    '---',
+    '',
+    '# Workspace Sync',
+    '',
+  ].join('\n'));
+
   const repoRoot = path.join(root, 'workspaces', 'demo', 'repos', 'service-a');
   writeFile(path.join(repoRoot, 'AGENTS.md'), [
     '# service-a AGENTS Guide',
@@ -115,6 +128,18 @@ function seedMetaRepoFixture() {
     '',
   ].join('\n'));
   mkdir(path.join(repoRoot, 'tests'));
+  writeFile(path.join(repoRoot, '.github', 'skills', 'payment-contract-fixtures', 'SKILL.md'), [
+    '---',
+    'name: payment-contract-fixtures',
+    'managed-by: helix-runtime',
+    'description: Build PaymentRequest contract fixtures',
+    'argument-hint: "Contract scenario"',
+    'user-invocable: true',
+    '---',
+    '',
+    '# Payment Contract Fixtures',
+    '',
+  ].join('\n'));
 
   writeFile(path.join(root, '.github', 'instructions', 'demo.workspace.instructions.md'), [
     '---',
@@ -158,6 +183,14 @@ test('setup-workspace emits AGENTS settings and cleans only Helix-generated inst
   const workspaceFile = path.join(root, 'demo.code-workspace');
   assert.ok(fs.existsSync(workspaceFile), 'workspace file was not generated');
   const workspace = JSON.parse(fs.readFileSync(workspaceFile, 'utf8'));
+  assert.deepEqual(workspace.settings['chat.agentFilesLocations'], { '.github/agents': true });
+  assert.deepEqual(workspace.settings['chat.promptFilesLocations'], { '.github/prompts': true });
+  assert.deepEqual(workspace.settings['chat.agentSkillsLocations'], {
+    '.github/skills': true,
+    '~/.copilot/skills': true,
+  });
+  assert.deepEqual(workspace.settings['chat.hookFilesLocations'], { '.github/hooks': true });
+  assert.equal(workspace.settings['chat.useAgentSkills'], true);
   assert.equal(workspace.settings['chat.useAgentsMdFile'], true);
   assert.equal(workspace.settings['chat.useNestedAgentsMdFiles'], true);
   assert.equal(workspace.settings['chat.useCustomizationsInParentRepositories'], true);
@@ -182,4 +215,15 @@ test('setup-workspace emits AGENTS settings and cleans only Helix-generated inst
 
   assert.ok(fs.existsSync(path.join(root, '.helix', 'active-workspace.yml')), 'active workspace file was not generated');
   assert.ok(fs.existsSync(path.join(root, 'workspaces', 'demo', 'mental-model.md')), 'mental model was not seeded');
+
+  const skillIndexPath = path.join(root, '.helix', 'skills', 'index.yml');
+  assert.ok(fs.existsSync(skillIndexPath), 'skill registry was not generated');
+  const skillIndex = fs.readFileSync(skillIndexPath, 'utf8');
+  assert.match(skillIndex, /active_workspace: demo/);
+  assert.match(skillIndex, /id: he-workspace-sync/);
+  assert.match(skillIndex, /status: core/);
+  assert.match(skillIndex, /id: hr-payment-contract-fixtures/);
+  assert.match(skillIndex, /status: candidate/);
+  assert.match(skillIndex, /repo_id: service-a/);
+  assert.match(skillIndex, /requires_skill_use_record: true/);
 });

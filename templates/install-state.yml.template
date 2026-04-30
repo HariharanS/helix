@@ -15,6 +15,7 @@ runtime_surface:
   prompts_dir: .github/prompts
   skills_dir: .github/skills
   agent_guidance_file: AGENTS.md
+  skill_registry_file: .helix/skills/index.yml
 
 managed_paths:
   - path: .github/agents/helix.agent.md

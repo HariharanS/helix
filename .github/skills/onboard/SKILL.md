@@ -154,6 +154,7 @@ For each pattern with `Destination: repo-skill`:
 
 - Generate `{repo}/.github/skills/{name}/SKILL.md`
 - Include one real example extracted from the codebase
+- Treat generated repo skills as registry candidates. They are not guaranteed invokable from the meta-root until `workspace-sync` indexes them and a later projection flow creates an approved `hr-*` skill.
 
 **Every SKILL.md must begin with this YAML frontmatter block (all five keys are required):**
 

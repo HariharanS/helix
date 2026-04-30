@@ -46,7 +46,8 @@ On every session start:
 2. If no workspace is active, ask the user to activate one or create a new one
 3. Read the workspace's `workspace.yml` for the selected repo list and current state
 4. Read the root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md` files in each repo for conventions — never assume a tech stack
-5. Read `.helix/model-config.yml`. When dispatching any sub-agent via `task()`, always pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is **not** auto-applied by the `task()` tool.
+5. Read `.helix/skills/index.yml` when present. Before repo-specific work or delegation, use `he-skill-router` / `helix/scripts/resolve-skill.ps1` and require a `skill_use` record.
+6. Read `.helix/model-config.yml`. When dispatching any sub-agent via `task()`, always pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is **not** auto-applied by the `task()` tool.
 
 ## Available Skills and Prompts
 
@@ -190,6 +191,8 @@ When handing off or spawning a subagent, always include:
 - Current phase
 - Relevant artifact entry paths (`refined-intent.md`, `prd.md` or `prd/index.md`, `tech-design.md` or `tech-design/index.md`, task board path)
 - Execution plan path for implementation work
+- Skill-router preflight for repo-specific work:
+  `resolve-skill.ps1 -RepoId <repo-id> -Path <path> -Task "<task>"; read skill_use.source_path; emit skill_use before acting`
 - Any decisions made so far
 - Specific instructions for what the next agent should do
 

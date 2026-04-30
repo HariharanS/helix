@@ -219,6 +219,11 @@ if (-not $hasInstallState -and -not $hasRegistry) {
     } elseif ($registryResolution.source -eq 'legacy') {
         Add-WarningLine "Using legacy registry manifest 'repos.yml'. Rename it to canonical 'helix-repos.yml'."
     }
+
+    $skillIndexPath = Join-Path $TargetRoot '.helix/skills/index.yml'
+    if (-not (Test-Path $skillIndexPath)) {
+        Add-WarningLine "Missing skill registry '.helix/skills/index.yml'. Re-run install-helix.ps1 or setup-workspace.ps1 so agents can use he-skill-router deterministically."
+    }
 }
 
 $contextProvidersPath = Join-Path $TargetRoot '.helix/context-providers.yml'

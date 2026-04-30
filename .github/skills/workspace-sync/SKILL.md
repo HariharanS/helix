@@ -85,6 +85,7 @@ After `helix/scripts/workspace-setup.ps1` succeeds, verify:
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every repo in the workspace manifest
 - `.helix/repo-capabilities/{repo-id}.yml` exists for every repo in the workspace manifest
+- `.helix/skills/index.yml` exists and includes core skills plus repo-local candidates for onboarded repos
 - `{name}.code-workspace` enables AGENTS.md and nested AGENTS.md loading settings
 - the status table from the script reflects the expected presence and readiness values
 - if `code_review_graph.mode: mcp`, CRG graph build succeeded for every present repo
@@ -105,6 +106,7 @@ After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Works
 
 After the script completes:
 - verify `.helix/repo-capabilities/{repo-id}.yml` exists for each workspace repo
+- verify `.helix/skills/index.yml` includes any repo-local `.github/skills/*/SKILL.md` as `candidate` entries
 - treat those files as the generated source of truth for **abstract** capability hints:
   - language/build markers
   - discovered verification layers
@@ -166,6 +168,7 @@ If graph content is stale or missing after repair, run `/build-graph full`.
 - Removed Helix-generated legacy `.github/instructions/*.instructions.md` summaries, if present
 - Refreshed `.helix/repo-state/*.yml` for the workspace repos (via script, not manual edits)
 - Refreshed `.helix/repo-capabilities/*.yml` capability hints for the workspace repos
+- Refreshed `.helix/skills/index.yml` for core, projected, and repo-local candidate skills
 - Built CRG graphs for present workspace repos when `code_review_graph.mode: mcp`
 - A setup report that separates baseline attach and CRG results from optional onboarding work
 
@@ -179,7 +182,7 @@ If graph content is stale or missing after repair, run `/build-graph full`.
 | service-a | workspaces/order-history/repos/service-a | yes | ready | main | none |
 | service-b | workspaces/order-history/repos/service-b | cloned | partial | main | onboard |
 
-Generated: {name}.code-workspace, .helix/repo-state/*.yml, .helix/repo-capabilities/*.yml
+Generated: {name}.code-workspace, .helix/repo-state/*.yml, .helix/repo-capabilities/*.yml, .helix/skills/index.yml
 Updated: .helix/active-workspace.yml
 Optional: .claude/settings.local.json when Claude Desktop integration is explicitly requested
 ```

@@ -566,15 +566,20 @@ if (-not (Test-Path $mentalModelPath)) {
 $workspaceConfig = [ordered]@{
     folders = $folders
     settings = [ordered]@{
-        'chat.agentFilesLocations' = @(
-            [ordered]@{ source = '.github/agents' }
-        )
-        'chat.skillsLocations' = @(
-            [ordered]@{ source = '.github/skills' }
-        )
-        'chat.hookFilesLocations' = @(
-            [ordered]@{ source = '.github/hooks' }
-        )
+        'chat.agentFilesLocations' = [ordered]@{
+            '.github/agents' = $true
+        }
+        'chat.promptFilesLocations' = [ordered]@{
+            '.github/prompts' = $true
+        }
+        'chat.agentSkillsLocations' = [ordered]@{
+            '.github/skills' = $true
+            '~/.copilot/skills' = $true
+        }
+        'chat.hookFilesLocations' = [ordered]@{
+            '.github/hooks' = $true
+        }
+        'chat.useAgentSkills' = $true
         'chat.useAgentsMdFile' = $true
         'chat.useNestedAgentsMdFiles' = $true
         'chat.useCustomizationsInParentRepositories' = $true
@@ -617,6 +622,8 @@ if ($removedInstructionSummaries -gt 0) {
     Write-Host "Removed $removedInstructionSummaries Helix-generated .instructions.md summary file(s)."
 }
 
+$skillIndexPath = Write-HelixSkillIndex -TargetRoot $TargetRoot -WorkspaceName $workspaceName -WorkspaceRepos $workspaceRepos
+
 $statusTable = $repoStates | ForEach-Object {
     [pscustomobject]@{
         Repo = $_.repo_id
@@ -630,6 +637,7 @@ $statusTable = $repoStates | ForEach-Object {
 Write-Host "Workspace '$workspaceName' is active."
 $statusTable | Format-Table -AutoSize
 Write-Host "Generated workspace file: $workspaceFile"
+Write-Host "Updated skill registry: $skillIndexPath"
 
 if ($crgResults.Count -gt 0) {
     Write-Host ""

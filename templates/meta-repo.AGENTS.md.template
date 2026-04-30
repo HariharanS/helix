@@ -15,6 +15,7 @@ Use this file to discover where relevant context lives in the installed Helix me
 - `helix-repos.yml` is the canonical registry of known repos, not runtime state (`repos.yml` is kept as a legacy compatibility alias)
 - `.helix/repo-state/` contains generated readiness and scan results
 - `.helix/repo-capabilities/` contains beta generated per-repo capability hints (test runner, build command); read when present, skip when absent
+- `.helix/skills/index.yml` contains the beta skill routing registry; use `.github/skills/he-skill-router/SKILL.md` or `helix/scripts/resolve-skill.ps1` before repo-specific work and emit `skill_use`
 - `.helix/context-providers.yml` controls CRG mode and budgets; normal setup expects `mode: mcp`, while `off` is an emergency fallback
 - `workspaces/<id>/workspace.yml` declares participating repos for a feature-space
 - `workspaces/<id>/verification-policy.yml` is an optional beta operator-authored slice verification gate policy

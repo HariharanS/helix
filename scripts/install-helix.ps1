@@ -153,6 +153,9 @@ New-HelixDirectory -Path (Join-Path $TargetRoot '.helix')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/repo-state')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/repo-capabilities')
 New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/generated')
+New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/skills')
+New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/skills/candidates')
+New-HelixDirectory -Path (Join-Path $TargetRoot '.helix/skills/graveyard')
 New-HelixDirectory -Path (Join-Path $TargetRoot 'workspaces')
 
 if (-not (Test-Path $canonicalRegistryPath) -and (Test-Path $legacyRegistryPath)) {
@@ -183,6 +186,8 @@ Add-ManagedFile -Items $items -SourceRelative 'docs/starting-cross-repo-feature-
 Add-ManagedFile -Items $items -SourceRelative 'docs/helix-platform-roadmap.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/helix-platform-roadmap.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/agents-md-authoring.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/agents-md-authoring.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/agents-md-implementation-handover.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/agents-md-implementation-handover.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/meta-repo-skills-management.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/meta-repo-skills-management.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/hc-hr-runtime-surface-rename-plan.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/hc-hr-runtime-surface-rename-plan.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'workspaces/AGENTS.md' -TargetRelative 'workspaces/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedTree -Items $items -SourceRelativeRoot 'templates' -TargetRelativeRoot (Join-Path $managedAssetRoot 'templates') -Category 'template' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/AGENTS.md' -TargetRelative (Join-Path $managedAssetRoot 'scripts/AGENTS.md') -Category 'doc' -SyncMode 'replace'
@@ -197,6 +202,8 @@ Add-ManagedFile -Items $items -SourceRelative 'scripts/init.ps1' -TargetRelative
 Add-ManagedFile -Items $items -SourceRelative 'scripts/sync.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/sync.ps1') -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/upgrade.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/upgrade.ps1') -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/workspace-setup.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/workspace-setup.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/resolve-skill.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/resolve-skill.ps1') -Category 'script' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'scripts/promote-skill.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/promote-skill.ps1') -Category 'script' -SyncMode 'replace'
 
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.README.md.template' -TargetRelative 'README.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.AGENTS.md.template' -TargetRelative 'AGENTS.md' -Category 'doc' -SyncMode 'merge-marked-sections'
@@ -209,6 +216,8 @@ $gitKeepTargets = @(
     '.helix/repo-state/.gitkeep',
     '.helix/repo-capabilities/.gitkeep',
     '.helix/generated/.gitkeep',
+    '.helix/skills/candidates/.gitkeep',
+    '.helix/skills/graveyard/.gitkeep',
     'workspaces/.gitkeep'
 )
 
@@ -251,6 +260,8 @@ foreach ($item in $items) {
     Write-ManagedFile -Item $item -MetaRepoName $metaRepoName
 }
 
+$skillIndexPath = Write-HelixSkillIndex -TargetRoot $TargetRoot
+
 foreach ($gitKeep in $gitKeepTargets) {
     $absolute = Join-Path $TargetRoot $gitKeep
     $dir = Split-Path -Parent $absolute
@@ -289,6 +300,7 @@ $installState = [ordered]@{
         prompts_dir = '.github/prompts'
         skills_dir = '.github/skills'
         agent_guidance_file = 'AGENTS.md'
+        skill_registry_file = '.helix/skills/index.yml'
     }
     managed_paths = @($items.ToArray())
 }
@@ -296,3 +308,4 @@ $installState = [ordered]@{
 Write-HelixYamlFile -Path (Join-Path $TargetRoot '.helix/install-state.yml') -Value $installState
 
 Write-Host "Helix installed or synced into '$TargetRoot'."
+Write-Host "Updated skill registry: $skillIndexPath"

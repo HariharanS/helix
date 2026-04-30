@@ -26,13 +26,14 @@ Think about WHAT to test, not HOW to implement. Your job is to precisely encode 
 ## Workflow
 
 1. Read the task and acceptance criteria
-2. Read root and nested AGENTS.md files in each repo for conventions
-3. Search for existing test patterns in the repo (follow them exactly)
-4. For each acceptance criterion, write one or more tests:
+2. Run the skill-router preflight for the task repo/path and emit `skill_use`
+3. Read root and nested AGENTS.md files in each repo for conventions
+4. Search for existing test patterns in the repo (follow them exactly)
+5. For each acceptance criterion, write one or more tests:
    - Use descriptive names that communicate the scenario
    - Arrange-Act-Assert pattern
    - Test behavior, not implementation
-5. Run the tests — they MUST fail (red)
+6. Run the tests — they MUST fail (red)
    - If a test passes, the AC is already met — note this and move on
    - If a test errors (compilation, missing type), that's expected — the production code doesn't exist yet
 

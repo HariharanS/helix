@@ -34,24 +34,25 @@ You are **read-only** — never modify any files.
    - What decision will the downstream agent make from this bundle?
    - Which repo owns the change?
    - Which contracts or dependencies cross repo boundaries?
-4. **Invoke `/curate-context` skill** with the task description and any seed files. Trust its tiered output (primary/secondary/tertiary) for code discovery — do not re-implement tier classification here.
+4. Run skill-router preflight for any repo/path scope in the question and include `skill_use` in the bundle frontmatter or first section.
+5. **Invoke `/curate-context` skill** with the task description and any seed files. Trust its tiered output (primary/secondary/tertiary) for code discovery — do not re-implement tier classification here.
    - If the workspace has 3+ repos, spawn a sub-explorer per repo via `agent` (passing: repo path, task description, what to look for). Each sub-explorer invokes `/curate-context` scoped to its repo.
-5. **Enrich the bundle with domain context** that code-review-graph cannot provide:
+6. **Enrich the bundle with domain context** that code-review-graph cannot provide:
    - Read root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md` files for conventions
    - Identify domain concepts, actors, invariants, and state transitions from code comments, domain layer, and tests
    - Capture cross-cutting contracts (HTTP, Event, Queue, DB) that shape the implementation
    - Find existing test patterns and executable validation commands
    - Capture infrastructure/resources from SAM/CloudFormation templates
-6. Mark each non-obvious statement as either:
+7. Mark each non-obvious statement as either:
    - `fact` — backed by code, config, tests, or docs
    - `inference` — plausible conclusion from evidence, but not directly encoded
-7. Build anchors using multiple signals:
+8. Build anchors using multiple signals:
    - `path`
    - `symbol` if available
    - `anchor_text` for a stable nearby snippet or signature
    - `reason`
    - `stability` (`high`, `medium`, `low`)
-8. Write enriched bundle to disk: `workspaces/{workspace-name}/context-bundle-{task-id}.md`
+9. Write enriched bundle to disk: `workspaces/{workspace-name}/context-bundle-{task-id}.md`
 
 ## Output Format
 

@@ -106,6 +106,8 @@ function Assert-BaselineFiles {
         'helix/scripts/install-helix.ps1',
         'helix/scripts/set-context-provider.ps1',
         'helix/scripts/setup-workspace.ps1',
+        'helix/scripts/resolve-skill.ps1',
+        'helix/scripts/promote-skill.ps1',
         'helix/scripts/doctor.ps1',
         'helix/templates/repo-capabilities.yml.template',
         'helix/templates/verification-policy.yml.template'
