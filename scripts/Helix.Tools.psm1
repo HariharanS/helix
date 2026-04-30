@@ -460,7 +460,6 @@ function Get-HelixRepoReadiness {
             signals = [ordered]@{
                 root_agents = $false
                 nested_agents = $false
-                instructions = $false
                 repo_skills = $false
                 tests_present = $false
             }
@@ -473,13 +472,11 @@ function Get-HelixRepoReadiness {
 
     $rootAgents = Test-Path (Join-Path $RepoPath 'AGENTS.md')
     $nestedAgents = [bool](Get-ChildItem -Path $RepoPath -Recurse -Filter AGENTS.md -File -ErrorAction SilentlyContinue | Where-Object { $_.FullName -ne (Join-Path $RepoPath 'AGENTS.md') } | Select-Object -First 1)
-    $instructions = Test-Path (Join-Path $RepoPath '.github/instructions')
     $repoSkills = Test-Path (Join-Path $RepoPath '.github/skills')
     $testsPresent = [bool](Get-ChildItem -Path $RepoPath -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @('test', 'tests', 'spec', 'specs') } | Select-Object -First 1)
 
     $state.readiness.signals.root_agents = $rootAgents
     $state.readiness.signals.nested_agents = $nestedAgents
-    $state.readiness.signals.instructions = $instructions
     $state.readiness.signals.repo_skills = $repoSkills
     $state.readiness.signals.tests_present = $testsPresent
 
@@ -504,13 +501,13 @@ function Get-HelixRepoReadiness {
         } catch {}
     }
 
-    if ($rootAgents -and ($instructions -or $nestedAgents)) {
+    if ($rootAgents) {
         $state.readiness.state = 'ready'
-        $state.readiness.reason = 'Repo has baseline agent guidance and discoverable conventions.'
+        $state.readiness.reason = 'Repo has baseline AGENTS.md guidance.'
         $state.readiness.recommended_next_step = 'none'
-    } elseif ($rootAgents -or $instructions -or $nestedAgents) {
+    } elseif ($nestedAgents) {
         $state.readiness.state = 'partial'
-        $state.readiness.reason = 'Repo has some Helix signals but still needs onboarding or refresh.'
+        $state.readiness.reason = 'Repo has nested AGENTS.md guidance but is missing root AGENTS.md.'
         $state.readiness.recommended_next_step = 'onboard'
     } else {
         $state.readiness.state = 'needs-onboarding'

@@ -17,7 +17,7 @@ Applies consistent patterns across a codebase, informed by Helix memory learning
 
 - Read the refactoring request
 - Search `.helix/memory/learnings/` for relevant patterns
-- Read AGENTS.md and .instructions.md in the target repo for conventions
+- Read root and nested AGENTS.md files in the target repo for conventions
 - Identify the "before" pattern and the "after" pattern
 
 ### 2. Scope the Change

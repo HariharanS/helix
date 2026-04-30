@@ -436,11 +436,6 @@ if (-not [string]::IsNullOrWhiteSpace($activeWorkspaceId)) {
         }
     }
 
-    $workspaceInstructionsPath = Join-Path $TargetRoot ".github/instructions/$activeWorkspaceId.workspace.instructions.md"
-    if (-not (Test-Path $workspaceInstructionsPath)) {
-        Add-WarningLine "Missing generated instruction summary '.github/instructions/$activeWorkspaceId.workspace.instructions.md'. Re-run setup-workspace.ps1."
-    }
-
     $verificationPolicyDeclared = $false
     if ($null -ne $activeWorkspace.artifacts -and $activeWorkspace.artifacts.Contains('verification_policy') -and $activeWorkspace.artifacts['verification_policy']) {
         $verificationPolicyDeclared = $true

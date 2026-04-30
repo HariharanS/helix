@@ -34,7 +34,7 @@ Do **not** read the entire repo by default.
 | Path | Purpose | Start With |
 |------|---------|------------|
 | [`README.md`](./README.md) | Human-first overview | Use for broad orientation, not default implementation context |
-| [`./.github/AGENTS.md`](./.github/AGENTS.md) | Agent definitions, skills, prompts, global instructions | Use when changing Helix behavior |
+| [`./.github/AGENTS.md`](./.github/AGENTS.md) | Agent definitions, skills, prompts, hooks | Use when changing Helix behavior |
 | [`./.helix/AGENTS.md`](./.helix/AGENTS.md) | Active workspace, model config, memory | Use when you need runtime or memory context |
 | [`./workspaces/AGENTS.md`](./workspaces/AGENTS.md) | Canonical workspace artifact model | Use when reading or writing feature artifacts |
 | [`./templates/AGENTS.md`](./templates/AGENTS.md) | Artifact templates and examples | Use when changing generated output shapes |
@@ -45,7 +45,6 @@ Do **not** read the entire repo by default.
 
 - Change agent routing or prompt behavior:
   - [`./.github/AGENTS.md`](./.github/AGENTS.md)
-  - [`./.github/copilot-instructions.md`](./.github/copilot-instructions.md)
 - Inspect the active workspace:
   - [`./.helix/AGENTS.md`](./.helix/AGENTS.md)
   - [`./.helix/active-workspace.yml`](./.helix/active-workspace.yml)

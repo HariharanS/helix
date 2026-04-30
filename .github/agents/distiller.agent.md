@@ -78,7 +78,7 @@ Only create learnings for things that are:
 - **Reusable** — applies beyond this one session
 - **Actionable** — an agent can act on this guidance
 
-Do NOT create learnings for things already in AGENTS.md or .instructions.md, one-off debugging sessions, or personal preferences.
+Do NOT create learnings for things already in AGENTS.md, one-off debugging sessions, or personal preferences.
 
 ### 3. Promotion Distill (when applicable)
 

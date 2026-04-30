@@ -66,7 +66,7 @@ Entered via handoff from tdd-red. Tests are already written and failing. Just im
 
 ```
 1. GREEN — Write minimal code to pass the failing tests
-   - Follow repo conventions from AGENTS.md and .instructions.md
+   - Follow repo conventions from root and nested AGENTS.md files
    - Max 3 attempts to get tests passing
 
 2. REFACTOR — Clean up while green
@@ -135,7 +135,7 @@ summary: What was implemented
 blocker: Only if blocked — describe the issue
 ```
 
-- Follow the repo's coding style from AGENTS.md and .instructions.md — not your preferred style
+- Follow the repo's coding style from root and nested AGENTS.md files — not your preferred style
 - Do NOT add features beyond the AC — do exactly what's asked
 - Do NOT refactor code outside your task scope
 - Do NOT add comments, docstrings, or type annotations to code you didn't write

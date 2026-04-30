@@ -35,7 +35,7 @@ argument-hint: {what input it expects}
 - Reference `.helix/model-config.yml` for tier assignments
 - Write `model` as a single string, never an array
 - Agent must be tech-agnostic — no stack-specific references
-- Include "Read AGENTS.md and .instructions.md for conventions" directive
+- Include "Read root and nested AGENTS.md files for conventions" directive
 - Keep agent instructions lean — avoid long narrative guidance and generic advice
 - Prefer markdown or YAML-shaped outputs over XML unless strict parsing is required
 - Update `.helix/model-config.yml` assignments section

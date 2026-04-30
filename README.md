@@ -28,6 +28,7 @@ The installed meta repo root `README.md` is generated from `helix/templates/meta
 - installed meta repo root `README.md` is project-local: repo registry, workspace setup, and local notes
 - `AGENTS.md` files are agent-first: navigation, source-of-truth rules, and retrieval guidance
 - `docs/` holds longer guides and roadmap material
+- `docs/agents-md-authoring.md` defines the compact root-vs-nested AGENTS.md contract
 
 If you are an agent, start with [`AGENTS.md`](./AGENTS.md), not this file.
 
@@ -117,7 +118,7 @@ The full lifecycle, loops, and artifact rules are defined in [`docs/helix-proces
 helix/
 ├── README.md
 ├── AGENTS.md
-├── .github/      # agent definitions, skills, prompts, global instructions
+├── .github/      # agent definitions, skills, prompts, hooks
 ├── .helix/       # active workspace, model config, memory
 ├── workspaces/   # workspace-scoped artifacts and bundles
 ├── docs/         # human-facing guides and roadmap
@@ -200,7 +201,7 @@ Validate the installed meta repo:
 .\helix\scripts\doctor.ps1
 ```
 
-Setup is ready when `.helix/active-workspace.yml` points at the workspace, `.helix/repo-state/*.yml` and `.helix/repo-capabilities/*.yml` exist for participating repos, generated `.github/instructions/*.instructions.md` files exist, and `{workspace}.code-workspace` exists at the meta-repo root.
+Setup is ready when `.helix/active-workspace.yml` points at the workspace, `.helix/repo-state/*.yml` and `.helix/repo-capabilities/*.yml` exist for participating repos, `{workspace}.code-workspace` exists at the meta-repo root, and the participating repos have root `AGENTS.md` guidance.
 
 Open `{workspace}.code-workspace` in VS Code when working through the editor. In Copilot CLI, start from the meta-repo root so Helix can read `.helix/active-workspace.yml` and the workspace artifacts.
 
@@ -213,7 +214,7 @@ Open `{workspace}.code-workspace` in VS Code when working through the editor. In
 | Workspace manifest already exists | Edit `workspaces/<id>/workspace.yml`, then run `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -FetchExisting` |
 | Add another repo to a workspace | Add it to `helix-repos.yml`, add its `repo_id` to `workspaces/<id>/workspace.yml`, then rerun workspace setup |
 | Switch active workspace | Run `.\helix\scripts\workspace-setup.ps1 -Workspace <other-id> -FetchExisting`; this rewrites `.helix/active-workspace.yml` |
-| Refresh after onboarding or branch changes | Rerun `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -FetchExisting` to refresh repo state, capability hints, instruction summaries, and CRG graphs |
+| Refresh after onboarding or branch changes | Rerun `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -FetchExisting` to refresh repo state, capability hints, AGENTS.md readiness, and CRG graphs |
 | CRG bootstrap or repair | Run `.\helix\scripts\set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap`, then rerun workspace setup |
 | CRG is blocking urgent work | Set `.\helix\scripts\set-context-provider.ps1 -Provider code-review-graph -Mode off` as an explicit emergency fallback |
 | Sync installed Helix files from source | Run `.\helix\scripts\sync-helix.ps1` from the meta-repo root |
@@ -299,6 +300,7 @@ Copilot CLI LSP support is useful, but Helix should treat it as **advisory conte
 - Copilot session traces, hooks, environment, and Lens overlay plan: [`docs/trace-schema.md`](./docs/trace-schema.md), [`docs/copilot-cli-hooks-and-env.md`](./docs/copilot-cli-hooks-and-env.md), and [`docs/copilot-session-overlay-plan.md`](./docs/copilot-session-overlay-plan.md)
 - Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
 - Meta-repo manifest schemas: [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md)
+- AGENTS.md authoring standard: [`docs/agents-md-authoring.md`](./docs/agents-md-authoring.md)
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)
 - Agent navigation and source-of-truth rules: [`AGENTS.md`](./AGENTS.md)
 

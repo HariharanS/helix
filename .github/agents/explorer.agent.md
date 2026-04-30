@@ -37,7 +37,7 @@ You are **read-only** — never modify any files.
 4. **Invoke `/curate-context` skill** with the task description and any seed files. Trust its tiered output (primary/secondary/tertiary) for code discovery — do not re-implement tier classification here.
    - If the workspace has 3+ repos, spawn a sub-explorer per repo via `agent` (passing: repo path, task description, what to look for). Each sub-explorer invokes `/curate-context` scoped to its repo.
 5. **Enrich the bundle with domain context** that code-review-graph cannot provide:
-   - Read root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md`, and then `.instructions.md` files for conventions
+   - Read root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md` files for conventions
    - Identify domain concepts, actors, invariants, and state transitions from code comments, domain layer, and tests
    - Capture cross-cutting contracts (HTTP, Event, Queue, DB) that shape the implementation
    - Find existing test patterns and executable validation commands

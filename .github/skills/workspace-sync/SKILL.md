@@ -12,6 +12,7 @@ disable-model-invocation: true
 Uses the script-owned workspace setup path once Helix is installed and the user has updated `helix-repos.yml`. Normal setup requires CRG MCP (`code_review_graph.mode: mcp`) and builds graphs for the selected repos; `mode: off` is an explicit emergency fallback.
 
 If `workspaces/{name}/workspace.yml` is missing and the user supplies explicit repo ids, pass those ids to `helix/scripts/workspace-setup.ps1 -ReposCsv` so the script seeds the manifest. Do not hand-write the workspace manifest in this skill.
+When evaluating AGENTS.md guidance or onboarding follow-up, use `helix/docs/agents-md-authoring.md`.
 
 ## Workflow
 
@@ -84,7 +85,7 @@ After `helix/scripts/workspace-setup.ps1` succeeds, verify:
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every repo in the workspace manifest
 - `.helix/repo-capabilities/{repo-id}.yml` exists for every repo in the workspace manifest
-- `.github/instructions/{name}.workspace.instructions.md` exists, along with any generated repo instruction summaries
+- `{name}.code-workspace` enables AGENTS.md and nested AGENTS.md loading settings
 - the status table from the script reflects the expected presence and readiness values
 - if `code_review_graph.mode: mcp`, CRG graph build succeeded for every present repo
 
@@ -100,7 +101,7 @@ Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in 
 
 #### 5b. Refresh Repo-State and Capability Files
 
-After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos, updates repo-state signals (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`), refreshes repo-capabilities, regenerates instruction summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml` or `.helix/repo-capabilities/*.yml` files.
+After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos, updates repo-state signals (`root_agents`, `nested_agents`, `repo_skills`, `tests_present`), refreshes repo-capabilities, removes Helix-generated legacy `.instructions.md` summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml` or `.helix/repo-capabilities/*.yml` files.
 
 After the script completes:
 - verify `.helix/repo-capabilities/{repo-id}.yml` exists for each workspace repo
@@ -111,7 +112,7 @@ After the script completes:
 - do **not** manually patch `.helix/repo-capabilities/*.yml`; re-run setup if discovery needs refreshing
 
 If onboarding surfaced richer repo-specific verification commands or environment notes, use those findings to refine:
-- repo `AGENTS.md` / `.github/instructions/*`
+- root or nested repo `AGENTS.md`
 - `workspaces/{name}/verification-policy.yml`
 - future execution-plan `verification` blocks
 
@@ -162,7 +163,7 @@ If graph content is stale or missing after repair, run `/build-graph full`.
 
 - Updated `.helix/active-workspace.yml`
 - Generated `{name}.code-workspace` at the meta-repo root
-- Generated `.github/instructions/*.instructions.md` summaries for the workspace and participating repos
+- Removed Helix-generated legacy `.github/instructions/*.instructions.md` summaries, if present
 - Refreshed `.helix/repo-state/*.yml` for the workspace repos (via script, not manual edits)
 - Refreshed `.helix/repo-capabilities/*.yml` capability hints for the workspace repos
 - Built CRG graphs for present workspace repos when `code_review_graph.mode: mcp`
@@ -178,7 +179,7 @@ If graph content is stale or missing after repair, run `/build-graph full`.
 | service-a | workspaces/order-history/repos/service-a | yes | ready | main | none |
 | service-b | workspaces/order-history/repos/service-b | cloned | partial | main | onboard |
 
-Generated: {name}.code-workspace, .github/instructions/*.instructions.md, .helix/repo-state/*.yml, .helix/repo-capabilities/*.yml
+Generated: {name}.code-workspace, .helix/repo-state/*.yml, .helix/repo-capabilities/*.yml
 Updated: .helix/active-workspace.yml
 Optional: .claude/settings.local.json when Claude Desktop integration is explicitly requested
 ```

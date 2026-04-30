@@ -130,7 +130,7 @@ interface IThingRepository
 
 ## Data Model
 
-Follow the repo's storage conventions — read AGENTS.md and .instructions.md for patterns.
+Follow the repo's storage conventions — read the nearest AGENTS.md files for patterns.
 
 | Entity | Key Design | Attributes |
 |--------|-----------|------------|
@@ -143,7 +143,7 @@ Follow the repo's storage conventions — read AGENTS.md and .instructions.md fo
 
 ## Infrastructure Changes
 
-Follow the repo's IaC conventions — read AGENTS.md and .instructions.md for patterns.
+Follow the repo's IaC conventions — read the nearest AGENTS.md files for patterns.
 
 List infrastructure resources needed, using the repo's existing resource definition format.
 
@@ -224,7 +224,7 @@ In Copilot CLI, `vscode/askQuestions` is unavailable in sub-agents.
 - If the design requires changes to multiple repos, clearly mark which changes go where
 - If the design introduces a new pattern not in the codebase, call it out explicitly and justify it
 - Prefer extending existing abstractions over creating new ones
-- Read AGENTS.md and .instructions.md in each repo for conventions — match existing storage patterns, IaC patterns, handler patterns, and project structure
+- Read root and nested AGENTS.md files in each repo for conventions — match existing storage patterns, IaC patterns, handler patterns, and project structure
 - Keep pseudo code minimal and only detailed enough to lock logic or edge cases
 - Move long evidence or inventories to annex files instead of inflating the main design
 - Prefer a single-file design only when the whole artifact stays compact and easy to scan

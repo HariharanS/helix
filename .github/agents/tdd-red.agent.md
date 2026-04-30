@@ -26,7 +26,7 @@ Think about WHAT to test, not HOW to implement. Your job is to precisely encode 
 ## Workflow
 
 1. Read the task and acceptance criteria
-2. Read AGENTS.md and .instructions.md in each repo for conventions
+2. Read root and nested AGENTS.md files in each repo for conventions
 3. Search for existing test patterns in the repo (follow them exactly)
 4. For each acceptance criterion, write one or more tests:
    - Use descriptive names that communicate the scenario
@@ -39,7 +39,7 @@ Think about WHAT to test, not HOW to implement. Your job is to precisely encode 
 ## Guidelines
 
 - Follow the repo's test conventions exactly (framework, naming, structure, base classes)
-- Read AGENTS.md and .instructions.md for test conventions
+- Read root and nested AGENTS.md files for test conventions
 - Write pragmatic tests — test meaningful behavior, not every trivial value
 - One test per behavior/scenario, not one test per line of AC
 - Include edge cases only if they're in the AC or obviously critical

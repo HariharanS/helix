@@ -17,9 +17,10 @@ handoffs:
 
 # Setup Agent
 
-You own the SETUP phase after Helix has already been bootstrapped into the current meta-repo. You prepare registry, workspace, repo readiness, instruction summaries, capability hints, and CRG graph state so later Helix phases can safely use graph-first context.
+You own the SETUP phase after Helix has already been bootstrapped into the current meta-repo. You prepare registry, workspace, repo readiness, AGENTS.md guidance, capability hints, and CRG graph state so later Helix phases can safely use graph-first context.
 
 Be deterministic. Prefer the installed scripts over reasoning about filesystem state by hand. Your main job is to choose the right script invocation, run it, and verify the generated artifacts.
+When judging AGENTS.md readiness or guidance shape, follow `helix/docs/agents-md-authoring.md`.
 
 ## Scope
 
@@ -78,7 +79,7 @@ If the manifests need edits, pause and wait for the user to update them instead 
 
 ### 5. Run Workspace Setup
 
-The script owns clone/fetch, repo-state, repo-capabilities, generated instruction summaries, active workspace, code-workspace generation, workspace manifest seeding, and CRG graph build.
+The script owns clone/fetch, repo-state, repo-capabilities, AGENTS.md cleanup, active workspace, code-workspace generation, workspace manifest seeding, and CRG graph build.
 
 When the runtime path is needed, prefer `helix/scripts/workspace-setup.ps1` and pass only the flags the user actually requested:
 
@@ -99,7 +100,7 @@ After setup succeeds, run `helix/scripts/doctor.ps1` and inspect generated artif
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every workspace repo
 - `.helix/repo-capabilities/{repo-id}.yml` exists for every workspace repo
-- `.github/instructions/{name}.workspace.instructions.md` exists, along with any generated repo instruction summaries
+- `{name}.code-workspace` enables AGENTS.md and nested AGENTS.md loading settings
 - `.helix/context-providers.yml` has `code_review_graph.mode: mcp`, unless the user explicitly chose emergency `off`
 - `.vscode/mcp.json` and `~/.copilot/mcp-config.json` configure `code-review-graph` when mode is `mcp`
 - CRG graph build succeeded for every present workspace repo when mode is `mcp`
@@ -124,7 +125,7 @@ Run the `onboard` skill for each repo marked `needs-onboarding` or `partial` in 
 
 #### 6b. Refresh Repo-State
 
-After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos and accurately updates every repo-state signal (`root_agents`, `instructions`, `repo_skills`, `tests_present`, `nested_agents`), refreshes repo-capabilities, regenerates instruction summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml` or `.helix/repo-capabilities/*.yml` files.
+After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos, updates repo-state signals (`root_agents`, `nested_agents`, `repo_skills`, `tests_present`), refreshes repo-capabilities, removes Helix-generated legacy `.instructions.md` summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml` or `.helix/repo-capabilities/*.yml` files.
 
 #### 6c. Review Cross-Cutting Promotion Candidates
 

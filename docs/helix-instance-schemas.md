@@ -263,7 +263,6 @@ Current setup writes workspace-owned checkout paths here, even when `helix-repos
 | `readiness.signals` | yes | map | Specific discovery signals |
 | `readiness.signals.root_agents` | yes | boolean | Root `AGENTS.md` present |
 | `readiness.signals.nested_agents` | yes | boolean | Nested `AGENTS.md` present |
-| `readiness.signals.instructions` | yes | boolean | `.github/instructions/` present |
 | `readiness.signals.repo_skills` | yes | boolean | `.github/skills/` present |
 | `readiness.signals.tests_present` | yes | boolean | Test directories found |
 
@@ -288,7 +287,6 @@ readiness:
   signals:
     root_agents: true
     nested_agents: false
-    instructions: true
     repo_skills: false
     tests_present: true
 ```
@@ -328,11 +326,11 @@ Do not use it for:
 | `runtime_surface.hooks_dir` | yes | string | Usually `.github/hooks` |
 | `runtime_surface.prompts_dir` | yes | string | Usually `.github/prompts` |
 | `runtime_surface.skills_dir` | yes | string | Usually `.github/skills` |
-| `runtime_surface.instructions_file` | yes | string | Usually `.github/copilot-instructions.md` |
+| `runtime_surface.agent_guidance_file` | yes | string | Usually `AGENTS.md` |
 | `managed_paths` | yes | list | Installed and tracked files |
 | `managed_paths[].path` | yes | string | Path relative to the meta-repo root |
 | `managed_paths[].source` | yes | string | Path relative to the `helix-core` root |
-| `managed_paths[].category` | yes | string | `agent`, `hook-config`, `prompt`, `skill`, `doc`, `instruction`, `config`, `template`, `script`, or `manifest` |
+| `managed_paths[].category` | yes | string | `agent`, `hook-config`, `prompt`, `skill`, `doc`, `config`, `template`, `script`, or `manifest` |
 | `managed_paths[].sync_mode` | yes | string | `replace`, `seed-once`, or `merge-marked-sections` |
 | `managed_paths[].required` | no | boolean | Whether Helix expects it to exist after sync |
 
@@ -364,18 +362,12 @@ runtime_surface:
   hooks_dir: .github/hooks
   prompts_dir: .github/prompts
   skills_dir: .github/skills
-  instructions_file: .github/copilot-instructions.md
+  agent_guidance_file: AGENTS.md
 
 managed_paths:
   - path: .github/agents/helix.agent.md
     source: .github/agents/helix.agent.md
     category: agent
-    sync_mode: replace
-    required: true
-
-  - path: .github/copilot-instructions.md
-    source: .github/copilot-instructions.md
-    category: instruction
     sync_mode: replace
     required: true
 

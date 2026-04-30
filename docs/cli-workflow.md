@@ -35,7 +35,7 @@ For manifest questions it uses `ask_user` directly. Purely mechanical steps (clo
 **Output:**
 - `.helix/repo-state/{repo-id}.yml` for each participating repo
 - `{workspace}.code-workspace` at the **meta-repo root** (gitignored)
-- `.github/instructions/*.instructions.md` — gitignored workspace and repo instruction summaries generated during setup/onboarding
+- root and nested `AGENTS.md` guidance in each onboarded repo
 
 ---
 

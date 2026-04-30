@@ -74,7 +74,7 @@ Scan manually only for what CRG's code graph cannot provide or cannot answer con
 
 - Domain docs, ADRs, README context relevant to the task
 - SAM/CloudFormation templates for infrastructure relationships (Lambda -> DynamoDB -> EventBridge)
-- `.instructions.md` and `AGENTS.md` conventions in each relevant repo
+- root and nested `AGENTS.md` conventions in each relevant repo
 - Cross-repo shared contracts or interfaces that `cross_repo_search_tool` didn't surface
 
 Do NOT re-scan code that CRG already indexed. If a file appeared in graph results, trust the graph.

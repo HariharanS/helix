@@ -55,7 +55,7 @@ You break technical designs into small, implementable tasks that fit cleanly int
    - **Topologically order slices over the contract graph** — a slice that introduces a contract (`producer`) must precede every slice that consumes it (`consumers`). If two slices form a cycle, surface it back to the architect; do not invent a tie-break
 7. Produce both the human task board and the machine-readable execution plan
 
-Read AGENTS.md and .instructions.md in each repo for conventions on how to structure code and where files belong.
+Read root and nested AGENTS.md files in each repo for conventions on how to structure code and where files belong.
 
 ## Output Format
 

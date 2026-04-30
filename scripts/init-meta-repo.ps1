@@ -95,7 +95,6 @@ function Assert-BaselineFiles {
         '.github/hooks',
         '.github/prompts',
         '.github/skills',
-        '.github/copilot-instructions.md',
         'helix-repos.yml',
         'README.md',
         'AGENTS.md',

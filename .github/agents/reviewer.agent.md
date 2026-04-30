@@ -54,7 +54,7 @@ Run each lens independently. Lenses inform risk scoring; findings feed into the 
 - Are contracts/interfaces clean and minimal?
 
 ### 4. Coding Style
-- Does the code follow repo conventions (AGENTS.md, .instructions.md)?
+- Does the code follow repo conventions from root and nested AGENTS.md files?
 - Naming consistency with existing codebase?
 - No unnecessary complexity, abstractions, or gold-plating?
 - No changes to code outside the task scope?

@@ -14,18 +14,12 @@ runtime_surface:
   hooks_dir: .github/hooks
   prompts_dir: .github/prompts
   skills_dir: .github/skills
-  instructions_file: .github/copilot-instructions.md
+  agent_guidance_file: AGENTS.md
 
 managed_paths:
   - path: .github/agents/helix.agent.md
     source: .github/agents/helix.agent.md
     category: agent
-    sync_mode: replace
-    required: true
-
-  - path: .github/copilot-instructions.md
-    source: .github/copilot-instructions.md
-    category: instruction
     sync_mode: replace
     required: true
 

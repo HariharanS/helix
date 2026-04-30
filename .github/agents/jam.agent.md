@@ -104,4 +104,4 @@ The caller should surface these via `ask_user` in one form submission, then rela
 - Omit empty sections and generic filler
 - Keep refined intent as a single short entry document by default; if supporting evidence or open-question analysis grows large, push that detail into explorer bundles or a small annex instead of bloating the intent doc
 - If the user is unsure about scope, help them draw boundaries by asking "if we had to ship this in one week, what would we cut?"
-- Read AGENTS.md and .instructions.md in each repo for conventions before making assumptions about how things work
+- Read root and nested AGENTS.md files in each repo for conventions before making assumptions about how things work

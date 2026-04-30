@@ -39,7 +39,7 @@ Validate:
 .\helix\scripts\doctor.ps1
 ```
 
-Setup is ready when `.helix/active-workspace.yml` points at the workspace, repo state exists under `.helix/repo-state/`, generated instructions exist under `.github/instructions/`, and `<workspace-id>.code-workspace` exists at the repo root.
+Setup is ready when `.helix/active-workspace.yml` points at the workspace, repo state exists under `.helix/repo-state/`, participating repos have root `AGENTS.md` guidance, and `<workspace-id>.code-workspace` exists at the repo root.
 
 ## Common Scenarios
 

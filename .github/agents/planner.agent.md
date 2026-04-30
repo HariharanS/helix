@@ -138,7 +138,7 @@ In Copilot CLI, `vscode/askQuestions` is unavailable in sub-agents.
 - Keep user stories focused — one capability per story
 - Acceptance criteria should be concrete, not vague ("fast" is bad, "< 200ms p95" is good)
 - If the explorer finds existing patterns or code that influences requirements, reference them
-- Non-functional requirements should align with existing system patterns — read AGENTS.md and .instructions.md in each repo for conventions
+- Non-functional requirements should align with existing system patterns — read root and nested AGENTS.md files in each repo for conventions
 - If requirements conflict with each other, surface the conflict to the user
 - Omit empty or low-value sections rather than filling them with placeholders
 - Prefer precise bullets over explanatory paragraphs when the same meaning is preserved

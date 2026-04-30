@@ -218,7 +218,7 @@ That separation keeps setup deterministic:
 
 - `README.md`: human overview and bootstrap
 - `AGENTS.md`: agent retrieval and source-of-truth map
-- `.github/copilot-instructions.md`: short execution rules
+- nested `AGENTS.md`: subtree-specific agent conventions
 - this document: full Helix process definition
 
 ## Current Direction

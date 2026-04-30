@@ -1,7 +1,7 @@
 ---
 name: onboard
 managed-by: helix-core
-description: Makes a repository agent-ready — explores structure, generates AGENTS.md, discovers coding patterns, and creates .instructions.md files
+description: Makes a repository agent-ready — explores structure, generates AGENTS.md guidance, and discovers coding patterns
 argument-hint: "Path to the repo to onboard (e.g. '../service-a') or --refresh to update existing"
 user-invocable: true
 disable-model-invocation: true
@@ -11,6 +11,7 @@ disable-model-invocation: true
 
 Makes a repository agent-ready by generating context documents and discovering reusable patterns.
 Supports first-run onboarding and `--refresh` mode for incremental updates.
+Follow `helix/docs/agents-md-authoring.md` for root vs nested AGENTS.md layering and size rules.
 
 ## Formatting Rules
 
@@ -124,24 +125,23 @@ Place at `src/AGENTS.md` (or equivalent source root). Include:
 - Key abstractions and base classes
 - Test patterns and conventions
 
-### 3c. Instruction Files
+### 3c. Specialized Nested AGENTS.md
 
-Generate `.github/instructions/{topic}.instructions.md` ONLY for major convention areas that are both recurring and non-obvious:
-- Language conventions (naming, formatting, idioms)
-- Data store conventions (query patterns, schema patterns)
-- IaC conventions (resource naming, configuration patterns)
-- Testing conventions (framework, patterns, infrastructure)
+Generate additional nested `AGENTS.md` files ONLY for major convention areas that are both recurring and non-obvious:
+- `tests/AGENTS.md` or equivalent when test conventions differ from source conventions
+- `infra/AGENTS.md`, `cdk/AGENTS.md`, or equivalent for IaC conventions
+- generated-code subtree `AGENTS.md` when a folder has special editing constraints
+- feature or module subtree `AGENTS.md` only when it prevents repeated mistakes
 
-Each instruction file should be:
+Each nested `AGENTS.md` should be:
 - Specific to THIS repo (not generic best practices)
 - Discovered from actual code patterns (not assumed)
 - Actionable for an AI agent (not documentation for humans)
-- Narrowly scoped with an `applyTo` glob that targets the relevant files
 - Short: usually 5-8 bullets, never a long essay
 - Limited to non-obvious repo rules that an agent would otherwise miss
 - Evidence-backed — every rule should be traceable to existing code, config, or tests
 
-Do NOT put these into instruction files:
+Do NOT put these into nested `AGENTS.md` files:
 - Generic language/framework advice
 - Architecture overviews
 - Domain glossary content
@@ -212,8 +212,8 @@ Checklist:
 - [ ] AGENTS.md accurately describes the service
 - [ ] Architecture diagram matches reality
 - [ ] Code conventions are correct (discovered, not assumed)
-- [ ] Instruction files reflect actual patterns, not generic advice or duplicated context
-- [ ] Instruction files are short, scoped, and only contain non-obvious rules
+- [ ] Nested AGENTS.md files reflect actual patterns, not generic advice or duplicated context
+- [ ] Nested AGENTS.md files are short, scoped, and only contain non-obvious rules
 - [ ] Every SKILL.md has correct YAML frontmatter (name, managed-by: helix-runtime, description, argument-hint, user-invocable)
 - [ ] Cross-cutting patterns are in the promotion table, not duplicated as repo-level skills
 - [ ] Discovered skills are useful (not too trivial)
@@ -228,7 +228,7 @@ After approval, commit all artifacts.
 When re-running on an already-onboarded repo:
 
 1. Re-scan the repo (same as Phase 1 and Phase 0)
-2. Diff new findings against existing AGENTS.md and `.instructions.md`
+2. Diff new findings against existing root and nested AGENTS.md files
 3. Diff existing `.github/skills/*/SKILL.md` against discovered patterns:
    - Skills whose patterns no longer exist → propose deletion
    - Skills that should be promoted to meta-repo → propose migration (delete repo skill, add to promotion table)

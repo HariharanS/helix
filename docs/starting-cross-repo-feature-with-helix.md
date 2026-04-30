@@ -167,7 +167,7 @@ Then use the `setup` agent, the `workspace-sync` skill, or the installed `helix 
 - generate or refresh `.helix/repo-capabilities/*.yml`
 - build CRG graphs for the selected repos when `code_review_graph.mode: mcp`
 - generate `{name}.code-workspace` at the meta-repo root
-- generate `.github/instructions/*.instructions.md`
+- remove legacy Helix-generated `.github/instructions/*.instructions.md` summaries if present
 - set `.helix/active-workspace.yml`
 
 Use the legacy Bash helper only for the old combined layout. The PowerShell script is the target entry point for the meta-repo model.
@@ -198,7 +198,7 @@ The goal is to generate repo-specific context from the actual codebase:
 
 - root `AGENTS.md`
 - source-level `AGENTS.md`
-- `.github/instructions/*.instructions.md`
+- specialized nested `AGENTS.md` files only where source, test, IaC, generated-code, or subsystem conventions differ
 - repo-specific skills where patterns are strong enough
 
 This matters because Helix is designed to **discover** conventions instead of guessing them.

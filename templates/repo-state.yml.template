@@ -16,6 +16,5 @@ readiness:
   signals:
     root_agents: false
     nested_agents: false
-    instructions: false
     repo_skills: false
     tests_present: false

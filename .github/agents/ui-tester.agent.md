@@ -40,7 +40,7 @@ See `.github/skills/playwright-cli/references/test-generation.md` for codegen ex
 1. Read the test scenario or acceptance criteria from the task contract.
 2. Spawn @explorer to find existing Playwright tests, page objects, fixtures, and conventions in the target repo.
 3. Detect the test project's language (see above).
-4. Read `AGENTS.md` and `.instructions.md` in each affected repo for conventions.
+4. Read root and nested `AGENTS.md` files in each affected repo for conventions.
 5. Use the `playwright-cli` skill for live browser interaction:
    - `playwright-cli open <url>` to launch a browser session
    - `playwright-cli snapshot` to inspect page structure via accessibility tree — primary way to understand UI state

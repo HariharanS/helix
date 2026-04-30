@@ -170,7 +170,6 @@ Add-ManagedTree -Items $items -SourceRelativeRoot '.github/prompts' -TargetRelat
 Add-ManagedTree -Items $items -SourceRelativeRoot '.github/skills' -TargetRelativeRoot '.github/skills' -Category 'skill' -SyncMode 'replace'
 
 Add-ManagedFile -Items $items -SourceRelative '.github/AGENTS.md' -TargetRelative '.github/AGENTS.md' -Category 'doc' -SyncMode 'replace'
-Add-ManagedFile -Items $items -SourceRelative '.github/copilot-instructions.md' -TargetRelative '.github/copilot-instructions.md' -Category 'instruction' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.helix/AGENTS.md' -TargetRelative '.helix/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.helix/model-config.yml' -TargetRelative '.helix/model-config.yml' -Category 'config' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'README.md' -TargetRelative (Join-Path $managedAssetRoot 'README.md') -Category 'doc' -SyncMode 'replace'
@@ -182,6 +181,8 @@ Add-ManagedFile -Items $items -SourceRelative 'docs/helix-instance-schemas.md' -
 Add-ManagedFile -Items $items -SourceRelative 'docs/cli-workflow.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/cli-workflow.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/starting-cross-repo-feature-with-helix.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/starting-cross-repo-feature-with-helix.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/helix-platform-roadmap.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/helix-platform-roadmap.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/agents-md-authoring.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/agents-md-authoring.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'docs/agents-md-implementation-handover.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/agents-md-implementation-handover.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'workspaces/AGENTS.md' -TargetRelative 'workspaces/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedTree -Items $items -SourceRelativeRoot 'templates' -TargetRelativeRoot (Join-Path $managedAssetRoot 'templates') -Category 'template' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/AGENTS.md' -TargetRelative (Join-Path $managedAssetRoot 'scripts/AGENTS.md') -Category 'doc' -SyncMode 'replace'
@@ -287,7 +288,7 @@ $installState = [ordered]@{
         hooks_dir = '.github/hooks'
         prompts_dir = '.github/prompts'
         skills_dir = '.github/skills'
-        instructions_file = '.github/copilot-instructions.md'
+        agent_guidance_file = 'AGENTS.md'
     }
     managed_paths = @($items.ToArray())
 }
