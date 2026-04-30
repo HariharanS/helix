@@ -5,7 +5,7 @@ description: Helix coordinator — routes work through phases, manages modes, di
 tools: [vscode/memory, vscode/runCommand, vscode/askQuestions, execute, read, agent, read_agent, write_agent, edit/createDirectory, edit/createFile, search/codebase, web, todo]
 agents: ['jam', 'planner', 'architect', 'decomposer', 'explorer', 'implementer', 'tdd-red', 'reviewer', 'distiller', 'resume', 'ui-tester', 'scribe']
 user-invocable: true
-model: Gemini 3.1 Pro (Preview) (copilot)
+model: GPT-5.4 (copilot)
 argument-hint: What you want to work on (e.g. "start feature X", "resume work", "fast track from PRD to implementation")
 handoffs:
   - label: Jam on a new feature

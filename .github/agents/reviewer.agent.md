@@ -5,7 +5,7 @@ description: Risk and evidence gate — assesses delivery confidence, surfaces e
 tools: [vscode/runCommand, execute, read, agent, read_agent, write_agent, search/codebase, web, todo]
 agents: ['explorer']
 user-invocable: true
-model: Claude Sonnet 4.6 (copilot)
+model: GPT-5.4 (copilot)
 argument-hint: Branch name or description of changes to review
 handoffs:
   - label: Review complete — create PR

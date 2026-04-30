@@ -1,26 +1,28 @@
 ---
 name: workspace-sync
 managed-by: helix-core
-description: Validates a prepared repo registry and workspace manifest, runs the script-owned workspace setup flow, verifies outcomes, and then handles optional follow-on setup work
-argument-hint: "Workspace name (e.g. 'order-feature') or path to workspace.yml"
+description: Validates a repo registry, optionally seeds a workspace manifest from repo ids, runs the script-owned workspace setup flow, verifies outcomes, and then handles optional follow-on setup work
+argument-hint: "Workspace name or path to workspace.yml; optionally include repo ids for -ReposCsv"
 user-invocable: true
 disable-model-invocation: true
 ---
 
 # Workspace Sync Skill
 
-Uses the script-owned workspace setup path once Helix is installed and the user has updated `helix-repos.yml` plus `workspaces/{name}/workspace.yml`. Normal setup requires CRG MCP (`code_review_graph.mode: mcp`) and builds graphs for the selected repos; `mode: off` is an explicit emergency fallback.
+Uses the script-owned workspace setup path once Helix is installed and the user has updated `helix-repos.yml`. Normal setup requires CRG MCP (`code_review_graph.mode: mcp`) and builds graphs for the selected repos; `mode: off` is an explicit emergency fallback.
+
+If `workspaces/{name}/workspace.yml` is missing and the user supplies explicit repo ids, pass those ids to `helix/scripts/workspace-setup.ps1 -ReposCsv` so the script seeds the manifest. Do not hand-write the workspace manifest in this skill.
 
 ## Workflow
 
 ### 1. Confirm Helix Is Installed
 
 - Check for `.helix/install-state.yml`, `helix-repos.yml` (or legacy `repos.yml`), `.helix/context-providers.yml`, and `helix/scripts/workspace-setup.ps1`
-- If bootstrap is missing, stop and tell the user to run `init.ps1` from the Helix source repo first
+- If bootstrap is missing, stop and tell the user to run `init-meta-repo.ps1` from the Helix source checkout first
 - Do not try to install Helix from this skill
 - Normal bootstrap configures CRG MCP in `.vscode/mcp.json` and `~/.copilot/mcp-config.json`
 
-### 2. Validate The Registry And Workspace
+### 2. Validate The Registry And Workspace Inputs
 
 `helix-repos.yml` is the canonical instance-owned registry file created during installation from `helix/templates/helix-repos.yml.template`. `repos.yml` remains the legacy compatibility alias. The workspace manifest lives at `workspaces/{name}/workspace.yml`.
 
@@ -32,9 +34,10 @@ workspaces/{name}/workspace.yml
 Before setup:
 
 - ensure `helix-repos.yml` (or legacy `repos.yml`) contains real repo definitions rather than sample placeholder values
-- ensure every `workspace.repos[*].repo_id` resolves to a registry entry
-- ensure the workspace manifest is complete enough for `helix/scripts/workspace-setup.ps1`
-- if either manifest is missing or still needs edits, pause and ask the user to update it before continuing
+- if the workspace manifest exists, ensure every `workspace.repos[*].repo_id` resolves to a registry entry
+- if the workspace manifest is missing, require explicit repo ids and validate each id against the registry
+- if the registry is missing or still needs edits, pause and ask the user to update it before continuing
+- if the workspace manifest is missing and repo ids were not supplied, point to the installed root `README.md` Start Here section
 
 Registry example:
 ```yaml
@@ -65,10 +68,11 @@ repos:
 
 Run `helix/scripts/workspace-setup.ps1` with the requested workspace name or manifest path.
 
+- Pass `-ReposCsv` only when the workspace manifest is missing and the user supplied explicit repo ids
 - Pass `-CloneMissing` only when the user wants missing workspace repos cloned locally
 - Pass `-FetchExisting` only when the user wants already-present repos refreshed
 - Pass `-IncludeClaudeSettings` only when Claude Desktop configuration is explicitly requested
-- Pass `-SkipGraphBuild` only when the user explicitly chose emergency no-CRG behavior
+- Do not pass `-SkipGraphBuild` while `code_review_graph.mode: mcp`; set CRG mode to `off` first if the user explicitly chose emergency no-CRG behavior
 - Do not mutate `helix-repos.yml` or `repos.yml` from this skill
 - Do not implement clone logic here; the script is the source of truth
 
@@ -180,16 +184,18 @@ Optional: .claude/settings.local.json when Claude Desktop integration is explici
 ```
 
 - Helix not installed → stop and point to `init.ps1` from the Helix source repo
-- `helix-repos.yml` (or legacy `repos.yml`) or `workspace.yml` missing or still using placeholder values → stop and ask the user to repair the manifests
+- `helix-repos.yml` (or legacy `repos.yml`) missing or still using placeholder values → stop and ask the user to repair the registry
+- `workspace.yml` missing and repo ids supplied → run setup with `-ReposCsv`
+- `workspace.yml` missing and repo ids not supplied → stop and point to the installed root `README.md` Start Here section
 - `workspace-setup.ps1` fails → surface the script output and do not continue to onboarding
 - Onboard fails → report error and leave repo-state at `partial` or `needs-onboarding`
 - CRG MCP setup or graph build fails while `mode: mcp` → setup is incomplete; repair CRG or explicitly set `mode: off` as emergency fallback
 
 ## Prerequisites
 
-- Helix bootstrap already completed via `init.ps1` from the Helix source repo or the equivalent installer flow
+- Helix bootstrap already completed via `init-meta-repo.ps1` from the Helix source checkout or the equivalent installer flow
 - `helix-repos.yml` has been updated with the real repo registry (`repos.yml` is accepted only as a legacy alias)
-- `workspaces/{name}/workspace.yml` has been created or updated with the participating repos
+- `workspaces/{name}/workspace.yml` has been created, or explicit repo ids were supplied so `-ReposCsv` can seed it
 - CRG MCP bootstrap completed during init, or the user explicitly set emergency `mode: off`
 - `git` available
 - Prefer `helix/scripts/workspace-setup.ps1` for the target meta-repo model; the old Bash helper is legacy

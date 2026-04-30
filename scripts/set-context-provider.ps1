@@ -6,6 +6,7 @@ param(
     [Parameter(ParameterSetName = 'Status')]
     [switch]$Status,
     [switch]$Bootstrap,
+    [switch]$SuppressNextSteps,
     [string]$TargetRoot = (Get-Location).Path
 )
 
@@ -425,6 +426,8 @@ if ($Mode -eq 'off') {
     return
 }
 
-Write-Host "Next steps:"
-Write-Host "1. Build the graph in each repo you want to query."
-Write-Host "2. Keep mode 'mcp' for normal Helix setup; use '-Mode off' only as an emergency fallback."
+if (-not $SuppressNextSteps) {
+    Write-Host "Next steps:"
+    Write-Host "1. Build the graph in each repo you want to query."
+    Write-Host "2. Keep mode 'mcp' for normal Helix setup; use '-Mode off' only as an emergency fallback."
+}

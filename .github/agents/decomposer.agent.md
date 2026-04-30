@@ -5,7 +5,7 @@ description: Takes a technical design entry document and breaks it into small, i
 tools: ['read', 'search/codebase', 'agent', 'read_agent', 'write_agent', 'edit']
 agents: ['explorer']
 user-invocable: true
-model: Claude Sonnet 4.6 (copilot)
+model: GPT-5.4 (copilot)
 argument-hint: Path to tech-design.md, tech-design/index.md, or describe what needs breaking down
 handoffs:
   - label: "Tasks ready \u2014 start implementation (interactive)"

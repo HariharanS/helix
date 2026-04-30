@@ -176,7 +176,8 @@ if ($SkipCRG) {
     Invoke-HelixScript -ScriptPath $contextProviderScript -Arguments @(
         '-TargetRoot', $TargetRoot,
         '-Provider', 'code-review-graph',
-        '-Mode', 'off'
+        '-Mode', 'off',
+        '-SuppressNextSteps'
     )
 } else {
     Write-Host "Bootstrapping required code-review-graph MCP provider..."
@@ -184,7 +185,8 @@ if ($SkipCRG) {
         '-TargetRoot', $TargetRoot,
         '-Provider', 'code-review-graph',
         '-Mode', 'mcp',
-        '-Bootstrap'
+        '-Bootstrap',
+        '-SuppressNextSteps'
     )
 }
 
@@ -193,3 +195,10 @@ if (-not $SkipDoctor) {
 }
 
 Write-Host "Helix meta-repo initialized successfully at '$TargetRoot'."
+Write-Host ""
+Write-Host "Next steps:"
+Write-Host "1. Open '$TargetRoot\README.md' for the setup checklist."
+Write-Host "2. Update '$TargetRoot\helix-repos.yml' with real repos."
+Write-Host "3. From the meta repo root, run workspace setup. Example:"
+Write-Host "   .\helix\scripts\workspace-setup.ps1 -Workspace <workspace-id> -ReposCsv `"repo-a,repo-b`" -CloneMissing"
+Write-Host "4. After workspace setup is ready, start '@setup' or '@helix' from the meta repo root as described in README.md."

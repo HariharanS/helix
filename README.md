@@ -236,7 +236,7 @@ Open `{workspace}.code-workspace` in VS Code when working through the editor. In
 
 ## When To Start Agents
 
-Use the `setup` agent only after Helix has been bootstrapped into the meta repo. It is for validating registry/workspace manifests, running workspace setup, onboarding repos, refreshing repo-state, and reporting readiness.
+Use the `setup` agent only after Helix has been bootstrapped into the meta repo. It is for validating registry/workspace manifests, running `.\helix\scripts\workspace-setup.ps1`, onboarding repos, refreshing repo-state, and reporting readiness. If the workspace manifest is missing, include repo ids in the prompt so the agent can pass `-ReposCsv`; otherwise create or edit `workspaces/<workspace-id>/workspace.yml` first.
 
 Start the `helix` agent after SETUP is complete. That means the active workspace is set, selected repos are present or explicitly marked missing, generated state files exist, and CRG is either healthy in `mcp` mode or deliberately disabled for emergency fallback.
 
@@ -244,6 +244,12 @@ Good first prompts:
 
 ```text
 @setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
+```
+
+If `workspaces/directeddebit/workspace.yml` does not exist yet:
+
+```text
+@setup Set up workspace directeddebit with repos repo-a, repo-b, repo-c. Clone missing repos, refresh repo-state, and report readiness.
 ```
 
 ```text

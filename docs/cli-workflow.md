@@ -329,9 +329,9 @@ When dispatching specialist agents via `task()`, the agent's frontmatter `model:
 |-------|------|-------------------|
 | jam, planner, architect | reasoning | `claude-opus-4.6` |
 | implementer, tdd-red | coding | `gpt-5.3-codex` |
-| helix, reviewer, decomposer | analysis | `claude-sonnet-4.6` |
+| helix, reviewer, decomposer | analysis | `gpt-5.4` |
 | explorer, scribe, distiller, resume | fast | `claude-haiku-4.5` |
-| ui-tester | visual (CLI fallback) | `claude-sonnet-4.6` |
+| ui-tester | visual (CLI fallback) | `gpt-5.4` |
 
 Example:
 ```

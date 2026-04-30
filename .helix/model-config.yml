@@ -8,7 +8,7 @@
 tiers:
   reasoning: Claude Opus 4.6 (copilot)       # Creative, strategic, design
   coding: GPT-5.3-Codex (copilot)             # Code generation, tests
-  analysis: Claude Sonnet 4.6 (copilot)       # Review, routing, decomposition, orchestration
+  analysis: GPT-5.4 (copilot)                 # Review, routing, decomposition, orchestration
   visual: Gemini 3.1 Pro (Preview) (copilot)  # UI testing, visual understanding
   fast: Claude Haiku 4.5 (copilot)            # Exploration, summaries, state mgmt
 
@@ -17,22 +17,30 @@ tiers:
 task_ids:
   reasoning: claude-opus-4.6
   coding: gpt-5.3-codex
-  analysis: claude-sonnet-4.6
+  analysis: gpt-5.4
   fast: claude-haiku-4.5
-  visual_cli_fallback: claude-sonnet-4.6  # Gemini not available in CLI task() tool; loses image-native capability
+  visual_cli_fallback: gpt-5.4  # Gemini not available in CLI task() tool; loses image-native capability
 
 assignments:
+  # Router/setup agents use analysis: they choose deterministic script/agent
+  # paths and handle failures, but should not spend reasoning-tier budget.
   helix: analysis
   setup: analysis
   scribe: fast
+  # Product and architecture shaping stay on reasoning-tier models because they
+  # resolve ambiguity, scope, domain tradeoffs, and cross-repo contracts.
   jam: reasoning
   planner: reasoning
   architect: reasoning
   decomposer: analysis
+  # Read-only gathering and compact state work should stay cheap unless a
+  # caller explicitly escalates for a hard investigation.
   explorer: fast
   implementer: coding
   tdd-red: coding
   reviewer: analysis
   distiller: fast
   resume: fast
+  # Visual tier is reserved for image/browser reasoning. Green-path UI test
+  # runs should be shell commands, not model invocations.
   ui-tester: visual

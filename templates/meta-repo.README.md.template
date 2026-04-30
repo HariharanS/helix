@@ -57,10 +57,16 @@ Setup is ready when `.helix/active-workspace.yml` points at the workspace, repo 
 
 ## When To Start Agents
 
-Use `@setup` after the meta repo is bootstrapped and `helix-repos.yml` has real repos:
+Use `@setup` after the meta repo is bootstrapped and `helix-repos.yml` has real repos. The setup agent calls `.\helix\scripts\workspace-setup.ps1`; it can pass `-ReposCsv` when you give repo ids, and otherwise expects `workspaces/<workspace-id>/workspace.yml` to already exist.
 
 ```text
 @setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
+```
+
+If the workspace manifest does not exist yet, include repo ids:
+
+```text
+@setup Set up workspace directeddebit with repos repo-a, repo-b, repo-c. Clone missing repos, refresh repo-state, and report readiness.
 ```
 
 Use `@helix` after SETUP is complete:
