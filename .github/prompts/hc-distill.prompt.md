@@ -18,7 +18,8 @@ Required behaviour:
    - Check `.helix/skills/graveyard/{id}.md`. If it exists and the "Don't re-suggest if" fingerprint matches, suppress the candidate and list it under `## Suppressed (graveyarded)` in the session report. Move on.
    - Check `.helix/skills/candidates/{id}.md`. If it exists, **append** a new dated block to its `## Evidence Log` and bump frontmatter (`occurrences`, `features` set union, `last_evidence`). Do NOT rewrite prior entries.
    - If it does not exist, create it with the schema in `distillation-architecture.md`.
-5. After updating candidates, evaluate the promotion gate for each: `occurrences ≥ 3 AND len(features) ≥ 2 AND held_out_replay = PASS AND quarterly_promotions < 5`. Set `Status:` accordingly. If `ELIGIBLE`, recommend handing off to `/hc-maker`; do NOT generate the SKILL.md from this prompt.
-6. End with a single-screen summary: episode written, learnings touched, candidates updated/created/suppressed, eligible for promotion.
+5. After updating candidates, evaluate the promotion gate for each: `occurrences ≥ 3 AND len(features) ≥ 2 AND held_out_replay = PASS AND quarterly_promotions < 5`. Set `Status:` accordingly. If a candidate is `ELIGIBLE` or close, recommend handing it off to `/hc-review-reusable-patterns` for maintainer review; that flow may invoke `/hc-skill-synth` for held-out replay and projection/create review. Do NOT generate or project a skill from this prompt.
+6. End with a single-screen summary: episode written, learnings touched, candidates updated/created/suppressed, and which ones are ready for synth review.
+7. If the synth review recommends `PROJECT EXISTING`, point the operator to `helix/scripts/promote-skill.ps1`. If it recommends `CREATE NEW` or `ADD TO EXISTING`, point the operator to `/hc-maker`.
 
 ${input:scope:Optional — feature slug to distil instead of the most recent session}

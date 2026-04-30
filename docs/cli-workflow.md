@@ -27,6 +27,10 @@ Each phase writes an artifact. The next phase reads it. The artifact files are t
 ```
 "Set up workspace hpp"
 ```
+Or use the thin prompt:
+```
+"/hc-setup-workspace"
+```
 The host agent validates `helix-repos.yml` + `workspace.yml`, runs workspace-setup.ps1, and confirms repo-state, repo-capabilities, MCP config, and CRG graph readiness.
 For manifest questions it uses `ask_user` directly. Purely mechanical steps (clone, fetch) can be dispatched to the `setup` sub-agent.
 
@@ -36,6 +40,11 @@ For manifest questions it uses `ask_user` directly. Purely mechanical steps (clo
 - `.helix/repo-state/{repo-id}.yml` for each participating repo
 - `{workspace}.code-workspace` at the **meta-repo root** (gitignored)
 - root and nested `AGENTS.md` guidance in each onboarded repo
+- optional maintainer follow-on: reusable-pattern review via `/hc-review-reusable-patterns` when onboarding surfaces cross-repo candidates
+
+Related thin prompts:
+- `/hc-refresh-workspace` — rerun setup/refresh after onboarding, branch changes, or repo-state drift
+- `/hc-review-reusable-patterns` — review onboarding/distill evidence and route through synth before projection or creation
 
 ---
 

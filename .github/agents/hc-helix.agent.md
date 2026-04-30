@@ -64,7 +64,7 @@ Slash commands resolve to either a **skill** (workflow file under `.github/skill
 | `/hc-build-graph` | setup, reviewer | After workspace setup and when the graph is stale; prerequisite for `/hc-review-delta` and `/hc-review-pr` |
 | `/hc-review-delta` | reviewer | Incremental structural review of changes since last commit (blast radius, risk scores, test gaps) |
 | `/hc-review-pr` | reviewer | Full structural PR review across all commits (blast radius, impact radius, risk scoring) |
-| `/hc-skill-synth` | distiller (post-promotion) | Held-out replay before recommending a candidate for promotion |
+| `/hc-skill-synth` | setup, distiller, maintainer | After onboarding/refresh or distill when reusable-pattern evidence needs held-out replay and promotion review |
 | `/hc-vertical-slice-verifier` | decomposer | Emit verification scaffolds for cross-repo contracts |
 | `/hc-refactor`, `/hc-playwright-cli` | implementer, ui-tester | Domain-specific implementation skills |
 

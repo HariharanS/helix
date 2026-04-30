@@ -122,24 +122,27 @@ Only after baseline workspace setup is successful, and only when requested by th
 
 #### 6a. Onboard Repos
 
-Run the `hc-onboard` skill for each repo marked `needs-onboarding` or `partial` in repo-state. Run repos in parallel where possible. Each onboard run produces a **Cross-Cutting Patterns table** (Phase 3e of the hc-onboard skill) — collect these outputs.
+Run the `hc-onboard` skill for each repo marked `needs-onboarding` or `partial` in repo-state. In `code_review_graph.mode: mcp`, each onboard run must use CRG as the primary retrieval engine and fail hard if the target repo graph is unavailable — do not silently fall back to grep or generic code search. Run repos in parallel where possible. Each onboard run produces a **Reusable Pattern Candidates** table (Phase 3e of the hc-onboard skill) — collect these outputs.
 
 #### 6b. Refresh Repo-State
 
 After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Workspace {name}` with no additional flags. This re-scans all repos, updates repo-state signals (`root_agents`, `nested_agents`, `repo_skills`, `tests_present`), refreshes repo-capabilities, refreshes `.helix/skills/index.yml`, removes Helix-generated legacy `.instructions.md` summaries, and rebuilds CRG graphs when `mode: mcp`. Do NOT manually patch `.helix/repo-state/*.yml`, `.helix/repo-capabilities/*.yml`, or `.helix/skills/index.yml` files.
 
-#### 6c. Review Cross-Cutting Promotion Candidates
+#### 6c. Review Reusable Pattern Candidates
 
-Aggregate the promotion tables from all onboard outputs. Deduplicate by pattern name. Present the consolidated table to the user for approval before creating any meta-repo skills.
+Aggregate the reusable-pattern tables from all onboard outputs. Deduplicate by pattern name or normalized intent. Do not create or project meta-repo skills directly from onboarding evidence alone.
 
-Gate for promotion — all must be true before creating a meta-repo skill:
-- Pattern appears in 2 or more repos
-- Consistent parameterization across repos
-- No existing meta-repo skill already covers it (check `{meta-repo}/.github/skills/`)
+If similar candidates appear in 2 or more repos, or if `.helix/skills/candidates/` already contains matching distill evidence, suggest `/hc-review-reusable-patterns` as the **optional maintainer follow-on**. That thin prompt may route into `/hc-skill-synth workspace` when the evidence is strong enough for held-out replay and recommendation.
 
-After human approval, for each approved pattern:
-- Create `{meta-repo}/.github/skills/hr-{suggested-skill-name}/SKILL.md` with correct frontmatter (`managed-by: helix-runtime`; use the `hc-maker` skill for schema)
-- Remove any duplicate repo-level SKILL.md files that were generated for the same pattern
+`/hc-skill-synth` is the review gate that validates held-out replay, checks overlap with existing `hc-*` / `hr-*` skills, and recommends one of:
+- `PROJECT EXISTING`
+- `CREATE NEW`
+- `ADD TO EXISTING`
+- `NOT WORTH IT`
+
+If the user chooses that follow-on immediately, run `/hc-skill-synth workspace`, present the synth report, and stop for human approval before any projection or meta-root skill creation.
+
+Only after human approval of the synth report should maintainers project an indexed candidate (`helix/scripts/promote-skill.ps1`) or create/update a meta-root skill (`hc-maker`).
 
 #### 6d. Create Workspace Platform AGENTS.md
 

@@ -187,11 +187,11 @@ The hc-distiller agent (`helix/.github/agents/hc-distiller.agent.md`) gains two 
 1. **Before emitting a promotion candidate**, read `.helix/skills/candidates/{id}.md`. If it exists, **append** to its Evidence Log instead of creating a duplicate. Update frontmatter (`occurrences`, `features`, `last_evidence`).
 2. **Before suggesting any candidate**, scan `.helix/skills/graveyard/`. If a graveyarded entry's "Don't re-suggest if" fingerprint matches the pattern, suppress and note in the session distill report under `## Suppressed (graveyarded)`.
 
-Held-out replay continues to be `/hc-skill-synth`'s responsibility. Distiller calls it when `occurrences ≥ 3 AND features ≥ 2`, then records the result in the candidate's `Held-Out Replay` section.
+Held-out replay continues to be `/hc-skill-synth`'s responsibility. Distiller calls it when `occurrences ≥ 3 AND features ≥ 2`, then records the result in the candidate's `Held-Out Replay` section. The same skill may also be run after onboarding/refresh when workspace-level reusable-pattern evidence needs maintainer review before any projection decision.
 
 ## What's deliberately NOT in T2
 
-- **Auto-promotion.** Even when all gates pass, distiller writes `Recommendation: CREATE SKILL` and stops. Operator runs `/hc-maker` manually. We do not want skills created without a human signing off.
+- **Auto-promotion.** Even when all gates pass, distiller writes a recommendation and stops. Operators either project an indexed candidate with `promote-skill.ps1` or create/update a skill with `/hc-maker` after human review. We do not want skills created without a human signing off.
 - **Edit-distance demotion.** No `usage.jsonl` consumer exists today. Schema is in place; the consumer is future work.
 - **Two-pass synthesis (Haiku ID + Opus eval).** Plan §6 + Week 6 work; not T2.
 - **Quarterly audit automation.** Audits dir ships empty; a future `/hc-skill-audit` prompt populates it.

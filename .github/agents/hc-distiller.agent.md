@@ -100,11 +100,11 @@ For each candidate, emit:
 **Destination:** repo | workspace/meta | helix-core | personal
 **Evidence:** File + symbol where pattern was observed
 **Automatable:** Yes/No and why
-**Recommendation:** Create skill | Add to existing skill | Not worth it
+**Recommendation:** Project existing skill | Create skill | Add to existing skill | Not worth it
 **Blocker:** Only if meta-repo skill already covers it — name the existing skill
 ```
 
-Feed approved candidates to the `/hc-skill-synth` skill for generation. Do NOT create skills unilaterally — present for human review first.
+Feed promotion-ready candidates to the `/hc-skill-synth` skill for held-out replay and recommendation. Do NOT create or project skills unilaterally — present the synth report for human review first.
 
 ## Cross-Session Persistence (`.helix/skills/`)
 
@@ -118,7 +118,7 @@ For each candidate identified in this session:
    - If it exists, append a new dated block to its `## Evidence Log`, bump `occurrences`, union the new feature slug into `features`, update `last_evidence`. Do NOT rewrite earlier evidence.
    - If it does not exist, create it from the schema (`distillation-architecture.md` → "candidates/{id}.md").
 4. **Evaluate the promotion gate** after the update: `occurrences ≥ 3 AND len(features) ≥ 2 AND held_out_replay = PASS AND quarterly_promotions < 5`. Set `Status:` to `ELIGIBLE`, `NOT-YET ({reason})`, or `ELIGIBLE-BUT-CAPPED`. Held-out replay is `/hc-skill-synth`'s job — call it when the first three gates would otherwise pass.
-5. **Recommend, don't promote.** Even when `Status: ELIGIBLE`, write `Recommendation: CREATE SKILL` and stop. Operator runs `/hc-maker` to generate the SKILL.md.
+5. **Recommend, don't promote.** Even when `Status: ELIGIBLE`, write the recommended follow-on action and stop. `/hc-skill-synth` performs held-out replay and decides whether the operator should project an indexed candidate (`promote-skill.ps1`) or create/update a skill (`/hc-maker`).
 
 ## Workflow
 

@@ -194,6 +194,8 @@ Because some repos may not be Helix-ready yet, onboarding is the first real step
 
 Use `.helix/repo-state/{repo-id}.yml` to decide which repos need onboarding. Run the `hc-onboard` skill only for repos marked `needs-onboarding` or `partial`.
 
+In normal setup (`code_review_graph.mode: mcp`), `hc-onboard` must use CRG as the primary retrieval engine for code discovery. If a target repo graph is missing or empty, stop and repair CRG first — do not silently fall back to grep-first onboarding. Manual multi-pass scanning is reserved for explicit emergency `mode: off`.
+
 The goal is to generate repo-specific context from the actual codebase:
 
 - root `AGENTS.md`
@@ -201,7 +203,7 @@ The goal is to generate repo-specific context from the actual codebase:
 - specialized nested `AGENTS.md` files only where source, test, IaC, generated-code, or subsystem conventions differ
 - repo-specific skills where patterns are strong enough
 
-This matters because Helix is designed to **discover** conventions instead of guessing them.
+This matters because Helix is designed to **discover** conventions instead of guessing them, and graph-backed discovery is more reliable than ad-hoc text search once setup has built the repo graph.
 
 For your setup, onboarding should specifically capture:
 

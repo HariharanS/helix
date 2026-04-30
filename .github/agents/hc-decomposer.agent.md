@@ -38,7 +38,10 @@ You break technical designs into small, implementable tasks that fit cleanly int
 1. Read the tech design entry document from the workspace
    - If the design is packaged, start with `tech-design/index.md`
    - Follow the doc map into only the relevant subdocuments such as `contracts.md` or `execution-flow.md`
-2. Spawn @hc-explorer if needed to understand current repo structure
+2. Spawn @hc-explorer if needed to understand current repo structure or validate task boundaries
+   - Explorer **must** invoke `/hc-curate-context` so CRG is the primary retrieval engine in `code_review_graph.mode: mcp`
+   - If a recent relevant context bundle already exists on disk, reuse it instead of respawning explorer
+   - In `mode: mcp`, do not use broad `search/codebase` as a substitute for missing graph-backed context; surface a setup gap if the graph is unavailable
 3. Identify natural task boundaries:
    - Interface/contract definitions (do these FIRST — they unlock parallel work)
    - Domain logic (pure, testable)
@@ -188,4 +191,5 @@ A task is TOO BIG if:
 - Every slice must have at least one `verification.commands` entry discovered from actual repo scripts, CI config, or Makefile — do not invent verification commands
 - Slice verification may be deferred only when the outer verification genuinely requires an environment the agent cannot access (e.g., live integration, cloud deploy); document the reason in the task or slice notes
 - If the PRD or design is packaged, do not force downstream agents to read the whole package; extract the exact subdocument references they need
+- If `code_review_graph.mode` is `mcp` and you need additional structural evidence, prefer CRG-backed explorer bundles over raw `search/codebase`; if the graph is stale or unavailable, report the setup gap instead of broad repo probing
 - When an optional second-opinion critique capability is available, request a critique before marking an execution plan autopilot-safe; focus on missing commands, overlapping ownership, unsafe parallelism, and weak `done_when` criteria

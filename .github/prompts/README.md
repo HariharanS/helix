@@ -13,6 +13,16 @@ These drive the main Helix workflow (intent → design → tasks → implementat
 | `/hc-task-breakdown` | agent | @hc-decomposer | Break a tech design into ralph/fleet/manual tasks + slices |
 | `/hc-distill` | agent | @hc-distiller | Distil the active session into delivery memory + runtime learnings + promotion candidates |
 
+## Workspace orchestration prompts
+
+Thin entrypoints for the setup / refresh / maintainer review loop.
+
+| Command | Mode | Routes to | Does |
+|---|---|---|---|
+| `/hc-setup-workspace` | agent | @hc-setup | Validate workspace inputs, run setup, onboard repos if needed, and report readiness |
+| `/hc-refresh-workspace` | agent | @hc-setup | Refresh workspace state, repo capabilities, and CRG readiness after repo changes or onboarding |
+| `/hc-review-reusable-patterns` | agent | @hc-setup | Review reusable-pattern evidence and, when appropriate, route through `/hc-skill-synth` before projection or creation |
+
 ## Capture-loop prompts
 
 Operator-driven entries that grow the corpus. Tech-agnostic; one screen each.
@@ -43,6 +53,7 @@ Maintain `.helix/skills/`. Always operator-initiated — Helix never auto-promot
 
 | Prompt | Reference doc |
 |---|---|
+| `/hc-setup-workspace`, `/hc-refresh-workspace`, `/hc-review-reusable-patterns` | [`helix/README.md`](../../README.md), [`helix/docs/cli-workflow.md`](../../docs/cli-workflow.md), and [`helix/.github/agents/hc-setup.agent.md`](../agents/hc-setup.agent.md) |
 | `/hc-distill`, `/hc-skill-audit`, `/hc-skill-graveyard` | [`helix/docs/distillation-architecture.md`](../../docs/distillation-architecture.md) |
 | `/hc-label-session` | [`helix/docs/label-schema.md`](../../docs/label-schema.md) and [`helix/docs/eval-strategy.md`](../../docs/eval-strategy.md) |
 | `/hc-surprise` | [`helix/docs/mental-model-architecture.md`](../../docs/mental-model-architecture.md) and [`helix/templates/mental-model.md.template`](../../templates/mental-model.md.template) |

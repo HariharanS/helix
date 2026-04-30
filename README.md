@@ -239,12 +239,22 @@ Open `{workspace}.code-workspace` in VS Code when working through the editor. In
 
 Use the `hc-setup` agent only after Helix has been bootstrapped into the meta repo. It is for validating registry/workspace manifests, running `.\helix\scripts\workspace-setup.ps1`, onboarding repos, refreshing repo-state, and reporting readiness. If the workspace manifest is missing, include repo ids in the prompt so the agent can pass `-ReposCsv`; otherwise create or edit `workspaces/<workspace-id>/workspace.yml` first.
 
+If setup/onboarding surfaces reusable-pattern candidates across repos, treat `/hc-review-reusable-patterns` as the optional **maintainer** follow-on before projecting or creating any meta-root skills. That thin prompt may route into `/hc-skill-synth workspace` when the evidence is strong enough for held-out replay and recommendation.
+
 Start the `hc-helix` agent after SETUP is complete. That means the active workspace is set, selected repos are present or explicitly marked missing, generated state files exist, and CRG is either healthy in `mcp` mode or deliberately disabled for emergency fallback.
 
 Good first prompts:
 
 ```text
 @hc-setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
+```
+
+If you prefer slash-command entrypoints for setup/refresh/maintainer review:
+
+```text
+/hc-setup-workspace
+/hc-refresh-workspace
+/hc-review-reusable-patterns
 ```
 
 If `workspaces/directeddebit/workspace.yml` does not exist yet:
