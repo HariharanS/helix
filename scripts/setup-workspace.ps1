@@ -4,6 +4,10 @@ param(
     [string]$TargetRoot = (Get-Location).Path,
     [switch]$CloneMissing,
     [switch]$FetchExisting,
+    [string]$ReposCsv,
+    [string]$DisplayName,
+    [string]$Description,
+    [string]$Objective,
     [switch]$IncludeClaudeSettings,
     [switch]$SkipClaudeSettings,
     [switch]$SkipGraphBuild
@@ -114,6 +118,128 @@ function Resolve-HelixTemplatePath {
     }
 
     throw "Could not resolve template '$TemplateFileName'. Checked: $($candidates -join ', ')"
+}
+
+function ConvertFrom-HelixRepoIdCsv {
+    param([string]$Csv)
+
+    $repoIds = @()
+    $seen = @{}
+
+    foreach ($rawRepoId in ($Csv -split ',')) {
+        $repoId = $rawRepoId.Trim()
+        if ([string]::IsNullOrWhiteSpace($repoId)) {
+            continue
+        }
+
+        if ($seen.ContainsKey($repoId)) {
+            throw "Duplicate repo id '$repoId' in -ReposCsv."
+        }
+
+        $seen[$repoId] = $true
+        $repoIds += $repoId
+    }
+
+    if ($repoIds.Count -eq 0) {
+        throw "-ReposCsv was provided but did not contain any repo ids."
+    }
+
+    return ,$repoIds
+}
+
+function New-HelixWorkspaceManifestFromReposCsv {
+    param(
+        [Parameter(Mandatory = $true)][string]$HelixRoot,
+        [Parameter(Mandatory = $true)][string]$WorkspaceName,
+        [Parameter(Mandatory = $true)]$Registry,
+        [Parameter(Mandatory = $true)][string]$RegistryManifestName,
+        [Parameter(Mandatory = $true)][string]$Csv,
+        [string]$DisplayName,
+        [string]$Description,
+        [string]$Objective
+    )
+
+    if ($WorkspaceName -match '[\\/]') {
+        throw "-ReposCsv workspace seeding requires a workspace id such as 'directeddebit', not a path."
+    }
+
+    if (-not $Registry.repos -or @($Registry.repos).Count -eq 0) {
+        throw "$RegistryManifestName does not define any repos. Update the registry before creating a workspace manifest from -ReposCsv."
+    }
+
+    $repoIndex = @{}
+    foreach ($repo in $Registry.repos) {
+        $repoId = [string]$repo.id
+        if (-not [string]::IsNullOrWhiteSpace($repoId)) {
+            $repoIndex[$repoId] = $repo
+        }
+    }
+
+    $workspaceRepoEntries = @()
+    foreach ($repoId in (ConvertFrom-HelixRepoIdCsv -Csv $Csv)) {
+        if (-not $repoIndex.ContainsKey($repoId)) {
+            throw "Cannot seed workspace '$WorkspaceName': repo_id '$repoId' is not present in $RegistryManifestName."
+        }
+
+        $repoDef = $repoIndex[$repoId]
+        $role = if ($repoDef.Contains('default_role') -and $repoDef.default_role) {
+            [string]$repoDef.default_role
+        } else {
+            'supporting'
+        }
+
+        $branch = if ($repoDef.Contains('default_branch') -and $repoDef.default_branch) {
+            [string]$repoDef.default_branch
+        } elseif ($Registry.defaults -and $Registry.defaults.default_branch) {
+            [string]$Registry.defaults.default_branch
+        } else {
+            'main'
+        }
+
+        $workspaceRepoEntries += [ordered]@{
+            repo_id = $repoId
+            role = $role
+            branch = $branch
+        }
+    }
+
+    $workspaceDir = Join-Path $HelixRoot "workspaces/$WorkspaceName"
+    $workspacePath = Join-Path $workspaceDir 'workspace.yml'
+
+    if (Test-Path $workspacePath) {
+        throw "Workspace manifest already exists at '$workspacePath'. Edit it directly; -ReposCsv will not overwrite it."
+    }
+
+    $workspaceManifest = [ordered]@{
+        schema_version = 1
+        id = $WorkspaceName
+        display_name = if ([string]::IsNullOrWhiteSpace($DisplayName)) { $WorkspaceName } else { $DisplayName }
+        description = if ([string]::IsNullOrWhiteSpace($Description)) { "Workspace generated from -ReposCsv." } else { $Description }
+        status = 'draft'
+        mode = 'interactive'
+        workflow = 'full-rpi'
+        objective = if ([string]::IsNullOrWhiteSpace($Objective)) { "Coordinate selected repos for $WorkspaceName." } else { $Objective }
+        created_at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd')
+        phase = [ordered]@{
+            current = 'setup'
+            last_completed = $null
+        }
+        ui_verification = $false
+        repos = $workspaceRepoEntries
+        artifacts = [ordered]@{
+            refined_intent = 'refined-intent.md'
+            prd = 'prd/index.md'
+            tech_design = 'tech-design/index.md'
+            task_board_dir = 'task-boards/'
+            execution_plan_dir = 'execution-plans/'
+            decisions_dir = 'decisions/'
+        }
+    }
+
+    Write-HelixYamlFile -Path $workspacePath -Value $workspaceManifest
+    Write-Host "Seeded workspace manifest: $workspacePath"
+
+    return $workspacePath
 }
 
 function New-GeneratedInstructionSummaryFile {
@@ -257,11 +383,35 @@ if ($registryResolution.source -eq 'legacy') {
     Write-Warning "Using legacy registry manifest 'repos.yml'. Rename it to 'helix-repos.yml' when practical."
 }
 
-$workspacePath = Get-HelixWorkspaceManifestPath -HelixRoot $TargetRoot -Workspace $Workspace
+$registry = Import-HelixYamlFile -Path $registryPath
+
+$seededWorkspaceManifest = $false
+try {
+    $workspacePath = Get-HelixWorkspaceManifestPath -HelixRoot $TargetRoot -Workspace $Workspace
+} catch {
+    if ([string]::IsNullOrWhiteSpace($ReposCsv)) {
+        throw
+    }
+
+    $workspacePath = New-HelixWorkspaceManifestFromReposCsv `
+        -HelixRoot $TargetRoot `
+        -WorkspaceName $Workspace `
+        -Registry $registry `
+        -RegistryManifestName $registryManifestName `
+        -Csv $ReposCsv `
+        -DisplayName $DisplayName `
+        -Description $Description `
+        -Objective $Objective
+    $seededWorkspaceManifest = $true
+}
+
+if (-not $seededWorkspaceManifest -and -not [string]::IsNullOrWhiteSpace($ReposCsv)) {
+    Write-Warning "Workspace manifest already exists at '$workspacePath'. -ReposCsv was not applied."
+}
+
 $workspaceDir = Split-Path -Parent $workspacePath
 $workspaceName = Split-Path $workspaceDir -Leaf
 
-$registry = Import-HelixYamlFile -Path $registryPath
 $workspaceManifest = Import-HelixYamlFile -Path $workspacePath
 
 Assert-RegistryAndWorkspaceReady -Registry $registry -RegistryManifestName $registryManifestName -WorkspaceManifest $workspaceManifest -WorkspaceName $workspaceName

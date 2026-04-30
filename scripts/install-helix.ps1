@@ -18,6 +18,13 @@ function Add-ManagedFile {
         [bool]$Required = $true
     )
 
+    if ([string]::IsNullOrWhiteSpace($SourceRelative)) {
+        throw "Managed file source path cannot be empty for target '$TargetRelative' ($Category)."
+    }
+    if ([string]::IsNullOrWhiteSpace($TargetRelative)) {
+        throw "Managed file target path cannot be empty for source '$SourceRelative' ($Category)."
+    }
+
     $Items.Add([ordered]@{
         path = $TargetRelative.Replace('\', '/')
         source = $SourceRelative.Replace('\', '/')
@@ -42,6 +49,9 @@ function Add-ManagedTree {
     Get-ChildItem -Path $sourceDir -Recurse -File | ForEach-Object {
         $sourceRelative = Get-HelixRelativePath -BasePath $SourceRoot -TargetPath $_.FullName
         $subPath = Get-HelixRelativePath -BasePath $sourceDir -TargetPath $_.FullName
+        if ([string]::IsNullOrWhiteSpace($subPath)) {
+            throw "Managed tree '$SourceRelativeRoot' produced an empty relative path for '$($_.FullName)'."
+        }
         $targetRelative = (Join-Path $TargetRelativeRoot $subPath).Replace('\', '/')
         Add-ManagedFile -Items $Items -SourceRelative $sourceRelative -TargetRelative $targetRelative -Category $Category -SyncMode $SyncMode
     }
@@ -163,6 +173,8 @@ Add-ManagedFile -Items $items -SourceRelative '.github/AGENTS.md' -TargetRelativ
 Add-ManagedFile -Items $items -SourceRelative '.github/copilot-instructions.md' -TargetRelative '.github/copilot-instructions.md' -Category 'instruction' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.helix/AGENTS.md' -TargetRelative '.helix/AGENTS.md' -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative '.helix/model-config.yml' -TargetRelative '.helix/model-config.yml' -Category 'config' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'README.md' -TargetRelative (Join-Path $managedAssetRoot 'README.md') -Category 'doc' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'AGENTS.md' -TargetRelative (Join-Path $managedAssetRoot 'AGENTS.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/AGENTS.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/AGENTS.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/helix-core-meta-repo-model.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/helix-core-meta-repo-model.md') -Category 'doc' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'docs/helix-process.md' -TargetRelative (Join-Path $managedAssetRoot 'docs/helix-process.md') -Category 'doc' -SyncMode 'replace'
@@ -192,10 +204,6 @@ Add-ManagedFile -Items $items -SourceRelative 'templates/helix-repos.yml.templat
 Add-ManagedFile -Items $items -SourceRelative 'templates/active-workspace.yml.template' -TargetRelative '.helix/active-workspace.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/context-providers.yml.template' -TargetRelative '.helix/context-providers.yml' -Category 'manifest' -SyncMode 'seed-once'
 
-foreach ($item in $items) {
-    Write-ManagedFile -Item $item -MetaRepoName $metaRepoName
-}
-
 $gitKeepTargets = @(
     '.helix/repo-state/.gitkeep',
     '.helix/repo-capabilities/.gitkeep',
@@ -203,26 +211,12 @@ $gitKeepTargets = @(
     'workspaces/.gitkeep'
 )
 
-foreach ($gitKeep in $gitKeepTargets) {
-    $absolute = Join-Path $TargetRoot $gitKeep
-    $dir = Split-Path -Parent $absolute
-    New-HelixDirectory -Path $dir
-    if (-not (Test-Path $absolute)) {
-        [System.IO.File]::WriteAllText($absolute, '')
-    }
-
-    $items.Add([ordered]@{
-        path = $gitKeep.Replace('\', '/')
-        source = 'internal/.gitkeep'
-        category = 'support'
-        sync_mode = 'seed-once'
-        required = $true
-    }) | Out-Null
-}
-
 $currentManagedPathSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($managedItem in $items) {
     $null = $currentManagedPathSet.Add([string]$managedItem.path)
+}
+foreach ($gitKeep in $gitKeepTargets) {
+    $null = $currentManagedPathSet.Add($gitKeep.Replace('\', '/'))
 }
 
 $staleManagedPaths = @(
@@ -250,6 +244,27 @@ foreach ($previousPath in $staleManagedPaths) {
     }
 
     Remove-StaleManagedPath -RelativePath $previousPath
+}
+
+foreach ($item in $items) {
+    Write-ManagedFile -Item $item -MetaRepoName $metaRepoName
+}
+
+foreach ($gitKeep in $gitKeepTargets) {
+    $absolute = Join-Path $TargetRoot $gitKeep
+    $dir = Split-Path -Parent $absolute
+    New-HelixDirectory -Path $dir
+    if (-not (Test-Path $absolute)) {
+        [System.IO.File]::WriteAllText($absolute, '')
+    }
+
+    $items.Add([ordered]@{
+        path = $gitKeep.Replace('\', '/')
+        source = 'internal/.gitkeep'
+        category = 'support'
+        sync_mode = 'seed-once'
+        required = $true
+    }) | Out-Null
 }
 
 $sourceReference = if ([System.IO.Path]::IsPathRooted($SourceRoot)) {

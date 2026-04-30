@@ -304,10 +304,34 @@ function Get-HelixRelativePath {
         [Parameter(Mandatory = $true)][string]$TargetPath
     )
 
-    $relative = [System.IO.Path]::GetRelativePath(
-        [System.IO.Path]::GetFullPath($BasePath),
-        [System.IO.Path]::GetFullPath($TargetPath)
-    )
+    $baseFullPath = [System.IO.Path]::GetFullPath($BasePath)
+    $targetFullPath = [System.IO.Path]::GetFullPath($TargetPath)
+    $getRelativePathMethod = [System.IO.Path].GetMethods() |
+        Where-Object {
+            $_.Name -eq 'GetRelativePath' -and $_.GetParameters().Count -eq 2
+        } |
+        Select-Object -First 1
+
+    if ($getRelativePathMethod) {
+        $relative = [string]$getRelativePathMethod.Invoke($null, @($baseFullPath, $targetFullPath))
+        return $relative.Replace('\', '/')
+    }
+
+    $baseRoot = [System.IO.Path]::GetPathRoot($baseFullPath)
+    $targetRoot = [System.IO.Path]::GetPathRoot($targetFullPath)
+    if (-not [string]::Equals($baseRoot, $targetRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $targetFullPath.Replace('\', '/')
+    }
+
+    $baseUriPath = $baseFullPath
+    if (-not $baseUriPath.EndsWith([System.IO.Path]::DirectorySeparatorChar) -and
+        -not $baseUriPath.EndsWith([System.IO.Path]::AltDirectorySeparatorChar)) {
+        $baseUriPath = $baseUriPath + [System.IO.Path]::DirectorySeparatorChar
+    }
+
+    $baseUri = [System.Uri]::new($baseUriPath)
+    $targetUri = [System.Uri]::new($targetFullPath)
+    $relative = [System.Uri]::UnescapeDataString($baseUri.MakeRelativeUri($targetUri).ToString())
 
     return $relative.Replace('\', '/')
 }

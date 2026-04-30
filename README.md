@@ -1,8 +1,13 @@
 # Helix
 
-Helix is a workspace-first orchestration system for AI-driven development across multiple repos.
+Helix is a workspace-first orchestration system for AI-driven development across multiple repos. It installs into a project-specific meta repo that sits alongside product repos and coordinates the work from fuzzy intent through PRD, tech design, task breakdown, implementation, review, and distillation.
 
-This repo currently contains the reusable Helix assets and the working design for how Helix should install into a meta repo. Product code still lives outside Helix.
+This README is the reusable Helix guide. It is meant to make sense in both places Helix appears:
+
+- in the Helix source checkout, where you maintain the reusable assets under this `helix/` directory
+- in an installed meta repo, where this guide lives at `helix/README.md` and the meta-repo-local root README explains the project-specific setup
+
+The installed meta repo root `README.md` is generated from `helix/templates/meta-repo.README.md.template`. Keep source-maintainer details here and meta-repo-local operator notes in that template or outside the managed HELIX section in the installed root README.
 
 ## What Helix Is For
 
@@ -19,7 +24,8 @@ This repo currently contains the reusable Helix assets and the working design fo
 
 ## Human Docs vs Agent Docs
 
-- `README.md` is human-first: overview, workflow, architecture, and entry points
+- `helix/README.md` is human-first: overview, workflow, architecture, and entry points
+- installed meta repo root `README.md` is project-local: repo registry, workspace setup, and local notes
 - `AGENTS.md` files are agent-first: navigation, source-of-truth rules, and retrieval guidance
 - `docs/` holds longer guides and roadmap material
 
@@ -160,16 +166,97 @@ Helix is moving toward:
 The target packaging and installation model is defined in [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md).
 The target meta-repo manifest shapes are defined in [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md).
 
-Current script entry points in this repo:
+## Meta Repo Setup From Scratch
 
-- `scripts/init.ps1` — wrapper for future `helix init` (delegates to `init-meta-repo.ps1`)
-- `scripts/sync.ps1` — wrapper for future `helix sync` (delegates to `sync-helix.ps1`)
-- `scripts/upgrade.ps1` — wrapper for future `helix upgrade` (delegates to `sync-helix.ps1`)
-- `scripts/workspace-setup.ps1` — wrapper for future `helix workspace setup` (delegates to `setup-workspace.ps1`)
-- `scripts/doctor.ps1` — validate manifests, workspace layout, user-level agent collisions, and repo readiness
-- `scripts/install-helix.ps1` — install or sync managed Helix files into a meta repo
-- `scripts/set-context-provider.ps1` — configure the code-review-graph provider; `off` is an emergency fallback
-- `scripts/init-meta-repo.ps1`, `scripts/sync-helix.ps1`, and `scripts/setup-workspace.ps1` — underlying implementation scripts kept for compatibility and internal wiring
+Run the bootstrap command from the Helix source checkout, not from the empty target repo. If you are at the repository root that contains `helix/`, use `.\helix\scripts\init-meta-repo.ps1`; if you are already inside the `helix/` directory, use:
+
+```powershell
+.\scripts\init-meta-repo.ps1 -TargetRoot C:\path\to\my-meta-repo
+```
+
+Then switch to the target meta-repo root:
+
+```powershell
+Set-Location C:\path\to\my-meta-repo
+```
+
+Edit `helix-repos.yml` so every repo has a real `id`, `remote`, `local_path`, default branch, and optional `default_role`.
+
+For a first workspace, seed `workspaces/{workspace}/workspace.yml` from the repo ids you want active:
+
+```powershell
+.\helix\scripts\workspace-setup.ps1 -Workspace directeddebit -ReposCsv "orders-api,orders-web,customer-profile-adapter" -CloneMissing
+```
+
+If the workspace manifest already exists, edit `workspaces/{workspace}/workspace.yml` directly and rerun:
+
+```powershell
+.\helix\scripts\workspace-setup.ps1 -Workspace directeddebit -FetchExisting
+```
+
+Validate the installed meta repo:
+
+```powershell
+.\helix\scripts\doctor.ps1
+```
+
+Setup is ready when `.helix/active-workspace.yml` points at the workspace, `.helix/repo-state/*.yml` and `.helix/repo-capabilities/*.yml` exist for participating repos, generated `.github/instructions/*.instructions.md` files exist, and `{workspace}.code-workspace` exists at the meta-repo root.
+
+Open `{workspace}.code-workspace` in VS Code when working through the editor. In Copilot CLI, start from the meta-repo root so Helix can read `.helix/active-workspace.yml` and the workspace artifacts.
+
+## Common Setup Scenarios
+
+| Scenario | What to do |
+|----------|------------|
+| New meta repo | Run `scripts/init-meta-repo.ps1` from the Helix source checkout, then update `helix-repos.yml` in the target repo |
+| First workspace from known repo ids | Run `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -ReposCsv "repo-a,repo-b" -CloneMissing` |
+| Workspace manifest already exists | Edit `workspaces/<id>/workspace.yml`, then run `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -FetchExisting` |
+| Add another repo to a workspace | Add it to `helix-repos.yml`, add its `repo_id` to `workspaces/<id>/workspace.yml`, then rerun workspace setup |
+| Switch active workspace | Run `.\helix\scripts\workspace-setup.ps1 -Workspace <other-id> -FetchExisting`; this rewrites `.helix/active-workspace.yml` |
+| Refresh after onboarding or branch changes | Rerun `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -FetchExisting` to refresh repo state, capability hints, instruction summaries, and CRG graphs |
+| CRG bootstrap or repair | Run `.\helix\scripts\set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap`, then rerun workspace setup |
+| CRG is blocking urgent work | Set `.\helix\scripts\set-context-provider.ps1 -Provider code-review-graph -Mode off` as an explicit emergency fallback |
+| Sync installed Helix files from source | Run `.\helix\scripts\sync-helix.ps1` from the meta-repo root |
+| Validate current install | Run `.\helix\scripts\doctor.ps1` |
+
+## Script Reference
+
+| Script | Run from | Use |
+|--------|----------|-----|
+| `.\scripts\init-meta-repo.ps1` or `.\helix\scripts\init-meta-repo.ps1` | Helix source checkout | Bootstrap a target meta repo |
+| `.\scripts\init.ps1` or `.\helix\scripts\init.ps1` | Helix source checkout | Wrapper for future `helix init` |
+| `.\helix\scripts\install-helix.ps1` | Installed meta repo or source checkout | Install or sync managed Helix files into a meta repo |
+| `.\helix\scripts\sync-helix.ps1` | Installed meta repo | Sync managed files from the recorded Helix source path |
+| `.\helix\scripts\sync.ps1` | Installed meta repo | Wrapper for future `helix sync` |
+| `.\helix\scripts\upgrade.ps1` | Installed meta repo | Wrapper for future `helix upgrade` |
+| `.\helix\scripts\workspace-setup.ps1` | Installed meta repo | Operator-facing workspace setup wrapper |
+| `.\helix\scripts\setup-workspace.ps1` | Installed meta repo | Canonical workspace setup implementation |
+| `.\helix\scripts\doctor.ps1` | Installed meta repo | Validate manifests, workspace layout, agent collisions, CRG config, and repo readiness |
+| `.\helix\scripts\set-context-provider.ps1` | Installed meta repo | Configure `code-review-graph`; `off` is an emergency fallback |
+
+## When To Start Agents
+
+Use the `setup` agent only after Helix has been bootstrapped into the meta repo. It is for validating registry/workspace manifests, running workspace setup, onboarding repos, refreshing repo-state, and reporting readiness.
+
+Start the `helix` agent after SETUP is complete. That means the active workspace is set, selected repos are present or explicitly marked missing, generated state files exist, and CRG is either healthy in `mcp` mode or deliberately disabled for emergency fallback.
+
+Good first prompts:
+
+```text
+@setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
+```
+
+```text
+@helix Use active workspace directeddebit. Start JAM for: <feature idea>. Keep mode interactive.
+```
+
+After PRD, tech design, and task breakdown produce a runnable execution plan, use `@helix` for the Ralph loop:
+
+```text
+@helix Start Ralph loop for directeddebit using the current execution plan.
+```
+
+For Copilot CLI, interactive phases such as JAM, PRD, and tech design can be invoked directly as `@jam`, `@planner`, or `@architect` when you need structured back-and-forth. Use `@helix` when you want routing, phase chaining, resume decisions, or autonomous implementation orchestration.
 
 ## Structural Retrieval
 
@@ -195,10 +282,15 @@ Copilot CLI LSP support is useful, but Helix should treat it as **advisory conte
 
 ## Where To Start
 
-- Bootstrap a new meta repo: run `scripts/init.ps1`, then update `helix-repos.yml`, create `workspaces/{name}/workspace.yml`, and use `scripts/workspace-setup.ps1`, the `setup` agent, or the `workspace-sync` skill to attach the selected repos
+- Installed meta repo operator: start with the root `README.md`, then use this guide for deeper Helix behavior
+- Helix source maintainer: start with the source root `README.md`, then [`AGENTS.md`](./AGENTS.md)
+- Fresh meta-repo setup: use [Meta Repo Setup From Scratch](#meta-repo-setup-from-scratch)
+- Common setup and repair cases: use [Common Setup Scenarios](#common-setup-scenarios)
+- Script lookup: use [Script Reference](#script-reference)
+- Feature workflow handoff: use [When To Start Agents](#when-to-start-agents)
 - New to Helix: [`docs/starting-cross-repo-feature-with-helix.md`](./docs/starting-cross-repo-feature-with-helix.md)
 - Canonical lifecycle and loops: [`docs/helix-process.md`](./docs/helix-process.md)
-- Copilot session traces and Lens overlay plan: [`docs/trace-schema.md`](./docs/trace-schema.md) and [`docs/copilot-session-overlay-plan.md`](./docs/copilot-session-overlay-plan.md)
+- Copilot session traces, hooks, environment, and Lens overlay plan: [`docs/trace-schema.md`](./docs/trace-schema.md), [`docs/copilot-cli-hooks-and-env.md`](./docs/copilot-cli-hooks-and-env.md), and [`docs/copilot-session-overlay-plan.md`](./docs/copilot-session-overlay-plan.md)
 - Core vs meta-repo model: [`docs/helix-core-meta-repo-model.md`](./docs/helix-core-meta-repo-model.md)
 - Meta-repo manifest schemas: [`docs/helix-instance-schemas.md`](./docs/helix-instance-schemas.md)
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)

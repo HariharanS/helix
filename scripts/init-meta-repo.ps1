@@ -99,6 +99,8 @@ function Assert-BaselineFiles {
         'helix-repos.yml',
         'README.md',
         'AGENTS.md',
+        'helix/README.md',
+        'helix/AGENTS.md',
         'helix/docs/helix-core-meta-repo-model.md',
         'helix/docs/helix-process.md',
         'helix/docs/helix-instance-schemas.md',
@@ -164,10 +166,6 @@ Invoke-HelixScript -ScriptPath $installScript -Arguments $installArguments
 
 Assert-BaselineFiles -Root $TargetRoot
 
-if (-not $SkipDoctor) {
-    Invoke-HelixScript -ScriptPath $doctorScript -Arguments @('-TargetRoot', $TargetRoot)
-}
-
 $contextProviderScript = Join-Path $SourceRoot 'scripts/set-context-provider.ps1'
 if (-not (Test-Path $contextProviderScript)) {
     throw "Cannot configure code-review-graph: '$contextProviderScript' not found."
@@ -188,6 +186,10 @@ if ($SkipCRG) {
         '-Mode', 'mcp',
         '-Bootstrap'
     )
+}
+
+if (-not $SkipDoctor) {
+    Invoke-HelixScript -ScriptPath $doctorScript -Arguments @('-TargetRoot', $TargetRoot)
 }
 
 Write-Host "Helix meta-repo initialized successfully at '$TargetRoot'."

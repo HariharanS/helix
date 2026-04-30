@@ -3,10 +3,10 @@
 <!-- HELIX:BEGIN overview -->
 This is a Helix coordination meta repo.
 
-It owns:
+It owns coordination artifacts only:
 
 - repo registry in `helix-repos.yml`
-- workspace or feature-space artifacts in `workspaces/`
+- workspace artifacts in `workspaces/`
 - Helix runtime state in `.helix/`
 - Helix-managed docs, scripts, and templates in `helix/`
 - Copilot runtime-facing files in `.github/`
@@ -15,11 +15,65 @@ It does not own product code. Product repos are attached from the registry only 
 
 ## Start Here
 
-1. Update `helix-repos.yml` with the repos Helix can use
-2. Create or edit `workspaces/<workspace-id>/workspace.yml` using `helix/templates/workspace.yml.template` as the starter shape when needed
-3. Run workspace setup: `helix workspace setup` (current script: `./helix/scripts/workspace-setup.ps1 -Workspace <workspace-id>`)
-4. Confirm workspace setup built CRG graphs for the selected repos
-5. Start Helix from the active meta repo workspace
+1. Update `helix-repos.yml` with the repos Helix can use.
+2. Seed or edit `workspaces/<workspace-id>/workspace.yml`.
+3. Run workspace setup.
+4. Validate the install.
+5. Start the Helix agents from this meta-repo root.
+
+First workspace from repo ids:
+
+```powershell
+.\helix\scripts\workspace-setup.ps1 -Workspace directeddebit -ReposCsv "repo-a,repo-b,repo-c" -CloneMissing
+```
+
+`-ReposCsv` creates `workspaces/<workspace-id>/workspace.yml` only when it is missing. It validates repo ids against `helix-repos.yml`, infers role and branch from the registry, and then continues through normal workspace setup. If the workspace manifest already exists, edit it directly and rerun:
+
+```powershell
+.\helix\scripts\workspace-setup.ps1 -Workspace directeddebit -FetchExisting
+```
+
+Validate:
+
+```powershell
+.\helix\scripts\doctor.ps1
+```
+
+Setup is ready when `.helix/active-workspace.yml` points at the workspace, repo state exists under `.helix/repo-state/`, generated instructions exist under `.github/instructions/`, and `<workspace-id>.code-workspace` exists at the repo root.
+
+## Common Scenarios
+
+| Scenario | What to do |
+|----------|------------|
+| First setup after bootstrap | Fill `helix-repos.yml`, then run `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -ReposCsv "repo-a,repo-b" -CloneMissing` |
+| Workspace manifest already exists | Edit `workspaces/<id>/workspace.yml`, then run `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -FetchExisting` |
+| Add a repo to a workspace | Add it to `helix-repos.yml`, add its `repo_id` to `workspaces/<id>/workspace.yml`, then rerun setup |
+| Switch active workspace | Run `.\helix\scripts\workspace-setup.ps1 -Workspace <other-id> -FetchExisting` |
+| Refresh repo state after branch or onboarding changes | Rerun `.\helix\scripts\workspace-setup.ps1 -Workspace <id> -FetchExisting` |
+| CRG bootstrap or repair | Run `.\helix\scripts\set-context-provider.ps1 -Provider code-review-graph -Mode mcp -Bootstrap`, then rerun setup |
+| CRG is blocking urgent work | Run `.\helix\scripts\set-context-provider.ps1 -Provider code-review-graph -Mode off` as an explicit emergency fallback |
+| Sync installed Helix files | Run `.\helix\scripts\sync-helix.ps1` |
+| Validate current install | Run `.\helix\scripts\doctor.ps1` |
+
+## When To Start Agents
+
+Use `@setup` after the meta repo is bootstrapped and `helix-repos.yml` has real repos:
+
+```text
+@setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
+```
+
+Use `@helix` after SETUP is complete:
+
+```text
+@helix Use active workspace directeddebit. Start JAM for: <feature idea>. Keep mode interactive.
+```
+
+Use the Ralph loop only after PRD, tech design, task breakdown, and a runnable execution plan exist:
+
+```text
+@helix Start Ralph loop for directeddebit using the current execution plan.
+```
 
 ## CLI Commands
 
@@ -27,19 +81,20 @@ Future `helix` CLI commands and their current script equivalents:
 
 | Future command | Current script |
 |---|---|
-| `helix init` | `./helix/scripts/init.ps1` |
-| `helix sync` | `./helix/scripts/sync.ps1` |
-| `helix upgrade` | `./helix/scripts/upgrade.ps1` |
-| `helix workspace setup` | `./helix/scripts/workspace-setup.ps1` |
-| `helix doctor` | `./helix/scripts/doctor.ps1` |
+| `helix sync` | `.\helix\scripts\sync.ps1` |
+| `helix upgrade` | `.\helix\scripts\upgrade.ps1` |
+| `helix workspace setup` | `.\helix\scripts\workspace-setup.ps1` |
+| `helix doctor` | `.\helix\scripts\doctor.ps1` |
 
 Until the `helix` CLI is available, invoke the scripts directly.
 
 ## Helix Docs
 
+- `helix/README.md` — reusable Helix guide, setup scenarios, script reference, and agent handoff
 - `helix/docs/helix-process.md` — canonical lifecycle, loops, and beta slice/verification model
 - `helix/docs/helix-instance-schemas.md` — manifest shapes, validation rules, and beta runtime artifact schemas
 - `helix/docs/helix-core-meta-repo-model.md` — packaging model for installed versus source layout
+- `helix/docs/starting-cross-repo-feature-with-helix.md` — first cross-repo feature playbook
 
 ## Key Paths
 

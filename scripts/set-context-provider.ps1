@@ -109,6 +109,40 @@ function Install-CodeReviewGraphRuntime {
     return $server
 }
 
+function ConvertTo-ConfigHashtable {
+    param([AllowNull()]$Value)
+
+    if ($null -eq $Value) {
+        return $null
+    }
+
+    if ($Value -is [System.Collections.IDictionary]) {
+        $result = [ordered]@{}
+        foreach ($key in $Value.Keys) {
+            $result[$key] = ConvertTo-ConfigHashtable -Value $Value[$key]
+        }
+        return $result
+    }
+
+    if ($Value -is [System.Management.Automation.PSCustomObject]) {
+        $result = [ordered]@{}
+        foreach ($property in $Value.PSObject.Properties) {
+            $result[$property.Name] = ConvertTo-ConfigHashtable -Value $property.Value
+        }
+        return $result
+    }
+
+    if ($Value -is [System.Collections.IEnumerable] -and $Value -isnot [string]) {
+        $items = @()
+        foreach ($item in $Value) {
+            $items += ConvertTo-ConfigHashtable -Value $item
+        }
+        return ,$items
+    }
+
+    return $Value
+}
+
 function Ensure-ContextProvidersConfig {
     param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$Config)
 
@@ -151,7 +185,7 @@ function Read-McpConfig {
     }
 
     try {
-        $config = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -AsHashtable
+        $config = ConvertTo-ConfigHashtable -Value (Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json)
     } catch {
         throw "Could not parse MCP config at '$Path'. Fix the JSON first."
     }
@@ -174,7 +208,7 @@ function Read-VSCodeMcpConfig {
     }
 
     try {
-        $config = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -AsHashtable
+        $config = ConvertTo-ConfigHashtable -Value (Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json)
     } catch {
         throw "Could not parse VS Code MCP config at '$Path'. Fix the JSON first."
     }

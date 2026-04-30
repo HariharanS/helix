@@ -93,6 +93,14 @@ After bootstrap:
 - update `helix-repos.yml` with the real repo registry for your environment
 - create or update `workspaces/{name}/workspace.yml` for the subset of repos this feature-space needs
 
+For a first-pass workspace, `setup-workspace.ps1` can seed the workspace manifest from a comma-separated repo id list:
+
+```powershell
+./helix/scripts/setup-workspace.ps1 -Workspace order-history -ReposCsv "orders-api,orders-web,customer-profile-adapter"
+```
+
+This creates `workspaces/order-history/workspace.yml` only if it is missing. It infers `role` from `helix-repos.yml` `default_role` when present, uses the repo/default branch, writes the standard artifact paths, then continues through the normal workspace setup flow. If the workspace manifest already exists, edit it directly; `-ReposCsv` will not overwrite it.
+
 Keep `helix-repos.yml` declarative. Defining the registry should not clone every repo. Cloning or attaching happens only when the workspace is set up.
 
 The target meta-repo model uses:
