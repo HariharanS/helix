@@ -346,6 +346,8 @@ function Invoke-HelixCrgBuild {
     $statusOutput = & $cmd @prefix 'status' '--repo' $RepoPath 2>&1
     $statusExit = $LASTEXITCODE
     $statusText = ($statusOutput | Out-String)
+    $graphDbPath = Join-Path $RepoPath '.code-review-graph\graph.db'
+    $graphDbExists = Test-Path $graphDbPath
     $nodes = $null
     if ($statusText -match '(?i)(?:node_count|nodes?)["''\s:=]+(?<nodes>\d+)') {
         $nodes = [int]$Matches['nodes']
@@ -356,6 +358,16 @@ function Invoke-HelixCrgBuild {
     }
 
     if ($null -ne $nodes -and $nodes -le 0) {
+        # Config-only / IaC-heavy repos can legitimately produce a valid empty graph.
+        if ($graphDbExists) {
+            return [ordered]@{
+                status = 'built'
+                stage = 'status'
+                nodes = $nodes
+                empty_graph = $true
+            }
+        }
+
         return [ordered]@{ status = 'failed'; stage = 'status'; exit_code = 0; reason = '0 nodes' }
     }
 

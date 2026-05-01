@@ -21,7 +21,7 @@ This doc specifies the persistence layer + trigger architecture that makes compo
 └── usage.jsonl       # Append-only log of skill invocations
 ```
 
-`.helix/skills/` is per-meta-repo (cross-repo aggregation happens here, not per sub-repo). Directories ship empty; the distiller creates `{id}.md` files lazily.
+`.helix/skills/` is per-meta-repo (cross-repo aggregation happens here, not per sub-repo). Directories ship empty; onboarding/refresh and the distiller create `{id}.md` files lazily as evidence compounds.
 
 ## Schemas
 
@@ -48,7 +48,7 @@ destination: workspace/meta      # repo | workspace/meta | helix-core | personal
 What the repeating pattern is — short.
 
 ## Evidence Log
-Append-only. Distiller adds one block per occurrence — never rewrites prior entries.
+Append-only. Onboarding/refresh and distiller add one block per occurrence — never rewrite prior entries.
 
 ### YYYY-MM-DD — <feature-slug>
 - File: <repo>/<path>
@@ -68,6 +68,8 @@ Append-only. Distiller adds one block per occurrence — never rewrites prior en
 ## Recommendation
 CREATE SKILL | ADD TO EXISTING (<existing-id>) | NOT WORTH IT
 ```
+
+When the source is onboarding or refresh rather than a feature distill, use stable synthetic batch names such as `onboard-{workspace}` or `refresh-{workspace}` in `features`. The important rule is that repeated workspace evidence appends to the same candidate file instead of staying inline-only.
 
 ### `graveyard/{id}.md`
 
@@ -168,24 +170,25 @@ The distiller is **not** invoked automatically by the hook chain — distillatio
 - `phase.current === 'distill'` — actively in distill phase
 - `phase.last_completed === 'review'` — review just finished, distill is next
 
-Edge case: trigger fires every sessionEnd while the heuristic matches. No idempotency. Operator dismisses by running `/hc-distill` (which advances phase) or by accepting the noise. This is intentional — under-triggering risks losing distillation entirely; over-triggering is a stderr line.
+Edge case: trigger fires every sessionEnd while the heuristic matches. No idempotency. Operator dismisses by running the distill entrypoint (`/hc-distill` in VS Code chat or `@hc-distiller ...` in Copilot CLI), or by accepting the noise. This is intentional — under-triggering risks losing distillation entirely; over-triggering is a stderr line.
 
-The script does **not** invoke the hc-distiller agent. It records that distillation is due and prints a reminder. The agent runs in the next interactive session when the operator types `/hc-distill` or asks "@hc-distiller distill this session."
+The script does **not** invoke the hc-distiller agent. It records that distillation is due and prints a reminder. The agent runs in the next interactive session when the operator uses the manual distill entrypoint (`/hc-distill` in VS Code chat, or `@hc-distiller distill this session` in Copilot CLI).
 
-### Manual `/hc-distill` prompt
+### Manual distill entrypoint
 
-`helix/.github/prompts/hc-distill.prompt.md` is the operator-facing entry. Routes to the `hc-distiller` agent with the active workspace as context. Always available; cheaper than waiting for the heuristic.
+`helix/.github/prompts/hc-distill.prompt.md` is the VS Code chat prompt-file entry. It routes to the `hc-distiller` agent with the active workspace as context. In Copilot CLI, use `@hc-distiller` or an equivalent natural-language request; custom repo prompt files are not surfaced there as slash commands today.
 
 ### Workspace-close trigger
 
-Plan §6 listed "workspace-close" as a trigger. Helix doesn't currently have a clean signal for workspace closure (no `status: closed` field). For T2 this is the manual `/hc-distill` path — operator runs it before archiving a workspace. A future close trigger can extend `distill-trigger.js` once workspace state has a closure signal.
+Plan §6 listed "workspace-close" as a trigger. Helix doesn't currently have a clean signal for workspace closure (no `status: closed` field). For T2 this is the manual distill path — operator runs `/hc-distill` in VS Code chat or `@hc-distiller ...` in Copilot CLI before archiving a workspace. A future close trigger can extend `distill-trigger.js` once workspace state has a closure signal.
 
-## HC Distiller Agent Contract Changes
+## Candidate Writer Responsibilities
 
-The hc-distiller agent (`helix/.github/agents/hc-distiller.agent.md`) gains two responsibilities:
+Two Helix surfaces may seed or grow `.helix/skills/candidates/`:
 
-1. **Before emitting a promotion candidate**, read `.helix/skills/candidates/{id}.md`. If it exists, **append** to its Evidence Log instead of creating a duplicate. Update frontmatter (`occurrences`, `features`, `last_evidence`).
-2. **Before suggesting any candidate**, scan `.helix/skills/graveyard/`. If a graveyarded entry's "Don't re-suggest if" fingerprint matches the pattern, suppress and note in the session distill report under `## Suppressed (graveyarded)`.
+1. **Setup / workspace refresh (`hc-setup`, `hc-workspace-sync`)** — when onboarding groups the same `workspace-review` pattern across 2 or more repos, create or update `.helix/skills/candidates/{id}.md` instead of leaving the evidence inline only. Use append-only evidence blocks and synthetic feature labels such as `onboard-{workspace}` or `refresh-{workspace}` when the source is onboarding rather than a feature distill.
+2. **Distiller (`helix/.github/agents/hc-distiller.agent.md`)** — before emitting a promotion candidate, read `.helix/skills/candidates/{id}.md`. If it exists, **append** to its Evidence Log instead of creating a duplicate. Update frontmatter (`occurrences`, `features`, `last_evidence`).
+3. **Distiller graveyard check** — before suggesting any candidate, scan `.helix/skills/graveyard/`. If a graveyarded entry's "Don't re-suggest if" fingerprint matches the pattern, suppress and note in the session distill report under `## Suppressed (graveyarded)`.
 
 Held-out replay continues to be `/hc-skill-synth`'s responsibility. Distiller calls it when `occurrences ≥ 3 AND features ≥ 2`, then records the result in the candidate's `Held-Out Replay` section. The same skill may also be run after onboarding/refresh when workspace-level reusable-pattern evidence needs maintainer review before any projection decision.
 

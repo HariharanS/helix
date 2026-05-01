@@ -23,14 +23,19 @@ Each phase writes an artifact. The next phase reads it. The artifact files are t
 ### SETUP
 **Who runs it:** Host agent (me) OR `setup` sub-agent for automated parts.
 **Interactive?** Partially — manifest validation questions need `ask_user`.
-**How:**
+**How (Copilot CLI):**
 ```
 "Set up workspace hpp"
+@hc-setup Set up workspace hpp
 ```
-Or use the thin prompt:
+
+**VS Code chat convenience prompt:**
 ```
 "/hc-setup-workspace"
 ```
+
+Copilot CLI does **not** currently expose repo `.prompt.md` files as custom slash commands. Treat the prompt files in `.github/prompts/` as VS Code conveniences, not the canonical CLI surface.
+
 The host agent validates `helix-repos.yml` + `workspace.yml`, runs workspace-setup.ps1, and confirms repo-state, repo-capabilities, MCP config, and CRG graph readiness.
 For manifest questions it uses `ask_user` directly. Purely mechanical steps (clone, fetch) can be dispatched to the `setup` sub-agent.
 
@@ -40,9 +45,9 @@ For manifest questions it uses `ask_user` directly. Purely mechanical steps (clo
 - `.helix/repo-state/{repo-id}.yml` for each participating repo
 - `{workspace}.code-workspace` at the **meta-repo root** (gitignored)
 - root and nested `AGENTS.md` guidance in each onboarded repo
-- optional maintainer follow-on: reusable-pattern review via `/hc-review-reusable-patterns` when onboarding surfaces cross-repo candidates
+- optional maintainer follow-on: reusable-pattern review flow when onboarding surfaces cross-repo candidates (`/hc-review-reusable-patterns` in VS Code chat, or `@hc-setup Review reusable-pattern candidates...` in Copilot CLI)
 
-Related thin prompts:
+Matching VS Code chat prompts:
 - `/hc-refresh-workspace` — rerun setup/refresh after onboarding, branch changes, or repo-state drift
 - `/hc-review-reusable-patterns` — review onboarding/distill evidence and route through synth before projection or creation
 
@@ -159,6 +164,8 @@ Use this when you want to stay close to each task — inspect failing tests befo
 "Distill the HPP session"
 "Distill learnings from today's implementation"
 ```
+
+In Copilot CLI, prefer `@hc-distiller Distill the active workspace` when you want the explicit distiller surface. In VS Code chat, the matching prompt file is `/hc-distill`.
 
 **`/chronicle` (optional, experimental):** If the host runtime provides `/chronicle` output or other session-store-derived summaries, you may pass them to the distiller as supplementary context. They are advisory enrichment only — never the sole source of truth. Workspace artifacts and code changes remain the primary evidence. If `/chronicle` is unavailable or low-signal, omit it.
 

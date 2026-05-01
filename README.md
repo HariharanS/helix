@@ -26,6 +26,7 @@ The installed meta repo root `README.md` is generated from `helix/templates/meta
 
 - `helix/README.md` is human-first: overview, workflow, architecture, and entry points
 - installed meta repo root `README.md` is project-local: repo registry, workspace setup, and local notes
+- `docs/operator-workflows.md` is human-first: day-to-day entrypoints, host differences, and the Helix improvement loop
 - `AGENTS.md` files are agent-first: navigation, source-of-truth rules, and retrieval guidance
 - `docs/` holds longer guides and roadmap material
 - `docs/agents-md-authoring.md` defines the compact root-vs-nested AGENTS.md contract
@@ -239,23 +240,25 @@ Open `{workspace}.code-workspace` in VS Code when working through the editor. In
 
 Use the `hc-setup` agent only after Helix has been bootstrapped into the meta repo. It is for validating registry/workspace manifests, running `.\helix\scripts\workspace-setup.ps1`, onboarding repos, refreshing repo-state, and reporting readiness. If the workspace manifest is missing, include repo ids in the prompt so the agent can pass `-ReposCsv`; otherwise create or edit `workspaces/<workspace-id>/workspace.yml` first.
 
-If setup/onboarding surfaces reusable-pattern candidates across repos, treat `/hc-review-reusable-patterns` as the optional **maintainer** follow-on before projecting or creating any meta-root skills. That thin prompt may route into `/hc-skill-synth workspace` when the evidence is strong enough for held-out replay and recommendation.
+If setup/onboarding surfaces reusable-pattern candidates across repos, treat the reusable-pattern review flow as the optional **maintainer** follow-on before projecting or creating any meta-root skills. In Copilot CLI, use `@hc-setup Review reusable-pattern candidates for workspace <id>`; in VS Code chat, the matching prompt file is `/hc-review-reusable-patterns`. That flow may route into `/hc-skill-synth workspace` when the evidence is strong enough for held-out replay and recommendation.
 
 Start the `hc-helix` agent after SETUP is complete. That means the active workspace is set, selected repos are present or explicitly marked missing, generated state files exist, and CRG is either healthy in `mcp` mode or deliberately disabled for emergency fallback.
 
-Good first prompts:
+Good first CLI entrypoints:
 
 ```text
 @hc-setup Set up workspace directeddebit, clone missing repos, refresh repo-state, and report readiness.
 ```
 
-If you prefer slash-command entrypoints for setup/refresh/maintainer review:
+If you are in VS Code chat, the matching prompt-file entrypoints are:
 
 ```text
 /hc-setup-workspace
 /hc-refresh-workspace
 /hc-review-reusable-patterns
 ```
+
+Prompt files are a VS Code surface. Copilot CLI does not currently expose repo `.prompt.md` files as custom slash commands.
 
 If `workspaces/directeddebit/workspace.yml` does not exist yet:
 
@@ -274,6 +277,8 @@ After PRD, tech design, and task breakdown produce a runnable execution plan, us
 ```
 
 For Copilot CLI, interactive phases such as JAM, PRD, and tech design can be invoked directly as `@hc-jam`, `@hc-planner`, or `@hc-architect` when you need structured back-and-forth. Use `@hc-helix` when you want routing, phase chaining, resume decisions, or autonomous implementation orchestration.
+
+For a human-first map of today-vs-later workflows and the `helix-core` -> meta repo sync loop, see [`helix/docs/operator-workflows.md`](./docs/operator-workflows.md).
 
 ## Structural Retrieval
 

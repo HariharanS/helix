@@ -1,6 +1,15 @@
 # Helix Prompt Library
 
-Slash-command prompts. Each is invoked as `/<name>` from Copilot CLI or VS Code chat. Prompts route to an agent (`mode: agent`) or run as a guided dialogue (`mode: ask`). To create a new prompt, run `/hc-maker` with `new prompt for ...`.
+Repository prompt files for **VS Code chat**. Each prompt is invoked as `/<name>` from VS Code chat when `.github/prompts/` is enabled for the workspace. Copilot CLI does **not** currently surface repo `.prompt.md` files as custom slash commands; in CLI use the equivalent `@hc-*` agents, natural-language requests, and `/hc-*` skills from `.github/skills/`.
+
+To create a new prompt, run `/hc-maker` with `new prompt for ...`.
+
+## Host support
+
+| Host | Recommended surface |
+|---|---|
+| VS Code chat | `.github/prompts/*.prompt.md`, `@hc-*` agents, and `/hc-*` skills |
+| Copilot CLI | `@hc-*` agents, natural-language requests, and `/hc-*` skills; prompt files remain editor-only |
 
 ## Lifecycle phase prompts
 

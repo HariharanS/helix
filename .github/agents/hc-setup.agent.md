@@ -116,9 +116,9 @@ Then report:
 
 If CRG mode is `mcp` and MCP config, runtime install, or graph build fails, setup is not complete. Surface the exact failing step and stop. Do not silently fall back to manual code search.
 
-### 7. Optional Follow-On Setup
+### 7. Structured Follow-On Setup
 
-Only after baseline workspace setup is successful, and only when requested by the user or clearly required by repo-state:
+After baseline workspace setup is successful, use repo-state and workspace evidence to decide which follow-on steps are required. Keep these steps visibly separate from baseline attach success, but do not treat workspace synthesis as a purely manual extra.
 
 #### 6a. Onboard Repos
 
@@ -132,7 +132,14 @@ After all onboarding completes, re-run `helix/scripts/workspace-setup.ps1 -Works
 
 Aggregate the reusable-pattern tables from all onboard outputs. Deduplicate by pattern name or normalized intent. Do not create or project meta-repo skills directly from onboarding evidence alone.
 
-If similar candidates appear in 2 or more repos, or if `.helix/skills/candidates/` already contains matching distill evidence, suggest `/hc-review-reusable-patterns` as the **optional maintainer follow-on**. That thin prompt may route into `/hc-skill-synth workspace` when the evidence is strong enough for held-out replay and recommendation.
+If the same `workspace-review` pattern appears in 2 or more repos, or if `.helix/skills/candidates/{id}.md` already contains matching evidence, create or update the candidate file using the schema in `helix/docs/distillation-architecture.md`. Use:
+- stable kebab-case candidate ids
+- `destination: workspace/meta`
+- `held_out_replay: UNTESTED` until synth runs
+- synthetic feature labels such as `onboard-{workspace}` or `refresh-{workspace}` when the evidence came from onboarding rather than a feature distill
+- append-only evidence blocks with repo/file/symbol notes; do not overwrite prior evidence
+
+After persisting the shortlist, suggest the reusable-pattern review flow as the **optional maintainer follow-on**. In Copilot CLI, the equivalent entrypoint is `@hc-setup Review reusable-pattern candidates for workspace {name}`; in VS Code chat, the matching prompt file is `/hc-review-reusable-patterns`. That flow may route into `/hc-skill-synth workspace` when the evidence is strong enough for held-out replay and recommendation.
 
 `/hc-skill-synth` is the review gate that validates held-out replay, checks overlap with existing `hc-*` / `hr-*` skills, and recommends one of:
 - `PROJECT EXISTING`
@@ -140,13 +147,21 @@ If similar candidates appear in 2 or more repos, or if `.helix/skills/candidates
 - `ADD TO EXISTING`
 - `NOT WORTH IT`
 
-If the user chooses that follow-on immediately, run `/hc-skill-synth workspace`, present the synth report, and stop for human approval before any projection or meta-root skill creation.
+If the user chooses that follow-on immediately, continue inside this workflow: review the persisted candidate evidence, run `/hc-skill-synth workspace` when warranted, present the synth report, and stop for human approval before any projection or meta-root skill creation.
 
 Only after human approval of the synth report should maintainers project an indexed candidate (`helix/scripts/promote-skill.ps1`) or create/update a meta-root skill (`hc-maker`).
 
 #### 6d. Create Workspace Platform AGENTS.md
 
-Create or update `workspaces/{name}/AGENTS.md` as a platform-level architecture document. Include:
+Create or update `workspaces/{name}/AGENTS.md` whenever the workspace has 2 or more repos, or onboarding/refresh surfaced shared patterns, glossary terms, or cross-repo read-order guidance. Treat this as a normal outcome of successful multi-repo onboarding/refresh, not an afterthought.
+
+Use as inputs:
+- `workspaces/{name}/workspace.yml`
+- `.helix/repo-state/*.yml` and `.helix/repo-capabilities/*.yml`
+- repo root and nested `AGENTS.md` files
+- the persisted `.helix/skills/candidates/{id}.md` shortlist for workspace-level patterns
+
+Include:
 - All repos in the workspace, their roles, and primary responsibilities
 - End-to-end data flow diagram (mermaid) showing how repos connect
 - Shared patterns and conventions common across repos
@@ -159,6 +174,8 @@ Add this retrieval note at the top of the file:
 > Agents working in this workspace should read this file before reading individual repo AGENTS.md files.
 > It provides platform-level context that individual repo docs do not repeat.
 ```
+
+If the file already exists, preserve still-valid manual notes and merge in new platform facts rather than replacing it with a shorter summary.
 
 Keep these steps visibly separate from baseline workspace attach success.
 

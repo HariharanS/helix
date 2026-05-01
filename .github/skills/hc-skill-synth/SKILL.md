@@ -28,7 +28,7 @@ Review evidence in this order before doing any new scanning:
 1. Existing meta-root skills in `.github/skills/hc-*` and `.github/skills/hr-*`
 2. `.helix/skills/index.yml` candidate and projection metadata
 3. Reusable-pattern tables or equivalent evidence emitted by `hc-onboard`
-4. `.helix/skills/candidates/{id}.md` files written by distiller
+4. `.helix/skills/candidates/{id}.md` files written by onboarding/refresh or distiller
 5. Targeted repo evidence gathered with CRG and minimal supporting file reads
 
 If onboarding evidence was shown inline and not persisted, reconstruct only the missing shortlist entries from indexed repo-local skills plus targeted CRG evidence. Do not restart with blind repo-wide scanning if good evidence already exists.
@@ -57,7 +57,7 @@ If onboarding evidence was shown inline and not persisted, reconstruct only the 
 Collect candidate evidence before deriving new conclusions:
 
 - onboarding reusable-pattern tables, repo-local candidate skills, and generated AGENTS.md guidance
-- distiller candidate files under `.helix/skills/candidates/`
+- candidate files under `.helix/skills/candidates/` from onboarding/refresh or distill
 - existing matching `hc-*` / `hr-*` skills and indexed repo-local candidates
 - targeted CRG evidence for files/symbols named in the candidate evidence
 
