@@ -13,9 +13,9 @@ This guide is for the case where:
 
 ## What Helix Is Doing
 
-Helix is a meta-repo. It does not own the product code.
+Helix is installed at the root of a meta-repo. The meta-repo is the coordination instance; Helix provides the orchestration assets (agents, skills, prompts, scripts). Neither owns the product code.
 
-- Workspace artifacts live in Helix
+- Workspace artifacts live in the meta-repo (under `workspaces/`), authored using Helix tooling
 - Code changes live in the individual service repos
 - Helix coordinates a staged lifecycle: SETUP -> JAM -> PRD -> TECH DESIGN -> TASK BREAKDOWN -> IMPLEMENTATION -> REVIEW -> DISTILL
 - The important part is not just the phases but the loops inside them: clarify until intent is unambiguous, design until contracts are locked, decompose until the execution plan is runnable, then execute through TDD plus Ralph loop or fleet scheduling

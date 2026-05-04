@@ -8,6 +8,13 @@
         "powershell": "node ./scripts/session-start.js",
         "cwd": ".github/hooks",
         "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "bash": "node ./scripts/pet-spawn.js",
+        "powershell": "node ./scripts/pet-spawn.js",
+        "cwd": ".github/hooks",
+        "timeoutSec": 5
       }
     ],
     "preToolUse": [

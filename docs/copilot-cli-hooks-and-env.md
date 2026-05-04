@@ -286,3 +286,7 @@ Without `${...}`, the value is treated literally:
 - Use `subagentStart` only when the execution plan has clear ownership, allowed write paths, and done criteria.
 - Prefer `COPILOT_AGENT_SESSION_ID` as the correlation key across hook logs and shell/MCP activity.
 - Keep environment-sensitive behavior documented in workspace artifacts so autonomous agents do not infer policy from hidden local shell state.
+
+## See Also
+
+- [agents-md-authoring.md](agents-md-authoring.md) — `AGENTS.md` is the Helix-managed instruction surface for agents; doctor warns on user-authored alternatives like `.github/copilot-instructions.md`, `CLAUDE.md`, or `GEMINI.md`.

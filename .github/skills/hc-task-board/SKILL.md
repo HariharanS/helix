@@ -126,6 +126,24 @@ Invoked by resume to get current board state. Parse and return:
 - Blocked task(s) with their blocker reasons
 - The suggested next unblocked task from Backlog (highest priority, all deps in Done)
 
+## Resume Snapshot Side-Effect
+
+Every state-changing operation above (Move Task, Mark Done, Mark Blocked, Start Task) MUST also patch `workspaces/{workspace-name}/resume.yml` via `Update-HelixResumeSnapshot` so the `hc-resume` agent can read deterministic state without re-parsing the markdown board.
+
+Caller responsibility (scribe is the typical caller). After the board write succeeds, run:
+
+```pwsh
+Import-Module ./helix/scripts/Helix.Tools.psm1 -Force
+Update-HelixResumeSnapshot -HelixRoot . -WorkspaceId '{workspace-name}' -Patch @{
+    current_task = '{task-id-or-null}'
+    last_completed_task = '{task-id-or-null}'
+    blocked_tasks = @('TASK-XXX', '...')
+    next_action = '{short imperative string}'
+}
+```
+
+Only pass the keys the operation actually changed; the function deep-merges into the existing snapshot.
+
 ## Guidelines
 
 - Never reorder tasks within a section — preserve insertion order

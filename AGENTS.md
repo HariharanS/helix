@@ -16,7 +16,7 @@ Do **not** read the entire repo by default.
 
 ## Core Invariants
 
-- Helix is a meta-repo. Product code lives in sibling service repos, not here.
+- Helix is installed at the root of a meta-repo (it is not itself the meta-repo). The meta-repo coordinates work; Helix provides the orchestration assets. Product code lives in sibling service repos, not here.
 - Workspace-scoped feature artifacts belong under `workspaces/{name}/...`.
 - Top-level `decisions/` and `task-boards/` are legacy placeholders, not the active workspace source of truth.
 - `execution-plans/` is the machine-readable automation contract.
@@ -27,8 +27,24 @@ Do **not** read the entire repo by default.
 - Installed meta repos use `helix-repos.yml` as the canonical registry name; `repos.yml` survives only as a compatibility alias.
 - User-facing script entry points are `scripts/init.ps1`, `scripts/sync.ps1`, `scripts/upgrade.ps1`, and `scripts/workspace-setup.ps1`; the older implementation script names remain for compatibility and internal wiring.
 - **Beta:** `.helix/repo-capabilities/{repo-id}.yml` holds generated per-repo capability hints; read when present, skip gracefully when absent.
-- **Beta:** `.helix/skills/index.yml` is the skill routing registry. Before repo-specific work, use `.github/skills/hc-skill-router/SKILL.md` or `scripts/resolve-skill.ps1` and emit a `skill_use` record.
+- **Beta:** `.helix/skills/index.yml` is the projection ledger of skills available in the meta-root for the active workspace. See "Choosing a skill" below for selection rules; `scripts/resolve-skill.ps1` survives only as a developer/CI utility for verifying projection correctness.
 - **Beta:** `workspaces/{id}/verification-policy.yml` is an operator-authored slice verification gate policy; opt in by declaring `artifacts.verification_policy` in `workspace.yml`, then read it when present and fall back to task-level `commands.verify` when absent.
+
+## Choosing a skill
+
+All skills available to an agent in the active workspace are visible at the meta root under `.github/skills/`. There is no runtime dispatcher; pick by description, not by hard-coded name.
+
+- `hc-*` are Helix core skills. Stable, always present, invocable by name from any workspace (e.g. `hc-workspace-sync`, `hc-task-board`, `hc-onboard`).
+- `hr-*` are Helix-reusable skills. Also present at the meta root and invocable by name.
+- Workspace-projected skills are repo-local skills mirrored into the meta root with a `{repo-short}-{skill-name}` prefix (e.g. `mobile-checkout-code-review`). Refer to them by the prefixed name; the un-prefixed form lives in the source repo and is not directly invocable from the meta root.
+
+To select a skill for a task:
+
+1. Read `.helix/skills/index.yml` for the active set; do not enumerate skill names from memory or assume any particular skill is present.
+2. Match on the skill's `description` and `argument-hint`, plus its scope (repo / path) when present.
+3. Prefer the most specific match. A workspace-projected skill that names the relevant repo and path beats a generic `hr-*` skill.
+4. If two skills tie, ask for a narrower scope rather than guessing.
+5. Skills marked `projection: never` exist only in their source repo and cannot be invoked from the meta root — note them as available repo-local guidance, not as invocable skills.
 
 ## Directory Map
 
@@ -41,6 +57,7 @@ Do **not** read the entire repo by default.
 | [`./templates/AGENTS.md`](./templates/AGENTS.md) | Artifact templates and examples | Use when changing generated output shapes |
 | [`./docs/AGENTS.md`](./docs/AGENTS.md) | Human-facing guides and roadmap | Use for explanatory docs |
 | [`./scripts/AGENTS.md`](./scripts/AGENTS.md) | Helper scripts and hooks | Use when changing automation behavior |
+| [`./docs/runtime-surface-contract.md`](./docs/runtime-surface-contract.md) | Where new behavior belongs (script vs. skill vs. agent vs. prompt vs. doc) | Use before adding new behavior or moving content between surfaces |
 
 ## Common Entry Points
 

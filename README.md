@@ -33,7 +33,65 @@ The installed meta repo root `README.md` is generated from `helix/templates/meta
 
 If you are an agent, start with [`AGENTS.md`](./AGENTS.md), not this file.
 
-## System Architecture
+## High-Level Architecture
+
+Helix is a set of orchestration assets (agents, skills, prompts, scripts) that installs into the root of a project-specific **meta-repo**. The meta-repo is the coordination instance; Helix is what the meta-repo loads to run the lifecycle. Product code lives in sibling repos that the meta-repo references through `helix-repos.yml`.
+
+```mermaid
+graph TB
+    Dev[Developer]
+
+    subgraph Hosts["Hosts (read AGENTS.md, prompts, skills from meta-repo CWD)"]
+        VSCode[VS Code Chat]
+        CLI[Copilot CLI]
+    end
+
+    Dev --> VSCode
+    Dev --> CLI
+
+    subgraph Source["helix-core (source checkout)"]
+        SrcAssets[Reusable assets:<br/>agents, skills, prompts,<br/>scripts, templates, docs]
+    end
+
+    subgraph MetaRepo["Meta-Repo (installed coordination instance)"]
+        direction TB
+        Helix["helix/<br/>(installed Helix assets,<br/>synced from helix-core)"]
+        Workspaces["workspaces/{id}/<br/>workspace.yml,<br/>PRDs, tech-design,<br/>task-boards, execution-plans,<br/>decisions, context-bundles,<br/>resume.yml"]
+        State[".helix/<br/>active-workspace,<br/>repo-state, repo-capabilities,<br/>skills/index.yml,<br/>memory, session-index"]
+        Registry["helix-repos.yml<br/>(repo registry)"]
+    end
+
+    Source -. "init-meta-repo /<br/>sync-helix" .-> Helix
+
+    VSCode -- "reads CWD" --> MetaRepo
+    CLI -- "reads CWD" --> MetaRepo
+
+    Helix -- "drives" --> State
+    Helix -- "produces /<br/>consumes" --> Workspaces
+    Registry -- "lists" --> ProductRepos
+
+    subgraph ProductRepos["Sibling Product Repos"]
+        RepoA[service-a/]
+        RepoB[service-b/]
+        RepoC[service-c/]
+    end
+
+    subgraph Retrieval["Structural Retrieval"]
+        CRG[code-review-graph<br/>MCP server]
+    end
+
+    ProductRepos --> CRG
+    Helix -- "queries" --> CRG
+    Helix -- "edits via host" --> ProductRepos
+```
+
+Three things this diagram is asserting:
+
+- **helix-core** is the upstream source of reusable assets. An installed meta-repo gets a copy of those assets at `helix/` via `init-meta-repo` / `sync-helix`. The meta-repo is not Helix; it is what Helix runs inside.
+- **Hosts read from CWD.** VS Code chat and Copilot CLI both discover `AGENTS.md`, `.github/skills/`, and `.github/prompts/` from the current working directory. Helix sessions are expected to start at the meta-repo root so these surfaces resolve correctly.
+- **Workspace artifacts vs. product code are separate.** Workspace artifacts (PRD, design, tasks, decisions, bundles) live in `workspaces/{id}/` inside the meta-repo. Product code edits land in sibling repos listed in `helix-repos.yml`. CRG indexes the sibling repos and serves blast-radius / dependency lookups back to Helix agents.
+
+## Agent Roster By Tier
 
 ```mermaid
 graph TD
@@ -318,6 +376,7 @@ Copilot CLI LSP support is useful, but Helix should treat it as **advisory conte
 - AGENTS.md authoring standard: [`docs/agents-md-authoring.md`](./docs/agents-md-authoring.md)
 - Meta-repo skills management: [`docs/meta-repo-skills-management.md`](./docs/meta-repo-skills-management.md)
 - HC/HR runtime surface rename plan: [`docs/hc-hr-runtime-surface-rename-plan.md`](./docs/hc-hr-runtime-surface-rename-plan.md)
+- Runtime surface contract (where new behavior belongs): [`docs/runtime-surface-contract.md`](./docs/runtime-surface-contract.md)
 - Future platform direction: [`docs/helix-platform-roadmap.md`](./docs/helix-platform-roadmap.md)
 - Agent navigation and source-of-truth rules: [`AGENTS.md`](./AGENTS.md)
 

@@ -14,6 +14,8 @@ Uses the script-owned workspace setup path once Helix is installed and the user 
 If `workspaces/{name}/workspace.yml` is missing and the user supplies explicit repo ids, pass those ids to `helix/scripts/workspace-setup.ps1 -ReposCsv` so the script seeds the manifest. Do not hand-write the workspace manifest in this skill.
 When evaluating AGENTS.md guidance or onboarding follow-up, use `helix/docs/agents-md-authoring.md`.
 
+<!-- canonical-procedure-marker: this skill owns the workspace setup procedure; agent files (including hc-setup.agent.md) must link here rather than duplicate the step list -->
+
 ## Workflow
 
 ### 1. Confirm Helix Is Installed
@@ -85,7 +87,9 @@ After `helix/scripts/workspace-setup.ps1` succeeds, verify:
 - `.helix/active-workspace.yml` points at the selected workspace
 - `.helix/repo-state/{repo-id}.yml` exists for every repo in the workspace manifest
 - `.helix/repo-capabilities/{repo-id}.yml` exists for every repo in the workspace manifest
-- `.helix/skills/index.yml` exists and includes core skills plus repo-local candidates for onboarded repos
+- `.helix/skills/index.yml` exists and is `schema_version: 2`; it includes one entry per `hc-*` core skill, every legacy `hr-*` reusable skill, and one entry per workspace skill physically projected to meta-root as `{repo-short}-{skill-name}` (see [`docs/skill-projection-and-simplification-plan.md`](../../../docs/skill-projection-and-simplification-plan.md))
+- For every workspace repo with a `.github/skills/*` folder, the corresponding projected mirror exists under `helix/.github/skills/{repo-short}-{skill}/SKILL.md` with `projection:` provenance frontmatter, is read-only on disk, and source skills tagged `projection: never` in their frontmatter are absent (intentionally skipped)
+- Switching active workspace removes prior projections from repos no longer in scope and never deletes `hc-*` or `hr-*` skills
 - `{name}.code-workspace` enables AGENTS.md and nested AGENTS.md loading settings
 - the status table from the script reflects the expected presence and readiness values
 - if `code_review_graph.mode: mcp`, CRG graph build succeeded for every present repo

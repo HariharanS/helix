@@ -6,20 +6,16 @@ agent: hc-distiller
 tools: ['read', 'edit', 'search/codebase']
 ---
 
-Distill the active workspace's most recent session(s) into delivery memory, runtime learnings, and promotion candidates. The full architecture (persistence layout, schemas, gates, graveyard rules) is in `helix/docs/distillation-architecture.md` — read it before producing candidates.
+VS Code chat entrypoint to the `hc-distiller` agent. Distil the active workspace's most recent session(s) into delivery memory, runtime learnings, and promotion candidates.
 
-Required behaviour:
+Authoritative sources (do not duplicate here):
 
-1. Read `.helix/active-workspace.yml` to identify the workspace. If none is active, ask the operator which to distil and stop until answered.
-2. Produce delivery distill (always) — `.helix/memory/episodes/YYYY-MM-DD-{feature-slug}.md` per the existing distiller contract.
-3. Produce runtime distill (when applicable) — `.helix/memory/learnings/{topic}.md`.
-4. **For each promotion candidate:**
-   - Compute a kebab-case `id` from the pattern.
-   - Check `.helix/skills/graveyard/{id}.md`. If it exists and the "Don't re-suggest if" fingerprint matches, suppress the candidate and list it under `## Suppressed (graveyarded)` in the session report. Move on.
-   - Check `.helix/skills/candidates/{id}.md`. If it exists, **append** a new dated block to its `## Evidence Log` and bump frontmatter (`occurrences`, `features` set union, `last_evidence`). Do NOT rewrite prior entries.
-   - If it does not exist, create it with the schema in `distillation-architecture.md`.
-5. After updating candidates, evaluate the promotion gate for each: `occurrences ≥ 3 AND len(features) ≥ 2 AND held_out_replay = PASS AND quarterly_promotions < 5`. Set `Status:` accordingly. If a candidate is `ELIGIBLE` or close, recommend handing it off to `/hc-review-reusable-patterns` for maintainer review; that flow may invoke `/hc-skill-synth` for held-out replay and projection/create review. Do NOT generate or project a skill from this prompt.
-6. End with a single-screen summary: episode written, learnings touched, candidates updated/created/suppressed, and which ones are ready for synth review.
-7. If the synth review recommends `PROJECT EXISTING`, point the operator to `helix/scripts/promote-skill.ps1`. If it recommends `CREATE NEW` or `ADD TO EXISTING`, point the operator to `/hc-maker`.
+- Schemas, gates, graveyard rules, persistence layout, and triggers — `helix/docs/distillation-architecture.md`.
+- Role and decision rules (graveyard check, append-only candidates, recommend-don't-promote) — `helix/.github/agents/hc-distiller.agent.md`.
+
+Local rules for this entrypoint:
+
+- Read `.helix/active-workspace.yml` first. If no workspace is active, ask the operator which to distil and stop until answered.
+- Do NOT generate or project a skill from this prompt. When a candidate looks ready, recommend `/hc-review-reusable-patterns` for maintainer review (which may invoke `/hc-skill-synth`); on `PROJECT EXISTING` point at `helix/scripts/promote-skill.ps1`, on `CREATE NEW` / `ADD TO EXISTING` point at `/hc-maker`.
 
 ${input:scope:Optional — feature slug to distil instead of the most recent session}

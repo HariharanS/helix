@@ -608,6 +608,44 @@ $activeWorkspace = [ordered]@{
 }
 Write-HelixYamlFile -Path (Join-Path $TargetRoot '.helix/active-workspace.yml') -Value $activeWorkspace
 
+# Seed workspaces/{id}/resume.yml on first setup. Update-HelixResumeSnapshot is
+# additive and merge-safe, so an existing resume.yml is left mostly untouched
+# (only updated_at is bumped). The artifact_paths block is best-effort populated
+# from the workspace manifest.
+$resumePath = Join-Path $TargetRoot "workspaces/$workspaceName/resume.yml"
+if (-not (Test-Path $resumePath)) {
+    $taskBoardPath = $null
+    $executionPlanPath = $null
+    $decisionsLogPath = $null
+    if ($null -ne $workspaceManifest.artifacts) {
+        if ($workspaceManifest.artifacts.Contains('task_board_dir')) {
+            $taskBoardPath = "workspaces/$workspaceName/$([string]$workspaceManifest.artifacts['task_board_dir'])"
+        }
+        if ($workspaceManifest.artifacts.Contains('execution_plan_dir')) {
+            $executionPlanPath = "workspaces/$workspaceName/$([string]$workspaceManifest.artifacts['execution_plan_dir'])"
+        }
+        if ($workspaceManifest.artifacts.Contains('decisions_dir')) {
+            $decisionsLogPath = "workspaces/$workspaceName/$([string]$workspaceManifest.artifacts['decisions_dir'])"
+        }
+    }
+
+    $resumePatch = [ordered]@{
+        phase = [ordered]@{
+            current = 'discovery'
+            last_completed = $null
+        }
+        artifact_paths = [ordered]@{
+            execution_plan = $executionPlanPath
+            task_board = $taskBoardPath
+            decisions_log = $decisionsLogPath
+        }
+        next_action = 'Run hc-jam to refine intent and start discovery.'
+    }
+
+    $resumeOut = Update-HelixResumeSnapshot -HelixRoot $TargetRoot -WorkspaceId $workspaceName -Patch $resumePatch
+    Write-Host "Seeded resume snapshot: $resumeOut"
+}
+
 if ($SkipClaudeSettings) {
     Write-Warning "SkipClaudeSettings is deprecated because Claude settings are no longer written by default. Use -IncludeClaudeSettings when you explicitly want Claude Desktop configuration."
 }
@@ -632,6 +670,70 @@ if ($IncludeClaudeSettings) {
 $removedInstructionSummaries = Remove-HelixGeneratedInstructionSummaries -TargetRoot $TargetRoot
 if ($removedInstructionSummaries -gt 0) {
     Write-Host "Removed $removedInstructionSummaries Helix-generated .instructions.md summary file(s)."
+}
+
+# Step 1: remove any projected workspace skill at meta-root whose source repo is
+# not in the current workspace. The active-workspace.yml file does not record the
+# repo set, so we work statelessly off projection.from_repo frontmatter on disk.
+# Repos that overlap stay intact (Publish-HelixWorkspaceSkill is idempotent for the
+# same source).
+$currentRepoShorts = New-Object 'System.Collections.Generic.HashSet[string]'([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($wr in $workspaceRepos) {
+    $null = $currentRepoShorts.Add((ConvertTo-HelixRepoShortSlug -Value ([string]$wr.repo_id)))
+}
+
+$rootSkillsDir = Join-Path $TargetRoot '.github/skills'
+if (Test-Path $rootSkillsDir) {
+    $staleRepoShorts = New-Object 'System.Collections.Generic.HashSet[string]'([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($folder in (Get-ChildItem -LiteralPath $rootSkillsDir -Directory -ErrorAction SilentlyContinue)) {
+        $folderName = $folder.Name
+        if ($folderName.StartsWith('hc-', [System.StringComparison]::OrdinalIgnoreCase)) { continue }
+        if ($folderName.StartsWith('hr-', [System.StringComparison]::OrdinalIgnoreCase)) { continue }
+        $skillMd = Join-Path $folder.FullName 'SKILL.md'
+        if (-not (Test-Path $skillMd)) { continue }
+        $fm = Import-HelixSkillFrontmatterYaml -Path $skillMd
+        if (-not $fm.Contains('projection')) { continue }
+        $proj = $fm['projection']
+        if (-not ($proj -is [System.Collections.IDictionary])) { continue }
+        if (-not $proj.Contains('from_repo')) { continue }
+        $fromRepo = [string]$proj['from_repo']
+        if ($currentRepoShorts.Contains($fromRepo)) { continue }
+        $null = $staleRepoShorts.Add($fromRepo)
+    }
+    foreach ($prevShort in $staleRepoShorts) {
+        $stale = Remove-HelixWorkspaceProjection -MetaRoot $TargetRoot -RepoShortName $prevShort
+        if ($stale.Count -gt 0) {
+            Write-Host "Removed stale workspace-skill projections for repo '$prevShort': $($stale -join ', ')"
+        }
+    }
+}
+
+# Step 2: project workspace skills for the new active workspace, with collision detection.
+$projectedTargets = New-Object 'System.Collections.Generic.Dictionary[string, string]'([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($wr in $workspaceRepos) {
+    $repoId = [string]$wr.repo_id
+    $repoPath = [string]$wr.repo_path
+    if ([string]::IsNullOrWhiteSpace($repoId) -or [string]::IsNullOrWhiteSpace($repoPath)) { continue }
+    if (-not (Test-Path $repoPath)) { continue }
+
+    $repoShort = ConvertTo-HelixRepoShortSlug -Value $repoId
+    $sources = Get-HelixWorkspaceSkillSource -SourceRepoRoot $repoPath -RepoShortName $repoShort
+    foreach ($src in $sources) {
+        $projectedName = "$repoShort-$($src.skill_name)"
+        if ($projectedTargets.ContainsKey($projectedName)) {
+            $other = $projectedTargets[$projectedName]
+            throw "Projection collision: '$projectedName' would be projected from both '$other' and '$($src.source_folder)'. Rename one of the source skills, set 'projection: { mode: never }' on one, or use distinct repo ids."
+        }
+        $entry = Publish-HelixWorkspaceSkill `
+            -SourceRepoRoot $repoPath `
+            -RepoShortName $repoShort `
+            -SkillRelPath $src.rel_path `
+            -MetaRoot $TargetRoot
+        if ($null -ne $entry) {
+            $projectedTargets[$projectedName] = $src.source_folder
+            Write-Host "Projected $repoId/$($src.rel_path) -> .github/skills/$projectedName"
+        }
+    }
 }
 
 $skillIndexPath = Write-HelixSkillIndex -TargetRoot $TargetRoot -WorkspaceName $workspaceName -WorkspaceRepos $workspaceRepos

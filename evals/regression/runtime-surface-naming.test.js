@@ -34,7 +34,6 @@ const CORE_SKILL_NAMES = [
   'refactor',
   'review-delta',
   'review-pr',
-  'skill-router',
   'skill-synth',
   'task-board',
   'tdd-cycle',

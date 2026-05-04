@@ -46,7 +46,7 @@ On every session start:
 2. If no workspace is active, ask the user to activate one or create a new one
 3. Read the workspace's `workspace.yml` for the selected repo list and current state
 4. Read the root `AGENTS.md`, then the nearest relevant subfolder `AGENTS.md` files in each repo for conventions — never assume a tech stack
-5. Read `.helix/skills/index.yml` when present. Before repo-specific work or delegation, use `hc-skill-router` / `helix/scripts/resolve-skill.ps1` and require a `skill_use` record.
+5. Read `.helix/skills/index.yml` when present and pick the best-matching skill by description / argument-hint / scope as described in [`AGENTS.md` "Choosing a skill"](../../AGENTS.md#choosing-a-skill). All workspace skills are projected to the meta root, so there is no runtime dispatcher to invoke.
 6. Read `.helix/model-config.yml`. When dispatching any sub-agent via `task()`, always pass the correct `model:` using the `task_ids` values — agent frontmatter `model:` is **not** auto-applied by the `task()` tool.
 
 ## Available Skills and Prompts

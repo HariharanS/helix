@@ -1,78 +1,48 @@
 # Meta-Repo Skills Management
 
-Helix discovers repo-specific skills during onboarding, but host support for invoking skills from nested product repos is not guaranteed across VS Code, Copilot CLI, and future runtimes. Treat repo-local skills as discovery artifacts until Helix indexes or projects them into the meta-repo runtime surface.
+Helix projects every workspace repo's `.github/skills/*/SKILL.md` to the meta-root `.github/skills/` so that hosts (VS Code chat, Copilot CLI) can discover them from a single CWD. Projection is part of `setup-workspace.ps1`; it is automatic, deterministic, and replaces the older "candidate" model where repo skills were merely indexed but not host-visible.
 
 ## Design Rule
 
-Repo-local skills are discovery artifacts. Meta-root skills are runtime affordances.
+Every workspace skill is host-visible from meta-root through projection. The source-of-truth is the source repo; meta-root projections are read-only mirrors that carry provenance frontmatter.
 
-This keeps the meta-repo as the orchestration root without pretending every nested `.github/skills` folder is automatically invokable from every host.
+This keeps the meta-repo as the orchestration root without forcing hosts to descend into nested `.github/skills` folders inside product repos.
 
 ## Skill Lifecycle
 
 | State | Location | Meaning |
 |---|---|---|
-| Discovered | `workspaces/{id}/repos/{repo}/.github/skills/{name}/SKILL.md` | Onboard found a recurring repo pattern |
-| Candidate | `.helix/skills/index.yml` | Helix indexed the repo-local skill and recorded origin, scope, confidence, and safety notes |
-| Indexed | `.helix/skills/index.yml` | Workspace sync can route agents to the skill source |
-| Projected | `.github/skills/hr-{skill-name}/SKILL.md` | The skill is available from the meta-root runtime surface |
+| Authored | `workspaces/{id}/repos/{repo}/.github/skills/{name}/SKILL.md` | Source-of-truth in the source repo |
+| Projected | `.github/skills/{repo-short}-{skill-name}/SKILL.md` | Read-only mirror at meta-root, written by `setup-workspace.ps1`, carries `projection:` provenance frontmatter |
+| Indexed | `.helix/skills/index.yml` | Projection ledger: every meta-root entry, with provenance and checksum |
 | Promoted | `.github/skills/hc-{skill-name}/SKILL.md` in Helix core | The skill is stable enough to ship with Helix |
 | Retired | `.helix/skills/graveyard/{skill-id}.yml` | The pattern is stale, unsafe, or too bespoke |
+| Skipped | source frontmatter `projection: never` | Repo-local-only skill (e.g. relies on a specific repo's filesystem layout); not projected |
 
 ## Naming Policy
 
 Use prefixes to identify ownership:
 
-- `hc-*`: Helix core managed skills shipped by the Helix source repo.
-- `hr-*`: Helix runtime created or projected skills in an installed meta repo.
+- `hc-*`: Helix core skills shipped by the Helix source repo. Live at meta-root, not projected.
+- `hr-*`: Helix-reusable skills (legacy mechanism). Live at meta-root, treated as projected.
+- `{repo-short}-{skill-name}`: workspace skills projected from active workspace repos. The folder *and* the frontmatter `name:` field are rewritten to this prefixed form so any host that keys off either will resolve unambiguously. The original name is preserved in `projection.from_name`.
 
-Do not put the repo id in the projected skill name by default. Store origin metadata in the index instead:
+`{repo-short}` is derived by slugifying `repo_id` from `helix-repos.yml` (lowercase, non-alphanumerics collapsed to `-`). Two repos whose ids slug to the same short name will fail projection with a hard collision error pointing at both source paths — disambiguate by renaming a repo id or marking one source skill `projection: never`.
 
-```yaml
-id: hr-payment-contract-fixtures
-origin:
-  workspace_id: directdebit
-  repo_id: Rapid.Api.PaymentRequest
-  source_path: workspaces/directdebit/repos/Rapid.Api.PaymentRequest/.github/skills/payment-contract-fixtures/SKILL.md
-scope:
-  repos:
-    - Rapid.Api.PaymentRequest
-status: projected
-```
+## Choosing A Skill
 
-If two repos discover incompatible skills with the same name, do not auto-project both. Either keep them as repo-local candidates or project with a scoped name such as `hr-paymentrequest-contract-fixtures`.
+Because every workspace skill is projected to meta-root, hosts can list and invoke them directly. There is no longer a runtime "router skill" that decides which skill to load — selection is the agent's job, guided by the descriptions in each `SKILL.md`, the `.helix/skills/index.yml` ledger, and the patterns documented in `helix/AGENTS.md` ("Choosing a skill"). See [`skill-projection-and-simplification-plan.md`](./skill-projection-and-simplification-plan.md) for the rationale.
 
-## Router Skill
-
-The meta root contains a small Helix core router skill:
-
-```text
-.github/skills/hc-skill-router/SKILL.md
-```
-
-The router does not magically force the host to load nested skills. Its job is to make the agent consult Helix's skill index and then read the right repo-local or projected skill file before acting.
-
-Router behavior:
-
-1. Resolve the active workspace from `.helix/active-workspace.yml`.
-2. Read `.helix/skills/index.yml`.
-3. Match the current task to repo, file paths, language, domain, and available skill scopes.
-4. Prefer projected `hr-*` skills when available.
-5. If no projected skill exists, read the indexed repo-local skill source directly.
-6. Emit a `skill_use` record before acting.
-
-This makes routing dependable even when a host does not expose nested repo skills as invokable commands.
-
-When available, use the deterministic resolver:
+The deterministic resolver remains as a developer/CI utility for verifying projection correctness:
 
 ```powershell
 ./helix/scripts/resolve-skill.ps1 -RepoId <repo-id> -Path <path> -Task "<task>"
 ```
 
-To project an approved candidate into the meta-root runtime surface:
+To promote a projected workspace skill into a stable Helix-reusable `hr-*` skill:
 
 ```powershell
-./helix/scripts/promote-skill.ps1 -SkillId hr-payment-contract-fixtures
+./helix/scripts/promote-skill.ps1 -SkillId <projected-name>
 ```
 
 ## Projection Rules
@@ -97,43 +67,46 @@ Do not project:
 
 ## Index Shape
 
-`install-helix.ps1` seeds core entries and `setup-workspace.ps1` refreshes workspace repo candidates in `.helix/skills/index.yml`:
+`install-helix.ps1` seeds core entries and `setup-workspace.ps1` rewrites the index after projecting the active workspace's skills. The index is now a projection ledger keyed off on-disk meta-root state — the writer scans `.github/skills/` and emits one entry per folder, picking up provenance from the projected SKILL.md frontmatter:
 
 ```yaml
-schema_version: 1
-updated_at: 2026-04-30T00:00:00Z
+schema_version: 2
+updated_at: 2026-05-04T00:00:00Z
 active_workspace: directdebit
 skills:
   - id: hc-workspace-sync
     name: hc-workspace-sync
     status: core
+    access:
+      source: meta-root-skill
     origin:
       kind: helix-core
       source_path: .github/skills/hc-workspace-sync/SKILL.md
     path: .github/skills/hc-workspace-sync/SKILL.md
-    projected_path: null
-    scope:
-      repos: []
-      paths: []
-    confidence: high
     requires_skill_use_record: true
-  - id: hr-payment-contract-fixtures
-    name: payment-contract-fixtures
-    status: candidate
+  - id: rapid-api-paymentrequest-payment-contract-fixtures
+    name: rapid-api-paymentrequest-payment-contract-fixtures
+    status: projected
+    access:
+      source: projected
     origin:
-      kind: repo-local
-      workspace_id: directdebit
-      repo_id: Rapid.Api.PaymentRequest
-      source_path: workspaces/directdebit/repos/Rapid.Api.PaymentRequest/.github/skills/payment-contract-fixtures/SKILL.md
-    path: workspaces/directdebit/repos/Rapid.Api.PaymentRequest/.github/skills/payment-contract-fixtures/SKILL.md
-    projected_path: null
+      kind: workspace-projected
+      source_path: .github/skills/rapid-api-paymentrequest-payment-contract-fixtures/SKILL.md
+    path: .github/skills/rapid-api-paymentrequest-payment-contract-fixtures/SKILL.md
+    projection:
+      from_repo: rapid-api-paymentrequest
+      from_path: .github/skills/payment-contract-fixtures
+      from_name: payment-contract-fixtures
+      projected_at: 2026-05-04T10:30:00Z
+      checksum: sha256:abc...
     scope:
       repos:
-        - Rapid.Api.PaymentRequest
+        - rapid-api-paymentrequest
       paths: []
-    confidence: medium
     requires_skill_use_record: true
 ```
+
+`Read-HelixSkillIndex` upgrades v1 indexes to v2 in memory, stripping the deprecated `routing.use_mode` and `access.host_visible` fields. `Write-HelixSkillIndex` always emits v2.
 
 Keep the index machine-readable. Human summaries can live in `workspaces/{id}/skill-catalog.md` if needed.
 
@@ -162,7 +135,7 @@ Then add a lightweight behavioral eval:
 
 ## Implementation Plan
 
-1. Done: add `hc-skill-router` as a Helix core skill.
+1. Done: add `hc-skill-router` as a Helix core skill. (Removed in the projection-and-simplification plan; selection guidance now lives in `helix/AGENTS.md` under "Choosing a skill".)
 2. Done: write `.helix/skills/index.yml` during install and workspace setup.
 3. Done: add deterministic resolver and regression coverage for routing/fallback/disambiguation.
 4. Done: add `promote-skill.ps1` to project approved candidates into `.github/skills/hr-*`.

@@ -219,11 +219,25 @@ test('setup-workspace emits AGENTS settings and cleans only Helix-generated inst
   const skillIndexPath = path.join(root, '.helix', 'skills', 'index.yml');
   assert.ok(fs.existsSync(skillIndexPath), 'skill registry was not generated');
   const skillIndex = fs.readFileSync(skillIndexPath, 'utf8');
+  assert.match(skillIndex, /schema_version: 2/);
   assert.match(skillIndex, /active_workspace: demo/);
   assert.match(skillIndex, /id: hc-workspace-sync/);
   assert.match(skillIndex, /status: core/);
-  assert.match(skillIndex, /id: hr-payment-contract-fixtures/);
-  assert.match(skillIndex, /status: candidate/);
-  assert.match(skillIndex, /repo_id: service-a/);
+  assert.match(skillIndex, /id: service-a-payment-contract-fixtures/);
+  assert.match(skillIndex, /status: projected/);
+  assert.match(skillIndex, /from_repo: service-a/);
+  assert.match(skillIndex, /from_path: .github\/skills\/payment-contract-fixtures/);
+  assert.match(skillIndex, /from_name: payment-contract-fixtures/);
   assert.match(skillIndex, /requires_skill_use_record: true/);
+
+  // The repo's source SKILL.md was projected to meta-root with the prefixed name and frontmatter rewritten.
+  const projectedPath = path.join(root, '.github', 'skills', 'service-a-payment-contract-fixtures', 'SKILL.md');
+  assert.ok(fs.existsSync(projectedPath), 'projected SKILL.md was not created at meta-root');
+  const projectedContent = fs.readFileSync(projectedPath, 'utf8');
+  assert.match(projectedContent, /name: service-a-payment-contract-fixtures/);
+  assert.match(projectedContent, /from_repo: service-a/);
+  assert.match(projectedContent, /from_name: payment-contract-fixtures/);
+  // Original frontmatter `name` should be replaced, not duplicated.
+  const nameMatches = projectedContent.match(/^name:.*$/gm) || [];
+  assert.equal(nameMatches.length, 1, 'projected SKILL.md should have exactly one `name:` field');
 });

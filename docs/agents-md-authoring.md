@@ -1,6 +1,15 @@
 # AGENTS.md Authoring Standard
 
-Helix uses `AGENTS.md` as the default persistent instruction surface. Do not install `.github/copilot-instructions.md`, and do not generate `.github/instructions/*.instructions.md` summaries as part of normal setup.
+Helix uses `AGENTS.md` as the Helix-managed instruction surface for agents. It is the only instruction file Helix authors, links from, and keeps current. Do not install `.github/copilot-instructions.md`, and do not generate `.github/instructions/*.instructions.md` summaries as part of normal setup.
+
+`helix/scripts/doctor.ps1` emits a warning (non-failing) when any of the following user-authored instruction surfaces exist alongside Helix:
+
+- `.github/copilot-instructions.md`
+- `.github/instructions/**/*.instructions.md` (excluding Helix-generated summaries that carry the legacy generation marker)
+- root `CLAUDE.md`
+- root `GEMINI.md`
+
+Doctor warns only; it never deletes these files. Move durable guidance into `AGENTS.md` and remove the user-authored surface yourself if you want the warning to stop firing.
 
 ## Layering Model
 
