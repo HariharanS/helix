@@ -19,8 +19,8 @@ function Get-DefaultContextProvidersConfig {
             code_review_graph = [ordered]@{
                 mode = 'off'
                 detail_level = 'minimal'
-                max_tool_calls_per_task = 5
-                max_context_tokens_per_task = 800
+                max_tool_calls_per_task = 10
+                max_context_tokens_per_task = 4000
             }
         }
     }
@@ -167,10 +167,10 @@ function Ensure-ContextProvidersConfig {
         $providerConfig['detail_level'] = 'minimal'
     }
     if (-not $providerConfig.Contains('max_tool_calls_per_task')) {
-        $providerConfig['max_tool_calls_per_task'] = 5
+        $providerConfig['max_tool_calls_per_task'] = 10
     }
     if (-not $providerConfig.Contains('max_context_tokens_per_task')) {
-        $providerConfig['max_context_tokens_per_task'] = 800
+        $providerConfig['max_context_tokens_per_task'] = 4000
     }
 
     return $Config

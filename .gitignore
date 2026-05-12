@@ -1,1 +1,4 @@
 .github/hooks/logs/
+pet/pet-host.pid
+pet/pet-host.log
+pet/lib/

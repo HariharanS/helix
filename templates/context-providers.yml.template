@@ -5,5 +5,5 @@ providers:
     # off  — emergency fallback only; agents use default search/manual repo scanning
     mode: mcp
     detail_level: minimal
-    max_tool_calls_per_task: 5
-    max_context_tokens_per_task: 800
+    max_tool_calls_per_task: 10
+    max_context_tokens_per_task: 4000

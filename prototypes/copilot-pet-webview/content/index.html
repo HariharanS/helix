@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Copilot Pet</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <main class="pet-window" aria-label="Copilot pet prototype">
+      <section class="status-strip" aria-live="polite">
+        <span class="state-dot" data-state-dot></span>
+        <span class="state-label" data-state-label>Idle</span>
+      </section>
+
+      <section class="pet-stage" data-stage>
+        <div class="halo"></div>
+        <div class="pet" data-pet>
+          <div class="antenna">
+            <span></span>
+          </div>
+          <div class="head">
+            <div class="screen">
+              <span class="eye left"></span>
+              <span class="eye right"></span>
+              <span class="mouth"></span>
+            </div>
+            <span class="ear left"></span>
+            <span class="ear right"></span>
+          </div>
+          <div class="body">
+            <span class="badge"></span>
+            <span class="arm left"></span>
+            <span class="arm right"></span>
+          </div>
+          <div class="feet">
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="bubble" data-bubble>
+        Waiting for Copilot
+      </section>
+
+      <nav class="state-picker" aria-label="Preview pet states">
+        <button type="button" data-state="idle" aria-label="Idle state"></button>
+        <button type="button" data-state="thinking" aria-label="Thinking state"></button>
+        <button type="button" data-state="tool" aria-label="Tool running state"></button>
+        <button type="button" data-state="pass" aria-label="Tests passed state"></button>
+        <button type="button" data-state="fail" aria-label="Failure state"></button>
+      </nav>
+    </main>
+    <script src="./main.js"></script>
+  </body>
+</html>

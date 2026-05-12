@@ -1457,6 +1457,44 @@ function Merge-HelixMarkedSections {
     return $merged
 }
 
+function Merge-HelixMarkedBlocksHash {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$SourceContent,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$TargetContent
+    )
+
+    $pattern = '(?s)# HELIX:BEGIN (?<name>[\w-]+)\r?\n.*?# HELIX:END \k<name>'
+    $sourceMatches = [regex]::Matches($SourceContent, $pattern)
+    if ($sourceMatches.Count -eq 0) {
+        return $null
+    }
+
+    $merged = $TargetContent
+    foreach ($match in $sourceMatches) {
+        $name = $match.Groups['name'].Value
+        $sectionPattern = "(?s)# HELIX:BEGIN $([regex]::Escape($name))\r?\n.*?# HELIX:END $([regex]::Escape($name))"
+        $replacement = $match.Value
+        if ([regex]::IsMatch($merged, $sectionPattern)) {
+            $merged = [regex]::Replace(
+                $merged,
+                $sectionPattern,
+                [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $replacement },
+                1
+            )
+        } else {
+            if ($merged.Length -gt 0 -and -not $merged.EndsWith("`n")) {
+                $merged += "`r`n"
+            }
+            if ($merged.Length -gt 0) {
+                $merged += "`r`n"
+            }
+            $merged += $replacement + "`r`n"
+        }
+    }
+
+    return $merged
+}
+
 Export-ModuleMember -Function @(
     'ConvertFrom-HelixYaml',
     'ConvertTo-HelixRepoShortSlug',
@@ -1476,6 +1514,7 @@ Export-ModuleMember -Function @(
     'Import-HelixSkillFrontmatter',
     'Import-HelixSkillFrontmatterYaml',
     'Merge-HelixMarkedSections',
+    'Merge-HelixMarkedBlocksHash',
     'New-HelixDirectory',
     'Publish-HelixWorkspaceSkill',
     'Read-HelixSkillIndex',

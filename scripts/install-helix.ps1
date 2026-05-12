@@ -102,6 +102,24 @@ function Write-ManagedFile {
 
             [System.IO.File]::WriteAllText($targetPath, $merged)
         }
+        'append-marked-block-hash' {
+            $sourcePath = Join-Path $SourceRoot $Item.source
+            $sourceContent = [System.IO.File]::ReadAllText($sourcePath)
+
+            if (-not (Test-Path $targetPath)) {
+                [System.IO.File]::WriteAllText($targetPath, $sourceContent)
+                break
+            }
+
+            $targetContent = [System.IO.File]::ReadAllText($targetPath)
+            $merged = Merge-HelixMarkedBlocksHash -SourceContent $sourceContent -TargetContent $targetContent
+            if ($null -eq $merged) {
+                Write-Warning "Skipping merge for '$($Item.path)' because the source has no '# HELIX:BEGIN' blocks."
+                break
+            }
+
+            [System.IO.File]::WriteAllText($targetPath, $merged)
+        }
         default {
             throw "Unsupported sync_mode '$($Item.sync_mode)' for '$($Item.path)'."
         }
@@ -205,12 +223,20 @@ Add-ManagedFile -Items $items -SourceRelative 'scripts/workspace-setup.ps1' -Tar
 Add-ManagedFile -Items $items -SourceRelative 'scripts/resolve-skill.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/resolve-skill.ps1') -Category 'script' -SyncMode 'replace'
 Add-ManagedFile -Items $items -SourceRelative 'scripts/promote-skill.ps1' -TargetRelative (Join-Path $managedAssetRoot 'scripts/promote-skill.ps1') -Category 'script' -SyncMode 'replace'
 
+# Pet (always-on-top WPF + WebView2 companion). Spawned by .github/hooks/scripts/pet-spawn.js
+# on Copilot sessionStart and resolved at <meta-root>/pet/. WebView2 lib DLLs auto-fetch
+# on first launch; runtime artifacts (lib/, *.log, *.pid) are gitignored in source.
+Add-ManagedFile -Items $items -SourceRelative 'pet/pet-host.ps1' -TargetRelative 'pet/pet-host.ps1' -Category 'pet' -SyncMode 'replace'
+Add-ManagedFile -Items $items -SourceRelative 'pet/README.md' -TargetRelative 'pet/README.md' -Category 'pet' -SyncMode 'replace'
+Add-ManagedTree -Items $items -SourceRelativeRoot 'pet/content' -TargetRelativeRoot 'pet/content' -Category 'pet' -SyncMode 'replace'
+
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.README.md.template' -TargetRelative 'README.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.AGENTS.md.template' -TargetRelative 'AGENTS.md' -Category 'doc' -SyncMode 'merge-marked-sections'
 Add-ManagedFile -Items $items -SourceRelative 'templates/vscode.mcp.json.template' -TargetRelative '.vscode/mcp.json' -Category 'config' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/helix-repos.yml.template' -TargetRelative 'helix-repos.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/active-workspace.yml.template' -TargetRelative '.helix/active-workspace.yml' -Category 'manifest' -SyncMode 'seed-once'
 Add-ManagedFile -Items $items -SourceRelative 'templates/context-providers.yml.template' -TargetRelative '.helix/context-providers.yml' -Category 'manifest' -SyncMode 'seed-once'
+Add-ManagedFile -Items $items -SourceRelative 'templates/meta-repo.gitignore.template' -TargetRelative '.gitignore' -Category 'config' -SyncMode 'append-marked-block-hash'
 
 $gitKeepTargets = @(
     '.helix/repo-state/.gitkeep',

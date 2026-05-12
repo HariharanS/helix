@@ -1,0 +1,6 @@
+# HELIX:BEGIN pet
+# Helix floating pet runtime artifacts (auto-generated; do not commit).
+pet/lib/
+pet/pet-host.pid
+pet/pet-host.log
+# HELIX:END pet

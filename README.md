@@ -71,8 +71,8 @@ graph TB
     Registry -- "lists" --> ProductRepos
 
     subgraph ProductRepos["Sibling Product Repos"]
-        RepoA[service-a/]
-        RepoB[service-b/]
+        RepoA["service-a/<br/>.github/skills/"]
+        RepoB["service-b/<br/>.github/skills/"]
         RepoC[service-c/]
     end
 
@@ -83,13 +83,15 @@ graph TB
     ProductRepos --> CRG
     Helix -- "queries" --> CRG
     Helix -- "edits via host" --> ProductRepos
+    ProductRepos -. "projects skills (read-only)<br/>via hc-workspace-sync" .-> Helix
 ```
 
-Three things this diagram is asserting:
+Four things this diagram is asserting:
 
 - **helix-core** is the upstream source of reusable assets. An installed meta-repo gets a copy of those assets at `helix/` via `init-meta-repo` / `sync-helix`. The meta-repo is not Helix; it is what Helix runs inside.
 - **Hosts read from CWD.** VS Code chat and Copilot CLI both discover `AGENTS.md`, `.github/skills/`, and `.github/prompts/` from the current working directory. Helix sessions are expected to start at the meta-repo root so these surfaces resolve correctly.
-- **Workspace artifacts vs. product code are separate.** Workspace artifacts (PRD, design, tasks, decisions, bundles) live in `workspaces/{id}/` inside the meta-repo. Product code edits land in sibling repos listed in `helix-repos.yml`. CRG indexes the sibling repos and serves blast-radius / dependency lookups back to Helix agents.
+- **Workspace artifacts vs. product code are separate.** Workspace artifacts (PRD, design, tasks, decisions, bundles, `resume.yml`) live in `workspaces/{id}/` inside the meta-repo. Product code edits land in sibling repos listed in `helix-repos.yml`. CRG indexes the sibling repos and serves blast-radius / dependency lookups back to Helix agents.
+- **Workspace skills are projected, not loaded by a router.** Skills declared in active-workspace product repos under `.github/skills/<name>/SKILL.md` are mirrored read-only into the meta-root `helix/.github/skills/` as `{repo-short}-{skill-name}` by `hc-workspace-sync`. `.helix/skills/index.yml` is the projection ledger (cleaned on workspace switch). `hc-*` core skills live in the meta-root and are not projected. Skills with `projection: never` are skipped.
 
 ## Agent Roster By Tier
 
@@ -195,6 +197,7 @@ Workspace-scoped artifacts are the source of truth for feature delivery:
 ```text
 workspaces/{name}/
 ├── workspace.yml
+├── resume.yml
 ├── refined-intent.md
 ├── prd.md or prd/
 ├── tech-design.md or tech-design/
@@ -293,6 +296,8 @@ Open `{workspace}.code-workspace` in VS Code when working through the editor. In
 | `.\helix\scripts\setup-workspace.ps1` | Installed meta repo | Canonical workspace setup implementation |
 | `.\helix\scripts\doctor.ps1` | Installed meta repo | Validate manifests, workspace layout, agent collisions, CRG config, and repo readiness |
 | `.\helix\scripts\set-context-provider.ps1` | Installed meta repo | Configure `code-review-graph`; `off` is an emergency fallback |
+| `.\helix\scripts\promote-skill.ps1` | Installed meta repo | Promote a workspace skill candidate into a meta-root `hr-*` projected skill |
+| `.\helix\scripts\resolve-skill.ps1` | Installed meta repo | Projection-aware skill lookup: prefers projected `hr-*` skills, falls back to repo-local candidates, returns disambiguation when ties |
 
 ## When To Start Agents
 
